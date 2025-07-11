@@ -30,7 +30,7 @@ return [
     | 默认开启
     |
     */
-    'auto_use_middleware_groups'             => true,
+    'auto_use_middleware_groups' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ return [
     | 默认['api'] 表示 api.php 里面的路由全部加上`api`前缀和 `api.` 路由命名, 不需要就设置为 []
     |
     */
-    'route_need_add_prefix_and_name'         => ['api'],
+    'route_need_add_prefix_and_name' => ['api'],
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ return [
     | 默认关闭
     |
     */
-    'publishes_config'                       => false,
+    'publishes_config' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ return [
     | 默认关闭
     |
     */
-    'publishes_views'                        => false,
+    'publishes_views' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -70,8 +70,7 @@ return [
     | 默认关闭
     |
     */
-    'trace'                                  => (bool)env('APP_DEBUG', false),
-
+    'trace' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -95,7 +94,7 @@ return [
     |    }
     |
     */
-    'trace_end_handle_class'                 => '',
+    'trace_end_handle_class' => '',
 
     /*
     |--------------------------------------------------------------------------
@@ -115,7 +114,7 @@ return [
     |    因此：配置此项时要避免出现冲突的情况
     |
     */
-    'multi_config_delimiter'                 => '_',
+    'multi_config_delimiter' => '_',
 
     /*
     |--------------------------------------------------------------------------
@@ -130,7 +129,7 @@ return [
     |            "xdebug", "espresso"
     |
     */
-    'editor'                                 => env('TRACE_EDITOR') ?: env('TRACE_EDITOR', 'phpstorm'),
+    'editor' => env('TRACE_EDITOR') ?: env('TRACE_EDITOR', 'phpstorm'),
 
     /*
     |--------------------------------------------------------------------------
