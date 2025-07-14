@@ -296,7 +296,7 @@ class SecurityMiddleware extends MiddlewareAbstract
         $this->checkBannedSpiders($request);
 
         // 2. 检查禁止的IP
-        $this->checkBannedIps($request);
+        // $this->checkBannedIps($request);
 
         // 3. 检查可疑User-Agent
         $this->checkSuspiciousUserAgent($request);
@@ -382,11 +382,12 @@ class SecurityMiddleware extends MiddlewareAbstract
             );
         }
 
-        $banSpiders = '';
-        //        $banSpiders = setting('common.ban_spiders');
-        //        if (empty($banSpiders)) {
-        //            return;
-        //        }
+        return;
+
+        $banSpiders = setting('common.ban_spiders');
+        if (empty($banSpiders)) {
+            return;
+        }
 
         $banSpiderArr = array_filter(
             preg_split('/[\r\n]+/', $banSpiders),
@@ -414,11 +415,10 @@ class SecurityMiddleware extends MiddlewareAbstract
     protected function checkBannedIps(Request $request): void
     {
         $userIp = $request->ip();
-        $banIps = '';
-        //        $banIps = setting('common.ban_ips');
-        //        if (empty($banIps)) {
-        //            return;
-        //        }
+        $banIps = setting('common.ban_ips');
+        if (empty($banIps)) {
+            return;
+        }
 
         $banIpArr = array_filter(
             preg_split('/[\r\n]+/', $banIps),
