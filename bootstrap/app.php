@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // 公共中间件【放在前面】
         $middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
         // 安全拦截
-        $middleware->append(\Modules\Core\Http\Middleware\SecurityMiddleware::class);
+        $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 接入异常处理类
