@@ -127,6 +127,52 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // 自定义数据库日志
+        'database' => [
+            // 必须设置为 'monolog'，表示使用 Monolog 库
+            'driver' => 'monolog',
+            // 在创建日志实例前调用的类
+            'tap' => [\Modules\Logs\Handler\BeforeDatabaseLogger::class],
+            // 自定义处理器的类名，负责将日志写入数据库
+            'handler' => \Modules\Logs\Handler\DatabaseLogHandler::class,
+            // 使用的格式化类
+            'formatter' => Monolog\Formatter\JsonFormatter::class, // JSON 格式
+            // 'formatter' => Monolog\Formatter\LineFormatter::class, // 单行文本格式
+            // 'formatter' => Monolog\Formatter\HtmlFormatter::class, //  HTML 格式
+            // 传递给格式化器的额外参数
+            'formatter_with' => [
+                'dateFormat' => 'Y-m-d H:i:s',
+                'includeStacktraces' => true, // 包含堆栈跟踪
+            ],
+            // 日志处理器的类数组，用于添加额外信息
+            'processors' => [
+                Monolog\Processor\UidProcessor::class, // 添加唯一ID
+                Monolog\Processor\ProcessIdProcessor::class, // 添加进程ID
+                Monolog\Processor\MemoryUsageProcessor::class, // 添加内存使用情况
+                Monolog\Processor\WebProcessor::class, // 添加Web请求信息
+                Monolog\Processor\IntrospectionProcessor::class, // 添加调用上下文信息
+            ],
+            // 传递给处理器的额外参数
+            'handler_with' => [
+                // 是否冒泡到其他渠道
+                'bubble' => false,  // 数据库处理器通常设为 false 避免重复处理
+                // 存储日志的数据库表名
+                'table' => 'system_logs', // 日志表名
+                // 批量插入的日志条数 (可选)：每积累 x 条日志触发一次批量写入
+                // 'batch_size' => 10, // 默认50 // 不会传入到 处理器中
+                // 当缓冲数据达到约1MB时会自动触发写入
+                // 'buffer_limit' => 104857600, // 默认1M // 不会传入到 处理器中
+            ],
+            // 数据库特定配置
+            'with' => [// 数据库处理器通常设为 false 避免重复处理
+                // 使用的数据库连接 (来自 config/database.php)
+                'connection' => env('DB_CONNECTION', 'mysql'), // 数据库连接名称
+                // 存储日志的数据库表名
+                'table' => 'system_logs', // 日志表名
+            ],
+
+        ],
+
     ],
 
 ];
