@@ -156,7 +156,7 @@ php artisan vendor:publish --tag=laravel-errors
     // 公共中间件【放在前面】
     $middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
     // 安全拦截
-    $middleware->append(\Modules\Core\Http\Middleware\SecurityMiddleware::class);
+    $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
 })
 ```
 
