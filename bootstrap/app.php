@@ -1,9 +1,12 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Modules\Spider\Services\SpiderTasksService;
 use Modules\System\Services\SecurityServices;
+use Modules\Task\Services\CronTaskService;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -44,5 +47,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // $exceptions->render(function (\Throwable $e, Request $request) {
         //     dd($e);
         // });
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        // 自定任务调度
+
+        // 爬虫自定义定时任务
+        SpiderTasksService::customCronTasks($schedule);
+
+        // 调度普通定时任务
+        CronTaskService::handle($schedule);
     })
     ->create();

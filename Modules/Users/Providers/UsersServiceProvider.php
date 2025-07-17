@@ -5,6 +5,8 @@ namespace Modules\Users\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
+use Modules\Users\Models\User;
+use Modules\Users\Observers\UserObserver;
 use zxf\Laravel\Modules\Traits\PathNamespace;
 
 class UsersServiceProvider extends ServiceProvider
@@ -75,7 +77,7 @@ class UsersServiceProvider extends ServiceProvider
     // 加载观察者
     protected function bootObservers()
     {
-        //
+        User::observe(UserObserver::class);
     }
 
     // 配置 Passport 令牌生命周期
