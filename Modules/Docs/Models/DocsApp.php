@@ -127,12 +127,14 @@ class DocsApp extends Model
     /**
      * 类型转换
      *
-     * @var array
+     * @return array<string, string>
      */
-    protected $casts = [
-        // 'is_admin' => 'boolean',
-        'urls' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'urls' => 'array',
+        ];
+    }
 
     // 截断表
     public function truncate()

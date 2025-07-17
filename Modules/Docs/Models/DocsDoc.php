@@ -66,14 +66,17 @@ class DocsDoc extends Model
     /**
      * 类型转换
      *
-     * @var array
+     * @return array<string, string>
      */
-    protected $casts = [
-        'request_headers' => 'array',
-        'request_body' => 'array',
-        'request_examples' => 'array',
-        'response_examples' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'request_headers' => 'array',
+            'request_body' => 'array',
+            'request_examples' => 'array',
+            'response_examples' => 'array',
+        ];
+    }
 
     /**
      * 数组中的属性会被隐藏。
