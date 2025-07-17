@@ -1,11 +1,2065 @@
-@extends('home::layouts.master')
+<!DOCTYPE html>
+<html lang="zh_CN"  data-layout="topnav" data-topbar-color="light" data-menu-color="light" data-skin="modern" data-bs-theme="light" data-layout-position="fixed" data-sidenav-size="condensed" data-sidenav-user="true">
 
-@section('content')
-    <div class="content">
-        <div class="message-box rect">
-            <p class="gradient">模块: {!! config('home.name') !!}</p>
-            <p>文档:https://weisifang.com/docs/2</p>
-            <p>插件:composer require zxf/tools&nbsp;&nbsp;&nbsp;</p>
+<head>
+    <meta charset="utf-8">
+    <title>Horizontal Menu | 威四方 - 响应式模版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Inspinia is the #1 best-selling admin dashboard template on Wrapmarket. Perfect for building CRM, CMS, project management tools, and custom web apps with clean UI, responsive design, and powerful features.">
+    <meta name="keywords" content="Inspinia, admin dashboard, Wrapmarket, Wrapbootstrap, HTML template, Bootstrap admin, CRM template, CMS template, responsive admin, web app UI, admin theme, best admin template">
+    <meta name="author" content="weisifang.com,威四方">
+    <meta property="og:url" content="https://weisifang.com">
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{{ asset('static/inspinia/v4.0/assets/images/favicon.ico') }}">
+
+    <link rel="stylesheet" href="{{ asset('static/inspinia/v4.0/assets/plugins/jsvectormap/jsvectormap.min.css') }}">
+
+    <!-- Theme Config Js -->
+    <script src="{{ asset('static/inspinia/v4.0/assets/js/config.js') }}"></script>
+
+    <!-- Vendor css -->
+    <link href="{{ asset('static/inspinia/v4.0/assets/css/vendors.min.css') }}" rel="stylesheet" type="text/css">
+
+    <!-- App css -->
+    <link href="{{ asset('static/inspinia/v4.0/assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
+    <style>
+
+    </style>
+</head>
+
+<body>
+<!-- Begin page -->
+<div class="wrapper">
+
+    <!-- Topbar Start -->
+    <header class="app-topbar">
+        <div class="container-fluid topbar-menu">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Topbar Brand Logo -->
+                <div class="logo-topbar">
+                    <!-- Logo light -->
+                    <a href="index.html" class="logo-light">
+                            <span class="logo-lg">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/logo.png') }}" alt="logo">
+                            </span>
+                        <span class="logo-sm">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-sm.png') }}" alt="small logo">
+                            </span>
+                    </a>
+
+                    <!-- Logo Dark -->
+                    <a href="index.html" class="logo-dark">
+                            <span class="logo-lg">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-black.png') }}" alt="dark logo">
+                            </span>
+                        <span class="logo-sm">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-sm.png') }}" alt="small logo">
+                            </span>
+                    </a>
+                </div>
+
+                <!-- Sidebar Menu Toggle Button -->
+                <button class="sidenav-toggle-button btn btn-primary btn-icon">
+                    <i class="ti ti-menu-4 fs-22"></i>
+                </button>
+
+                <!-- Horizontal Menu Toggle Button -->
+                <button class="topnav-toggle-button px-2" data-bs-toggle="collapse" data-bs-target="#topnav-menu-content">
+                    <i class="ti ti-menu-4 fs-22"></i>
+                </button>
+
+                <!-- 自定义调整的顶部菜单-->
+                <header class="topnav topbar-item flex-horizontal-topnav">
+                    <nav class="navbar navbar-expand-lg">
+                        <nav class="container-fluid">
+                            <div class="collapse navbar-collapse" id="topnav-menu-content">
+                                <ul class="navbar-nav">
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-dashboards" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                            <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                                            <span class="menu-text" data-lang="dashboards"> Dashboard </span>
+                                            <div class="menu-arrow"></div>
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="topnav-dashboards">
+                                            <a href="index.html" class="dropdown-item" data-lang="dashboard-one">Dashboard v.1</a>
+                                            <a href="dashboard-2.html" class="dropdown-item" data-lang="dashboard-two">Dashboard v.2</a>
+                                            <a href="dashboard-3.html" class="dropdown-item" data-lang="dashboard-three">Dashboard v.3</a>
+                                            <a href="layouts-horizontal.html#!" class="dropdown-item disabled"><span data-lang="dashboard-four">Dashboard v.4</span> <span class="badge text-bg-light opacity-50" data-lang="dashboard-soon">soon</span></a>
+                                            <a href="layouts-horizontal.html#!" class="dropdown-item disabled"><span data-lang="dashboard-five">Dashboard v.5</span> <span class="badge text-bg-light opacity-50" data-lang="dashboard-soon">soon</span></a>
+                                        </div>
+                                    </li>
+
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-tables" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="menu-icon"><i class="ti ti-table-column"></i></span>
+                                            <span class="menu-text" data-lang="tables">Tables</span>
+                                            <div class="menu-arrow"></div>
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="topnav-tables">
+                                            <a href="tables-static.html" class="dropdown-item"><i class="ti ti-border-all"></i> <span data-lang="tables-static"> Static Tables </span></a>
+                                            <a href="tables-custom.html" class="dropdown-item"><i class="ti ti-stack-forward"></i> <span data-lang="tables-custom"> Custom Tables </span></a>
+                                            <div class="dropdown">
+                                                <a class="dropdown-item dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-datatables" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="ti ti-table"></i> <span data-lang="datatables"> DataTables </span> <span class="badge bg-success ms-1">14</span> <div class="menu-arrow"></div>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="topnav-datatables">
+                                                    <a href="tables-datatables-basic.html" class="dropdown-item" data-lang="tables-datatables-basic">Basic</a>
+                                                    <a href="tables-datatables-export-data.html" class="dropdown-item" data-lang="tables-datatables-export-data">Export Data</a>
+                                                    <a href="tables-datatables-select.html" class="dropdown-item" data-lang="tables-datatables-select">Select</a>
+                                                    <a href="tables-datatables-ajax.html" class="dropdown-item" data-lang="tables-datatables-ajax">Ajax</a>
+                                                    <a href="tables-datatables-javascript.html" class="dropdown-item" data-lang="tables-datatables-javascript">Javascript Source</a>
+                                                    <a href="tables-datatables-rendering.html" class="dropdown-item" data-lang="tables-datatables-rendering">Data Rendering</a>
+                                                    <a href="tables-datatables-scroll.html" class="dropdown-item" data-lang="tables-datatables-scroll">Scroll</a>
+                                                    <a href="tables-datatables-columns.html" class="dropdown-item" data-lang="tables-datatables-columns">Show & Hide Column</a>
+                                                    <a href="tables-datatables-child-rows.html" class="dropdown-item" data-lang="tables-datatables-child-rows">Child Rows</a>
+                                                    <a href="tables-datatables-column-searching.html" class="dropdown-item" data-lang="tables-datatables-column-searching">Column Searching</a>
+                                                    <a href="tables-datatables-range-search.html" class="dropdown-item" data-lang="tables-datatables-range-search">Range Search</a>
+                                                    <a href="tables-datatables-fixed-header.html" class="dropdown-item" data-lang="tables-datatables-fixed-header">Fixed Header</a>
+                                                    <a href="tables-datatables-add-rows.html" class="dropdown-item" data-lang="tables-datatables-add-rows">Add Rows</a>
+                                                    <a href="tables-datatables-checkbox-select.html" class="dropdown-item" data-lang="tables-datatables-checkbox-select">Checkbox Select</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-layouts" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="menu-icon"><i class="ti ti-layout"></i></span>
+                                            <span class="menu-text" data-lang="layouts-title">Layouts</span>
+                                            <div class="menu-arrow"></div>
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="topnav-layouts">
+                                            <div class="dropdown">
+                                                <a class="dropdown-item dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-layouts-one" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="ti ti-layout"></i> <span  data-lang="layout-options"> Layout Options </span> <div class="menu-arrow"></div>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="topnav-layouts-one">
+                                                    <a href="layouts-scrollable.html" class="dropdown-item" target="_blank" data-lang="layouts-scrollable">Scrollable</a>
+                                                    <a href="layouts-compact.html" class="dropdown-item" target="_blank" data-lang="layouts-compact">Compact</a>
+                                                    <a href="layouts-boxed.html" class="dropdown-item" target="_blank" data-lang="layouts-boxed">Boxed</a>
+                                                    <a href="layouts-horizontal.html" class="dropdown-item" target="_blank" data-lang="layouts-horizontal">Horizontal</a>
+                                                    <a href="layouts-preloader.html" class="dropdown-item" target="_blank" data-lang="layouts-preloader">Preloader</a>
+                                                </div>
+                                            </div>
+                                            <div class="dropdown">
+                                                <a class="dropdown-item dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-sidebars" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="ti ti-layout-sidebar"></i><span data-lang="sidebars"> Sidebars</span> <div class="menu-arrow"></div>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="topnav-sidebars">
+                                                    <a href="sidebar-light.html" class="dropdown-item" target="_blank" data-lang="sidebar-light">Light Menu</a>
+                                                    <a href="sidebar-gradient.html" class="dropdown-item" target="_blank" data-lang="sidebar-gradient">Gradient Menu</a>
+                                                    <a href="sidebar-image.html" class="dropdown-item" target="_blank" data-lang="sidebar-image">Image Menu</a>
+                                                    <a href="sidebar-compact.html" class="dropdown-item" target="_blank" data-lang="sidebar-compact">Compact Menu</a>
+                                                    <a href="sidebar-icon-view.html" class="dropdown-item" target="_blank" data-lang="sidebar-icon-view">Icon View Menu</a>
+                                                    <a href="sidebar-on-hover.html" class="dropdown-item" target="_blank" data-lang="sidebar-on-hover">On Hover Menu</a>
+                                                    <a href="sidebar-on-hover-active.html" class="dropdown-item" target="_blank" data-lang="sidebar-on-hover-active">On Hover Active</a>
+                                                    <a href="sidebar-offcanvas.html" class="dropdown-item" target="_blank" data-lang="sidebar-offcanvas">Offcanvas Menu</a>
+                                                    <a href="sidebar-no-icons.html" class="dropdown-item" target="_blank" data-lang="sidebar-no-icons">No Icons with Lines</a>
+                                                    <a href="sidebar-with-lines.html" class="dropdown-item" target="_blank" data-lang="sidebar-with-lines">Sidebar with Lines</a>
+                                                    <a href="https://webapplayers.com/inspinia/modern/sidebar-user.html" class="dropdown-item" target="_blank">With User</a>
+                                                </div>
+                                            </div>
+
+                                            <div class="dropdown">
+                                                <a class="dropdown-item dropdown-toggle drop-arrow-none" href="layouts-horizontal.html#" id="topnav-topbars" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="ti ti-box-align-top"></i> <span data-lang="topbar"> Topbar </span><div class="menu-arrow"></div>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="topnav-topbars">
+                                                    <a href="topbar-dark.html" class="dropdown-item" target="_blank" data-lang="topbar-dark">Dark Topbar</a>
+                                                    <a href="topbar-gray.html" class="dropdown-item" target="_blank" data-lang="topbar-gray">Gray Topbar</a>
+                                                    <a href="topbar-gradient.html" class="dropdown-item" target="_blank" data-lang="topbar-gradient">Gradient Topbar</a>
+                                                    <a href="topbar-sub-items.html" class="dropdown-item" data-lang="topbar-sub-items">Topbar with Sub Items</a>
+                                                    <a href="topbar-tools.html" class="dropdown-item" data-lang="topbar-tools">Topbar with Tools</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="landing.html">
+                                            <span class="menu-icon"><i class="ti ti-rocket"></i></span>
+                                            <span class="menu-text" data-lang="landing-page">Landing</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </nav>
+                </header>
+
+                <!-- Mega Menu Dropdown -->
+                <div class="topbar-item d-none d-md-flex">
+                    <div class="dropdown">
+                        <button class="topbar-link btn fw-medium btn-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,16" type="button" aria-haspopup="false" aria-expanded="false">
+                            Boom<i class="ti ti-chevron-down ms-1"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-xxl p-0">
+                            <div class="h-100" style="max-height: 380px;" data-simplebar>
+                                <div class="row g-0">
+                                    <div class="col-12">
+                                        <div class="p-3 text-center bg-light bg-opacity-50">
+                                            <h4 class="mb-0 fs-lg fw-semibold">Welcome to <span class="text-primary">INSPINIA+</span> Admin Theme.</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-0">
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">Dashboard & Analytics</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Sales Dashboard</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Marketing Dashboard</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Finance Overview</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">User Analytics</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Traffic Insights</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Performance Metrics</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Conversion Tracking</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">Project Management</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Task Overview</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Kanban Board</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Gantt Chart</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Team Collaboration</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Project Milestones</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Workflow Automation</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Timesheets & Reports</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">User Management</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">User Profiles</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Access Control</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Role Permissions</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Activity Logs</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Security Settings</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">User Groups</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item">Authentication & Login</a>
+                                                </li>
+                                            </ul>
+                                        </div> <!-- end dropdown-->
+                                    </div> <!-- end col-->
+                                </div> <!-- end row-->
+
+                            </div> <!-- end .h-100-->
+                        </div> <!-- .dropdown-menu-->
+                    </div> <!-- .dropdown-->
+                </div> <!-- end topbar-item -->
+
+                <!-- Search -->
+                <div class="app-search d-xl-flex flex-horizontal-top-search">
+                    <input type="search" class="form-control topbar-search" name="search" placeholder="Search for something...">
+                    <i data-lucide="search" class="app-search-icon text-muted"></i>
+                </div>
+            </div> <!-- .d-flex-->
+
+            <div class="d-flex align-items-center gap-1">
+                <!-- Language Dropdown -->
+                <div class="topbar-item">
+                    <div class="dropdown">
+                        <button class="topbar-link fw-bold" data-bs-toggle="dropdown" data-bs-offset="0,21" type="button" aria-haspopup="false" aria-expanded="false">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/cn.svg') }}" alt="user-image" class="w-100 rounded me-1" height="18" id="selected-language-image">
+                            <span id="selected-language-code"> 中文 </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="cn" title="中文">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/cn.svg') }}" alt="中文" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">中文</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="en" title="English">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/us.svg') }}" alt="English" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">English</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="de" title="German">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/de.svg') }}" alt="German" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">Deutsch</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="it" title="Italian">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/it.svg') }}" alt="Italian" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">Italiano</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="es" title="Spanish">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/es.svg') }}" alt="Spanish" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">Español</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="ru" title="Russian">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/ru.svg') }}" alt="Russian" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">Русский</span>
+                            </a>
+                            <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="hi" title="Hindi">
+                                <img src="{{ asset('static/inspinia/v4.0/assets/images/flags/in.svg') }}" alt="Hindi" class="me-1 rounded" height="18" data-translator-image>
+                                <span class="align-middle">हिन्दी</span>
+                            </a>
+                        </div> <!-- end dropdown-menu-->
+                    </div> <!-- end dropdown-->
+                </div> <!-- end topbar item-->
+
+                <!-- Messages Dropdown -->
+                <div class="topbar-item">
+                    <div class="dropdown">
+                        <button class="topbar-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,22" type="button" data-bs-auto-close="outside" aria-haspopup="false" aria-expanded="false">
+                            <i data-lucide="mails" class="fs-xxl"></i>
+                            <span class="badge text-bg-success badge-circle topbar-badge">7</span>
+                        </button>
+
+                        <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
+                            <div class="px-3 py-2 border-bottom">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="m-0 fs-md fw-semibold">Messages</h6>
+                                    </div>
+                                    <div class="col text-end">
+                                        <a href="layouts-horizontal.html#!" class="badge badge-soft-success badge-label py-1">09 Notifications</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="max-height: 300px;" data-simplebar>
+                                <!-- item 1 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap active" id="message-1">
+                                    <span class="d-flex gap-3">
+                                        <span class="flex-shrink-0">
+                                            <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-1.jpg') }}" class="avatar-md rounded-circle" alt="User Avatar">
+                                        </span>
+                                        <span class="flex-grow-1 text-muted">
+                                            <span class="fw-medium text-body">Liam Carter</span> uploaded a new document to <span class="fw-medium text-body">Project Phoenix</span>
+                                            <br>
+                                            <span class="fs-xs">5 minutes ago</span>
+                                        </span>
+                                        <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-1">
+                                            <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                        </button>
+                                    </span>
+                                </div>
+
+                                <!-- item 2 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="message-2">
+                                    <span class="d-flex gap-3">
+                                        <span class="flex-shrink-0">
+                                            <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-2.jpg') }}" class="avatar-md rounded-circle" alt="User Avatar">
+                                        </span>
+                                        <span class="flex-grow-1 text-muted">
+                                            <span class="fw-medium text-body">Ava Mitchell</span> commented on <span class="fw-medium text-body">Marketing Campaign Q3</span>
+                                            <br>
+                                            <span class="fs-xs">12 minutes ago</span>
+                                        </span>
+                                        <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-2">
+                                            <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                        </button>
+                                    </span>
+                                </div>
+
+                                <!-- item 3 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="message-3">
+                                        <span class="d-flex gap-3">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title text-bg-info rounded-circle fs-22">
+                                                    <i data-lucide="shield-user" class="fs-22 fill-white"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Noah Blake</span> updated the status of <span class="fw-medium text-body">Client Onboarding</span>
+                                                <br>
+                                                <span class="fs-xs">30 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-3">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 4 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="message-4">
+                                        <span class="d-flex gap-3">
+                                            <span class="flex-shrink-0">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-4.jpg') }}" class="avatar-md rounded-circle" alt="User Avatar">
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Sophia Taylor</span> sent an invoice for <span class="fw-medium text-body">Service Renewal</span>
+                                                <br>
+                                                <span class="fs-xs">1 hour ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-4">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 5 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="message-5">
+                                        <span class="d-flex gap-3">
+                                            <span class="flex-shrink-0">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-5.jpg') }}" class="avatar-md rounded-circle" alt="User Avatar">
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Ethan Moore</span> completed the task <span class="fw-medium text-body">UI Review</span>
+                                                <br>
+                                                <span class="fs-xs">2 hours ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-5">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 6 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="message-6">
+                                        <span class="d-flex gap-3">
+                                            <span class="flex-shrink-0">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-6.jpg') }}" class="avatar-md rounded-circle" alt="User Avatar">
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Olivia White</span> assigned you a task in <span class="fw-medium text-body">Sales Pipeline</span>
+                                                <br>
+                                                <span class="fs-xs">Yesterday</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#message-6">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+                            </div>
+
+                            <!-- All-->
+                            <a href="javascript:void(0);" class="dropdown-item text-center text-reset text-decoration-underline link-offset-2 fw-bold notify-item border-top border-light py-2">
+                                Read All Messages
+                            </a>
+
+                        </div> <!-- End dropdown-menu -->
+                    </div> <!-- end dropdown-->
+                </div> <!-- end topbar item-->
+
+                <!-- Notification Dropdown -->
+                <div class="topbar-item">
+                    <div class="dropdown">
+                        <button class="topbar-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,22" type="button" data-bs-auto-close="outside" aria-haspopup="false" aria-expanded="false">
+                            <i data-lucide="bell" class="fs-xxl"></i>
+                            <span class="badge badge-square text-bg-warning topbar-badge">14</span>
+                        </button>
+
+                        <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
+                            <div class="px-3 py-2 border-bottom">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="m-0 fs-md fw-semibold">Notifications</h6>
+                                    </div>
+                                    <div class="col text-end">
+                                        <a href="layouts-horizontal.html#!" class="badge text-bg-light badge-label py-1">14 Alerts</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="max-height: 300px;" data-simplebar>
+                                <!-- item 1 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-1">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
+                                                    <i data-lucide="server-crash" class="fs-xl fill-danger"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Critical alert: Server crash detected</span>
+                                                <br>
+                                                <span class="fs-xs">30 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-1">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 2 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-2">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
+                                                    <i data-lucide="alert-triangle" class="fs-xl fill-warning"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">High memory usage on Node A</span>
+                                                <br>
+                                                <span class="fs-xs">10 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-2">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 3 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-3">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-success-subtle text-success rounded fs-22">
+                                                    <i data-lucide="check-circle" class="fs-xl fill-success"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Backup completed successfully</span>
+                                                <br>
+                                                <span class="fs-xs">1 hour ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-3">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 4 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-4">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded fs-22">
+                                                    <i data-lucide="user-plus" class="fs-xl fill-primary"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">New user registration: Sarah Miles</span>
+                                                <br>
+                                                <span class="fs-xs">Just now</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-4">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 5 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-5">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
+                                                    <i data-lucide="bug" class="fs-xl fill-danger"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Bug reported in payment module</span>
+                                                <br>
+                                                <span class="fs-xs">20 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-5">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 6 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-6">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-info-subtle text-info rounded fs-22">
+                                                    <i data-lucide="message-circle" class="fs-xl fill-info"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">New comment on Task #142</span>
+                                                <br>
+                                                <span class="fs-xs">15 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-6">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 7 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-7">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
+                                                    <i data-lucide="battery-warning" class="fs-xl fill-warning"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Low battery on Device X</span>
+                                                <br>
+                                                <span class="fs-xs">45 minutes ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-7">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 8 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-8">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-success-subtle text-success rounded fs-22">
+                                                    <i data-lucide="cloud-upload" class="fs-xl fill-success"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">File upload completed</span>
+                                                <br>
+                                                <span class="fs-xs">1 hour ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-8">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 9 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-9">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded fs-22">
+                                                    <i data-lucide="calendar" class="fs-xl fill-primary"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Team meeting scheduled at 3 PM</span>
+                                                <br>
+                                                <span class="fs-xs">2 hours ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-9">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 10 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-10">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-secondary-subtle text-secondary rounded fs-22">
+                                                    <i data-lucide="download" class="fs-xl fill-secondary"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Report ready for download</span>
+                                                <br>
+                                                <span class="fs-xs">3 hours ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-10">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 11 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-11">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
+                                                    <i data-lucide="lock" class="fs-xl fill-danger"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Multiple failed login attempts</span>
+                                                <br>
+                                                <span class="fs-xs">5 hours ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-11">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 12 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-12">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-info-subtle text-info rounded fs-22">
+                                                    <i data-lucide="bell-ring" class="fs-xl fill-info"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Reminder: Submit your timesheet</span>
+                                                <br>
+                                                <span class="fs-xs">Today, 9:00 AM</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-12">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 13 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-13">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
+                                                    <i data-lucide="database-zap" class="fs-xl fill-warning"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">Database nearing capacity</span>
+                                                <br>
+                                                <span class="fs-xs">Yesterday</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-13">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+
+                                <!-- item 14 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="notification-14">
+                                        <span class="d-flex gap-2">
+                                            <span class="avatar-md flex-shrink-0">
+                                                <span class="avatar-title bg-success-subtle text-success rounded fs-22">
+                                                    <i data-lucide="check-square" class="fs-xl fill-success"></i>
+                                                </span>
+                                            </span>
+                                            <span class="flex-grow-1 text-muted">
+                                                <span class="fw-medium text-body">System check completed</span>
+                                                <br>
+                                                <span class="fs-xs">2 days ago</span>
+                                            </span>
+                                            <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0" data-dismissible="#notification-14">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </span>
+                                </div>
+                            </div> <!-- end dropdown-->
+
+                            <!-- All-->
+                            <a href="javascript:void(0);" class="dropdown-item text-center text-reset text-decoration-underline link-offset-2 fw-bold notify-item border-top border-light py-2">
+                                View All Alerts
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button Trigger Customizer Offcanvas -->
+                <div class="topbar-item d-none d-sm-flex">
+                    <button class="topbar-link" data-bs-toggle="offcanvas" data-bs-target="#theme-settings-offcanvas" type="button">
+                        <i data-lucide="settings" class="fs-xxl"></i>
+                    </button>
+                </div>
+
+                <!-- Light/Dark Mode Button -->
+                <div class="topbar-item d-none d-sm-flex">
+                    <button class="topbar-link" id="light-dark-mode" type="button">
+                        <i data-lucide="moon" class="fs-xxl mode-light-moon"></i>
+                        <i data-lucide="sun" class="fs-xxl mode-light-sun"></i>
+                    </button>
+                </div>
+
+                <!-- User Dropdown -->
+                <div class="topbar-item nav-user">
+                    <div class="dropdown">
+                        <a class="topbar-link dropdown-toggle drop-arrow-none px-2" data-bs-toggle="dropdown" data-bs-offset="0,16" href="layouts-horizontal.html#!" aria-haspopup="false" aria-expanded="false">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-2.jpg') }}" width="32" class="rounded-circle me-lg-2 d-flex" alt="user-image">
+                            <div class="d-lg-flex align-items-center gap-1 d-none">
+                                <h5 class="my-0">Damian D.</h5>
+                                <i class="ti ti-chevron-down align-middle"></i>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <!-- Header -->
+                            <div class="dropdown-header noti-title">
+                                <h6 class="text-overflow m-0">Welcome back!</h6>
+                            </div>
+
+                            <!-- My Profile -->
+                            <a href="pages-profile.html" class="dropdown-item">
+                                <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Profile</span>
+                            </a>
+
+                            <!-- Notifications -->
+                            <a href="javascript:void(0);" class="dropdown-item">
+                                <i class="ti ti-bell-ringing me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Notifications</span>
+                            </a>
+
+                            <!-- Wallet -->
+                            <a href="javascript:void(0);" class="dropdown-item">
+                                <i class="ti ti-credit-card me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Balance: <span class="fw-semibold">$985.25</span></span>
+                            </a>
+
+                            <!-- Settings -->
+                            <a href="javascript:void(0);" class="dropdown-item">
+                                <i class="ti ti-settings-2 me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Account Settings</span>
+                            </a>
+
+                            <!-- Support -->
+                            <a href="javascript:void(0);" class="dropdown-item">
+                                <i class="ti ti-headset me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Support Center</span>
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+
+                            <!-- Lock -->
+                            <a href="auth-lock-screen.html" class="dropdown-item">
+                                <i class="ti ti-lock me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Lock Screen</span>
+                            </a>
+
+                            <!-- Logout -->
+                            <a href="javascript:void(0);" class="dropdown-item text-danger fw-semibold">
+                                <i class="ti ti-logout-2 me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Log Out</span>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Topbar End -->
+
+    <!-- Horizontal Menu Start -->
+    <!-- 已经调整到顶部导航中去了-->
+    <!-- Horizontal Menu End -->
+
+    <!-- ============================================================== -->
+    <!-- Start Main Content -->
+    <!-- ============================================================== -->
+
+    <div class="content-page">
+        <div class="container-fluid">
+
+            <div class="page-title-head d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="fs-sm text-uppercase fw-bold m-0">Horizontal</h4>
+                </div>
+
+                <div class="text-end">
+                    <ol class="breadcrumb m-0 py-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Inspinia</a></li>
+
+                        <li class="breadcrumb-item active">Horizontal</li>
+                    </ol>
+                </div>
+            </div>
+
+
+            <div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1">
+                <!-- Total Sales Widget -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                            <h5 class="card-title">Total Sales</h5>
+                            <span class="badge badge-soft-success"> Monthly</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="donut-chart" data-chart="donut" style="min-height: 60px; width: 60px;"></div>
+                                <div class="text-end">
+                                    <h3 class="mb-2 fw-normal">$<span data-target="250">0</span>K</h3>
+                                    <p class="mb-0 text-muted"><span>Monthly Total Sales</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end col -->
+
+                <!-- Total Orders Widget -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                            <h5 class="card-title">Total Orders</h5>
+                            <span class="badge badge-soft-primary"> Monthly</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="donut-chart" data-chart="donut" style="min-height: 60px; width: 60px;"></div>
+                                <div class="text-end">
+                                    <h3 class="mb-2 fw-normal"><span data-target="180">0</span></h3>
+                                    <p class="mb-0 text-muted"><span>Monthly Total Orders</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end col -->
+
+                <!-- New Customers Widget -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                            <h5 class="card-title">New Customers</h5>
+                            <span class="badge badge-soft-info"> Monthly</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="donut-chart" data-chart="donut" style="min-height: 60px; width: 60px;"></div>
+                                <div class="text-end">
+                                    <h3 class="mb-2 fw-normal"><span data-target="50,895">0</span></h3>
+                                    <p class="mb-0 text-muted"><span>Monthly New Customers</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end col -->
+
+                <!-- Monthly Revenue Widget -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                            <h5 class="card-title">Revenue</h5>
+                            <span class="badge badge-soft-warning"> Monthly</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="donut-chart" data-chart="donut" style="min-height: 60px; width: 60px;"></div>
+                                <div class="text-end">
+                                    <h3 class="mb-2 fw-normal">$<span data-target="50.33">0</span>K</h3>
+                                    <p class="mb-0 text-muted"><span>Monthly Revenue</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end col -->
+            </div><!-- end row -->
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header card-tabs d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h4 class="card-title">Orders Statics</h4>
+                            </div>
+                            <ul class="nav nav-tabs nav-justified card-header-tabs nav-bordered">
+                                <li class="nav-item">
+                                    <a href="layouts-horizontal.html#today-ct" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                        <i class="ti ti-home d-md-none d-block"></i>
+                                        <span class="d-none d-md-block">Today</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="layouts-horizontal.html#monthly-ct" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
+                                        <i class="ti ti-user-circle d-md-none d-block"></i>
+                                        <span class="d-none d-md-block">Monthly</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="layouts-horizontal.html#annual-ct" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                        <i class="ti ti-settings d-md-none d-block"></i>
+                                        <span class="d-none d-md-block">Annual</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <div class="col-xxl-8 border-end border-dashed">
+                                    <div id="orders-chart" style="min-height: 405px;"></div>
+                                </div><!-- end col -->
+                                <div class="col-xxl-4">
+                                    <div class="p-3 bg-light-subtle border-bottom border-dashed">
+                                        <div class="row">
+                                            <div class="col">
+                                                <h4 class="fs-sm mb-1">Would you like the full report?</h4>
+                                                <small class="text-muted fs-xs mb-0">
+                                                    All 120 orders have been successfully delivered
+                                                </small>
+                                            </div>
+                                            <div class="col-auto align-self-center">
+                                                <button type="button" class="btn btn-sm btn-default rounded-circle btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Download">
+                                                    <i class="ti ti-download fs-xl"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row row-cols-xxl-2 row-cols-md-2 row-cols-1 g-1 p-1">
+                                        <!-- Total Sales Widget -->
+                                        <div class="col">
+                                            <div class="card rounded-0 shadow-none border border-dashed mb-0">
+                                                <div class="card-body">
+                                                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                                                        <h5 class="fs-xl mb-0">$24,500</h5>
+                                                        <span>18.45% <i class="ti ti-arrow-up text-success"></i></span>
+                                                    </div>
+                                                    <p class="text-muted mb-2"><span>Total sales in period</span></p>
+                                                    <div class="progress progress-sm mb-0">
+                                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 18.45%" aria-valuenow="18.45" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div><!-- end col -->
+
+                                        <!-- Number of Customers Widget -->
+                                        <div class="col">
+                                            <div class="card rounded-0 shadow-none border border-dashed mb-0">
+                                                <div class="card-body">
+                                                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                                                        <h5 class="fs-xl mb-0">1,240</h5>
+                                                        <span>10.35% <i class="ti ti-arrow-down text-danger"></i></span>
+                                                    </div>
+                                                    <p class="text-muted mb-2"><span>Number of customers</span></p>
+                                                    <div class="progress progress-sm mb-0">
+                                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 10.35%" aria-valuenow="10.35" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div><!-- end col -->
+
+                                        <!-- Products Sold Widget -->
+                                        <div class="col">
+                                            <div class="card rounded-0 shadow-none border border-dashed mb-0">
+                                                <div class="card-body">
+                                                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                                                        <h5 class="fs-xl mb-0">3,750</h5>
+                                                        <span>22.61% <i class="ti ti-bolt text-primary"></i></span>
+                                                    </div>
+                                                    <p class="text-muted mb-2 text-truncate"><span>Products sold in the period</span>
+                                                    </p>
+                                                    <div class="progress progress-sm mb-0">
+                                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 22.61%" aria-valuenow="22.61" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div><!-- end col -->
+
+                                        <!-- Average Order Value Widget -->
+                                        <div class="col">
+                                            <div class="card rounded-0 shadow-none border border-dashed mb-0">
+                                                <div class="card-body">
+                                                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                                                        <h5 class="fs-xl mb-0">$65.49 <small class="fs-6">USD</small>
+                                                        </h5>
+                                                        <span>5.92% <i class="ti ti-arrow-up text-success"></i></span>
+                                                    </div>
+                                                    <p class="text-muted mb-2"><span>Average order value</span></p>
+                                                    <div class="progress progress-sm mb-0">
+                                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 5.92%" aria-valuenow="5.92" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div><!-- end col -->
+                                    </div><!-- end row -->
+
+                                    <div class="text-center my-3">
+                                        <a href="chat.html" class="link-reset text-decoration-underline fw-semibold link-offset-3">
+                                            View all Reports <i class="ti ti-send-2"></i>
+                                        </a>
+                                    </div>
+
+                                </div> <!-- end col-->
+                            </div> <!-- end row-->
+                        </div> <!-- end card-body-->
+                    </div> <!-- end card-->
+                </div> <!-- end col-->
+            </div> <!-- end row-->
+
+            <div class="row">
+                <div class="col-xxl-6">
+                    <div data-table data-table-rows-per-page="5" class="card">
+                        <div class="card-header justify-content-between align-items-center border-dashed">
+                            <h4 class="card-title mb-0">Product Inventory</h4>
+                            <div class="d-flex gap-2">
+                                <a href="ecommerce-add-product.html" class="btn btn-sm btn-soft-secondary">
+                                    <i class="ti ti-plus me-1"></i> Add Product
+                                </a>
+                                <a href="javascript:void(0);" class="btn btn-sm btn-primary">
+                                    <i class="ti ti-file-export me-1"></i> Export CSV
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-centered table-custom table-sm table-nowrap table-hover mb-0">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/products/1.png') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-product-details.html" class="text-body">Smart Watch</a></h5>
+                                                    <span class="text-muted fs-xs">Wearables</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Stock</span>
+                                            <h5 class="fs-base mt-1 fw-normal">120 units</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Price</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$89.99</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Ratings</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                        <span class="text-warning">
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star"></span>
+                                                        </span>
+                                                <span class="ms-1"><a href="ecommerce-reviews.html" class="link-reset fw-semibold">(45)</a></span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-success"></i> Active</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Edit Product</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Remove</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/products/2.png') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-product-details.html" class="text-body">Bluetooth Speaker</a>
+                                                    </h5>
+                                                    <span class="text-muted fs-xs">Audio</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Stock</span>
+                                            <h5 class="fs-base mt-1 fw-normal">75 units</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Price</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$39.50</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Ratings</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                        <span class="text-warning">
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star"></span>
+                                                            <span class="ti ti-star"></span>
+                                                        </span>
+                                                <span class="ms-1"><a href="ecommerce-reviews.html" class="link-reset fw-semibold">(20)</a></span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-warning"></i> Low Stock</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Edit Product</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Remove</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/products/4.png') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-product-details.html" class="text-body">Gaming Mouse</a></h5>
+                                                    <span class="text-muted fs-xs">Accessories</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Stock</span>
+                                            <h5 class="fs-base mt-1 fw-normal">0 units</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Price</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$24.99</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Ratings</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                        <span class="text-warning">
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                        </span>
+                                                <span class="ms-1"><a href="ecommerce-reviews.html" class="link-reset fw-semibold">(14)</a></span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-danger"></i> Out of Stock</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Edit Product</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Remove</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/products/5.png') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-product-details.html" class="text-body">4K Action Camera</a>
+                                                    </h5>
+                                                    <span class="text-muted fs-xs">Cameras</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Stock</span>
+                                            <h5 class="fs-base mt-1 fw-normal">60 units</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Price</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$149.00</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Ratings</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                        <span class="text-warning">
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star"></span>
+                                                        </span>
+                                                <span class="ms-1"><a href="ecommerce-reviews.html" class="link-reset fw-semibold">(31)</a></span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-success"></i> Active</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Edit Product</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Remove</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/products/6.png') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-product-details.html" class="text-body">Fitness Tracker Band</a>
+                                                    </h5>
+                                                    <span class="text-muted fs-xs">Wearables</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Stock</span>
+                                            <h5 class="fs-base mt-1 fw-normal">220 units</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Price</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$34.95</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Ratings</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                        <span class="text-warning">
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-filled"></span>
+                                                            <span class="ti ti-star-half-filled"></span>
+                                                        </span>
+                                                <span class="ms-1"><a href="ecommerce-reviews.html" class="link-reset fw-semibold">(18)</a></span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-success"></i> Active</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Edit Product</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Remove</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    </tbody>
+                                </table>
+                            </div> <!-- end table-responsive-->
+                        </div> <!-- end card-body-->
+
+                        <div class="card-footer border-0">
+                            <div class="align-items-center justify-content-between row text-center text-sm-start">
+                                <div class="col-sm">
+                                    <div data-table-pagination-info="products"></div>
+                                </div>
+                                <div class="col-sm-auto mt-3 mt-sm-0">
+                                    <div data-table-pagination></div>
+                                </div> <!-- end col-->
+                            </div> <!-- end row-->
+                        </div> <!-- end card-footer-->
+                    </div> <!-- end card-->
+                </div> <!-- end col-->
+
+                <div class="col-xxl-6">
+                    <div data-table data-table-rows-per-page="5" class="card">
+                        <div class="card-header justify-content-between align-items-center border-dashed">
+                            <h4 class="card-title mb-0">Recent Orders</h4>
+                            <div class="d-flex gap-2">
+                                <a href="javascript:void(0);" class="btn btn-sm btn-soft-secondary">
+                                    <i class="ti ti-plus me-1"></i> Add Order
+                                </a>
+                                <a href="javascript:void(0);" class="btn btn-sm btn-primary">
+                                    <i class="ti ti-file-export me-1"></i> Export CSV
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-centered table-custom table-sm table-nowrap table-hover mb-0">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-1.jpg') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-order-details.html" class="text-body">#ORD-1001</a></h5>
+                                                    <span class="text-muted fs-xs">John Doe</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Product</span>
+                                            <h5 class="fs-base mt-1 fw-normal">Smart Watch</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Date</span>
+                                            <h5 class="fs-base mt-1 fw-normal">2025-04-29</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Amount</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$89.99</h5>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal">
+                                                <i class="ti ti-circle-filled fs-xs text-success"></i> Delivered
+                                            </h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">View Details</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Cancel Order</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Repeat for other orders -->
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-2.jpg') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-order-details.html" class="text-body">#ORD-1002</a></h5>
+                                                    <span class="text-muted fs-xs">Emma Watson</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Product</span>
+                                            <h5 class="fs-base mt-1 fw-normal">Bluetooth Speaker</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Date</span>
+                                            <h5 class="fs-base mt-1 fw-normal">2025-04-28</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Amount</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$39.50</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-warning"></i> Pending</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">View Details</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Cancel Order</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-4.jpg') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-order-details.html" class="text-body">#ORD-1003</a></h5>
+                                                    <span class="text-muted fs-xs">Liam Johnson</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Product</span>
+                                            <h5 class="fs-base mt-1 fw-normal">Smart Watch</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Date</span>
+                                            <h5 class="fs-base mt-1 fw-normal">2025-04-27</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Amount</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$89.99</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-success"></i> Completed</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">View Details</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Cancel Order</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-6.jpg') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-order-details.html" class="text-body">#ORD-1004</a></h5>
+                                                    <span class="text-muted fs-xs">Olivia Brown</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Product</span>
+                                            <h5 class="fs-base mt-1 fw-normal">Gaming Mouse</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Date</span>
+                                            <h5 class="fs-base mt-1 fw-normal">2025-04-26</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Amount</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$24.99</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-danger"></i> Cancelled</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">View Details</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Cancel Order</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-5.jpg') }}" alt="" class="avatar-sm rounded-circle me-2">
+                                                <div>
+                                                    <h5 class="fs-base my-1"><a href="ecommerce-order-details.html" class="text-body">#ORD-1005</a></h5>
+                                                    <span class="text-muted fs-xs">Noah Smith</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Product</span>
+                                            <h5 class="fs-base mt-1 fw-normal">Fitness Tracker Band</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Date</span>
+                                            <h5 class="fs-base mt-1 fw-normal">2025-04-25</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Amount</span>
+                                            <h5 class="fs-base mt-1 fw-normal">$34.95</h5>
+                                        </td>
+                                        <td><span class="text-muted fs-xs">Status</span>
+                                            <h5 class="fs-base mt-1 fw-normal"><i class="ti ti-circle-filled fs-xs text-success"></i> Completed</h5>
+                                        </td>
+                                        <td style="width: 30px;">
+                                            <div class="dropdown">
+                                                <a href="layouts-horizontal.html#" class="dropdown-toggle text-muted drop-arrow-none card-drop p-0" data-bs-toggle="dropdown">
+                                                    <i class="ti ti-dots-vertical fs-lg"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">View Details</a>
+                                                    <a href="layouts-horizontal.html#" class="dropdown-item">Cancel Order</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    </tbody>
+                                </table>
+                            </div> <!-- end table-responsive-->
+                        </div> <!-- end card-body-->
+
+                        <div class="card-footer border-0">
+                            <div class="align-items-center justify-content-between row text-center text-sm-start">
+                                <div class="col-sm">
+                                    <div data-table-pagination-info="orders"></div>
+                                </div>
+                                <div class="col-sm-auto mt-3 mt-sm-0">
+                                    <div data-table-pagination></div>
+                                </div> <!-- end col-->
+                            </div> <!-- end row-->
+                        </div> <!-- end card-footer-->
+                    </div> <!-- end card-->
+                </div> <!-- end col-->
+            </div> <!-- end row-->
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header justify-content-between align-items-center">
+                            <h5 class="card-title">Transactions Worldwide</h5>
+                            <div class="card-action">
+                                <a href="layouts-horizontal.html#!" class="card-action-item" data-action="card-toggle"><i class="ti ti-chevron-up"></i></a>
+                                <a href="layouts-horizontal.html#!" class="card-action-item" data-action="card-refresh"><i class="ti ti-refresh"></i></a>
+                                <a href="layouts-horizontal.html#!" class="card-action-item" data-action="card-close"><i class="ti ti-x"></i></a>
+                            </div>
+                        </div>
+                        <div class="card-body pt-2">
+                            <div class="row align-items-center">
+                                <div class="col-xl-6">
+                                    <div class="table-responsive">
+                                        <table class="table table-custom table-nowrap table-hover table-centered mb-0">
+                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                            <tr class="text-uppercase fs-xxs">
+                                                <th class="text-muted">Tran. No.</th>
+                                                <th class="text-muted">Order</th>
+                                                <th class="text-muted">Date</th>
+                                                <th class="text-muted">Amount</th>
+                                                <th class="text-muted">Status</th>
+                                                <th class="text-muted">Payment Method</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td><a href="layouts-horizontal.html#!" class="link-reset fw-semibold">#TR-3468</a></td>
+                                                <td>#ORD-1003 - Smart Watch</td>
+                                                <td>27 Apr 2025 <small class="text-muted">02:15 PM</small></td>
+                                                <td class="fw-semibold">$89.99</td>
+                                                <td><span class="badge badge-soft-success fs-xxs"><i class="ti ti-point-filled"></i> Paid</span></td>
+                                                <td>
+                                                    <img src="{{ asset('static/inspinia/v4.0/assets/images/cards/mastercard.svg') }}" alt="" class="me-2" height="28"> xxxx 1123
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><a href="layouts-horizontal.html#!" class="link-reset fw-semibold">#TR-3469</a></td>
+                                                <td>#ORD-1004 - Gaming Mouse</td>
+                                                <td>26 Apr 2025 <small class="text-muted">09:42 AM</small></td>
+                                                <td class="fw-semibold">$24.99</td>
+                                                <td><span class="badge badge-soft-danger fs-xxs"><i class="ti ti-point-filled"></i> Failed</span></td>
+                                                <td>
+                                                    <img src="{{ asset('static/inspinia/v4.0/assets/images/cards/visa.svg') }}" alt="" class="me-2" height="28"> xxxx 3490
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><a href="layouts-horizontal.html#!" class="link-reset fw-semibold">#TR-3470</a></td>
+                                                <td>#ORD-1005 - Fitness Tracker Band</td>
+                                                <td>25 Apr 2025 <small class="text-muted">11:10 AM</small></td>
+                                                <td class="fw-semibold">$34.95</td>
+                                                <td><span class="badge badge-soft-success fs-xxs"><i class="ti ti-point-filled"></i> Paid</span></td>
+                                                <td>
+                                                    <img src="{{ asset('static/inspinia/v4.0/assets/images/cards/american-express.svg') }}" alt="" class="me-2" height="28"> xxxx 8765
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><a href="layouts-horizontal.html#!" class="link-reset fw-semibold">#TR-3471</a></td>
+                                                <td>#ORD-1006 - Wireless Keyboard</td>
+                                                <td>24 Apr 2025 <small class="text-muted">08:58 PM</small></td>
+                                                <td class="fw-semibold">$59.00</td>
+                                                <td><span class="badge badge-soft-warning fs-xxs"><i class="ti ti-point-filled"></i> Pending</span></td>
+                                                <td>
+                                                    <img src="{{ asset('static/inspinia/v4.0/assets/images/cards/mastercard.svg') }}" alt="" class="me-2" height="28"> xxxx 5566
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><a href="layouts-horizontal.html#!" class="link-reset fw-semibold">#TR-3472</a></td>
+                                                <td>#ORD-1007 - Portable Charger</td>
+                                                <td>23 Apr 2025 <small class="text-muted">05:37 PM</small></td>
+                                                <td class="fw-semibold">$45.80</td>
+                                                <td><span class="badge badge-soft-success fs-xxs"><i class="ti ti-point-filled"></i> Paid</span></td>
+                                                <td>
+                                                    <img src="{{ asset('static/inspinia/v4.0/assets/images/cards/visa.svg') }}" alt="" class="me-2" height="28"> xxxx 9012
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div> <!-- end table-responsive-->
+
+                                    <div class="text-center mt-3">
+                                        <a href="layouts-horizontal.html#!" class="link-reset text-decoration-underline fw-semibold link-offset-3">
+                                            View All Transactions <i class="ti ti-send-2"></i>
+                                        </a>
+                                    </div>
+                                </div> <!-- end col-->
+                                <div class="col-xl-6">
+                                    <div id="map_1" class="w-100 mt-4 mt-xl-0" style="height: 297px"></div>
+                                </div> <!-- end col-->
+                            </div><!-- end row-->
+                        </div> <!-- end card-body-->
+                    </div> <!-- end card-->
+                </div> <!-- end col-->
+            </div> <!-- end row-->
+        </div>
+        <!-- container -->
+
+        <!-- Footer Start -->
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        © 2014 - <script>document.write(new Date().getFullYear())</script> Inspinia By <span class="fw-semibold">weisifang.com</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-md-end d-none d-md-block">
+                            10GB of <span class="fw-bold">250GB</span> Free.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- end Footer -->
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- End of Main Content -->
+    <!-- ============================================================== -->
+
+</div>
+<!-- END wrapper -->
+
+<!-- Theme Settings -->
+<div class="offcanvas offcanvas-end overflow-hidden" tabindex="-1" id="theme-settings-offcanvas">
+    <div class="d-flex justify-content-between text-bg-primary gap-2 p-3" style="background-image: url({{ asset('static/inspinia/v4.0/assets/images/user-bg-pattern.png') }});">
+        <div>
+            <h5 class="mb-1 fw-bold text-white text-uppercase">Admin Customizer</h5>
+            <p class="text-white text-opacity-75 fst-italic fw-medium mb-0">Easily configure layout, styles, and preferences for your admin interface.</p>
+        </div>
+
+        <div class="flex-grow-0">
+            <button type="button" class="d-block btn btn-sm bg-white bg-opacity-25 text-white rounded-circle btn-icon" data-bs-dismiss="offcanvas"><i class="ti ti-x fs-lg"></i></button>
         </div>
     </div>
-@endsection
+
+    <div class="offcanvas-body p-0 h-100" data-simplebar>
+        <div class="p-3 border-bottom border-dashed">
+            <h5 class="mb-3 fw-bold">Select Theme</h5>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-classic" value="classic">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-classic">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-classic.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Classic</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-material" value="material">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-material">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-material.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Material</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-modern" value="modern">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-modern">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-modern.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Modern</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-saas" value="saas">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-saas">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-saas.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">SaaS</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-flat" value="flat">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-flat">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-flat.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Flat</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-skin" id="demo-skin-minimal" value="minimal">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-minimal">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-minimal.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Minimal</h5>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-check card-radio pe-none">
+                        <input class="form-check-input" disabled type="radio" name="data-skin" id="demo-skin-galaxy" value="galaxy">
+                        <label class="form-check-label p-0 w-100" for="demo-skin-galaxy">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-galaxy.png') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Galaxy</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-bottom border-dashed">
+            <h5 class="mb-3 fw-bold">Color Scheme</h5>
+            <div class="row">
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-bs-theme" id="layout-color-light" value="light">
+                        <label class="form-check-label p-0 w-100" for="layout-color-light">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/light.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Light</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-bs-theme" id="layout-color-dark" value="dark">
+                        <label class="form-check-label p-0 w-100" for="layout-color-dark">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/dark.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Dark</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-bs-theme" id="layout-color-system" value="system">
+                        <label class="form-check-label p-0 w-100" for="layout-color-system">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/system.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">System</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-bottom border-dashed">
+            <h5 class="mb-3 fw-bold">Topbar Color</h5>
+
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-topbar-color" id="topbar-color-light" value="light">
+                        <label class="form-check-label p-0 w-100" for="topbar-color-light">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/topbar-light.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="text-center text-muted mt-2 mb-0">Light</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-topbar-color" id="topbar-color-dark" value="dark">
+                        <label class="form-check-label p-0 w-100" for="topbar-color-dark">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/topbar-dark.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Dark</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-topbar-color" id="topbar-color-gray" value="gray">
+                        <label class="form-check-label p-0 w-100" for="topbar-color-gray">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/topbar-gray.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Gray</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check card-radio">
+                        <input class="form-check-input" type="radio" name="data-topbar-color" id="topbar-color-gradient" value="gradient">
+                        <label class="form-check-label p-0 w-100" for="topbar-color-gradient">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/topbar-gradient.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Gradient</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-bottom border-dashed">
+            <h5 class="mb-3 fw-bold">Sidenav Color</h5>
+
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-menu-color" id="sidenav-color-light" value="light">
+                        <label class="form-check-label p-0 w-100" for="sidenav-color-light">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/light.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Light</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-menu-color" id="sidenav-color-dark" value="dark">
+                        <label class="form-check-label p-0 w-100" for="sidenav-color-dark">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/side-dark.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Dark</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-menu-color" id="sidenav-color-gray" value="gray">
+                        <label class="form-check-label p-0 w-100" for="sidenav-color-gray">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/side-gray.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Gray</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-menu-color" id="sidenav-color-gradient" value="gradient">
+                        <label class="form-check-label p-0 w-100" for="sidenav-color-gradient">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/side-gradient.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Gradient</h5>
+                </div>
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-menu-color" id="sidenav-color-image" value="image">
+                        <label class="form-check-label p-0 w-100" for="sidenav-color-image">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/side-image.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="fs-sm text-center text-muted mt-2 mb-0">Image</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-bottom border-dashed">
+            <h5 class="mb-3 fw-bold">Sidebar Size</h5>
+
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-default" value="default">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-default">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/light.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 text-center text-muted mt-2">Default</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-compact" value="compact">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-compact">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/sidebar-compact.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 text-center text-muted mt-2">Compact</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-small" value="condensed">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-small">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/sidebar-sm.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 text-center text-muted mt-2">Condensed</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-small-hover" value="on-hover">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-small-hover">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/sidebar-sm.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 text-center text-muted mt-2">On Hover</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-small-hover-active" value="on-hover-active">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-small-hover-active">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/light.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 fs-base text-center text-muted mt-2">On Hover - Show</h5>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-check sidebar-setting card-radio">
+                        <input class="form-check-input" type="radio" name="data-sidenav-size" id="sidenav-size-offcanvas" value="offcanvas">
+                        <label class="form-check-label p-0 w-100" for="sidenav-size-offcanvas">
+                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/sidebar-full.svg') }}" alt="layout-img" class="img-fluid">
+                        </label>
+                    </div>
+                    <h5 class="mb-0 text-center text-muted mt-2">Offcanvas</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-bottom border-dashed">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Layout Position</h5>
+
+                <div class="btn-group radio" role="group">
+                    <input type="radio" class="btn-check" name="data-layout-position" id="layout-position-fixed" value="fixed">
+                    <label class="btn btn-sm btn-soft-warning w-sm" for="layout-position-fixed">Fixed</label>
+
+                    <input type="radio" class="btn-check" name="data-layout-position" id="layout-position-scrollable" value="scrollable">
+                    <label class="btn btn-sm btn-soft-warning w-sm ms-0" for="layout-position-scrollable">Scrollable</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><label class="fw-bold m-0" for="sidebaruser-check">Sidebar User Info</label></h5>
+
+                <div class="form-check form-switch fs-lg">
+                    <input type="checkbox" class="form-check-input" name="sidebar-user" id="sidebaruser-check">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas-footer border-top p-3 text-center">
+        <div class="row">
+            <div class="col-12">
+                <button type="button" class="btn btn-light fw-semibold py-2 w-100" id="reset-layout">Reset</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor js -->
+<script src="{{ asset('static/inspinia/v4.0/assets/js/vendors.min.js') }}"></script>
+
+<!-- App js -->
+<script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
+
+<!-- E Charts js -->
+<script src="{{ asset('static/inspinia/v4.0/assets/plugins/echarts/echarts.min.js') }}"></script>
+
+<!-- JVector Maps-->
+<script src="{{ asset('static/inspinia/v4.0/assets/plugins/jsvectormap/jsvectormap.min.js') }}"></script>
+<script src="{{ asset('static/inspinia/v4.0/assets/js/maps/world.js') }}"></script>
+
+<!-- Custom table -->
+<script src="{{ asset('static/inspinia/v4.0/assets/js/pages/custom-table.js') }}"></script>
+
+<!-- Dashboard 2 Page js -->
+<script src="{{ asset('static/inspinia/v4.0/assets/js/pages/dashboard-2.js') }}"></script>
+
+</body>
+
+</html>

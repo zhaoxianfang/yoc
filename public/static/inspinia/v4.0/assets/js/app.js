@@ -578,7 +578,7 @@ class Plugins {
     }
 }
 class I18nManager {
-    constructor({defaultLang: e="cn", langPath: t="assets/data/translations/", langImageSelector: a="#selected-language-image", langCodeSelector: i="#selected-language-code", translationKeySelector: s="[data-lang]", translationKeyAttribute: o="data-lang", languageSelector: r="[data-translator-lang]"}={}) {
+    constructor({defaultLang: e="cn", langPath: t="/static/inspinia/v4.0/assets/data/translations/", langImageSelector: a="#selected-language-image", langCodeSelector: i="#selected-language-code", translationKeySelector: s="[data-lang]", translationKeyAttribute: o="data-lang", languageSelector: r="[data-translator-lang]"}={}) {
         this.selectedLanguage = sessionStorage.getItem("__INSPINIA_LANG__") || e,
             this.langPath = t,
             this.langImageSelector = a,
