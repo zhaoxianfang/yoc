@@ -2,8 +2,8 @@
 
 namespace Modules\Home\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
 use zxf\Laravel\Modules\Traits\PathNamespace;
 
 class HomeServiceProvider extends ServiceProvider

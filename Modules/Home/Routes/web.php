@@ -14,7 +14,7 @@ use Modules\Home\Http\Controllers\Web;
  |
  */
 
-Route::prefix('')->group(function() {
+Route::prefix('')->group(function () {
     Route::get('', [Web\HomeController::class, 'index'])->name('home');
 });
 // 资源路由

@@ -22,7 +22,7 @@ if (! function_exists('source_local_website')) {
         // 来源地址不是本站
         return match ($returnType) {
             'status' => (bool) ! $isExternal, // 返回来源是否是本站
-            'url' => $isExternal ? $referer : '', // 当来源地址是本站时，返回来源地址，否则返回空
+            'url' => $isExternal ? '' : $referer  , // 当来源地址是本站时，返回来源地址，否则返回空
             default => [(bool) ! $isExternal, $referer], // 默认返回 [来源是否为本站,本站来源url]
         };
     }
