@@ -1,0 +1,855 @@
+/* 基础样式 */
+.zxf-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.zxf-modal-overlay.active {
+    opacity: 1;
+}
+
+.zxf-modal-container {
+    position: fixed;
+    background-color: #fff;
+    color: #676a6c;
+    border-radius: 4px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+    min-width: 280px;
+    max-width: 95vw;
+    max-height: 95vh;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+}
+
+.zxf-modal-container.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 加载状态 */
+.zxf-modal-loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 120px;
+}
+
+.zxf-modal-loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #2196F3;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: modal-spin 0.8s linear infinite;
+}
+
+.zxf-modal-loading-text {
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+@keyframes modal-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 全屏样式 */
+.zxf-modal-container.fullscreen {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    inset: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* 最大化样式 */
+.zxf-modal-container.maximized {
+    width: calc(100%) !important;
+    height: calc(100%) !important;
+    max-width: calc(100%) !important;
+    max-height: calc(100%) !important;
+    inset: 0 !important;
+}
+
+.zxf-modal-container.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.zxf-modal-container.transparent,.zxf-modal-container.transparent .zxf-modal-header,.zxf-modal-container.transparent .zxf-modal-footer{
+    background-color: rgba(255, 255, 255, 0.65);
+}
+
+/* 标题区域 - 更紧凑 */
+.zxf-modal-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.zxf-modal-title {
+    margin: 0;
+    font-size: 16px;
+    /*font-weight: 600;*/
+    font-weight: normal;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* 内容区域 */
+.zxf-modal-content {
+    position: relative;
+    padding: 14px 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* 底部按钮区域 - 更紧凑 */
+.zxf-modal-footer {
+    padding: 8px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.zxf-modal-footer.buttons-left {
+    justify-content: flex-start;
+}
+
+.zxf-modal-footer.buttons-center {
+    justify-content: center;
+}
+
+.zxf-modal-footer.buttons-vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.zxf-modal-footer .btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    line-height: 1.4;
+    white-space: nowrap; /* 阻止文本换行 */
+}
+
+.zxf-modal-footer .btn:hover {
+    opacity: 0.9;
+}
+
+/* 链接按钮样式优化 */
+.zxf-modal-footer .btn-link {
+    background: none;
+    color: #2196F3;
+    /*text-decoration: underline; !* 添加下划线 *!*/
+    padding: 6px 8px;
+    border: none;
+    cursor: pointer;
+
+    position: relative; /* 使伪元素相对于 a 标签定位 */
+    display: inline-block; /* 确保 a 标签内容块级显示，以便于设置宽度 */
+    padding-bottom: 3px; /* 调整 a 标签文本和下划线之间的距离 */
+    text-decoration: none; /* 去掉默认的下划线 */
+}
+
+.zxf-modal-footer .btn-link::after {
+    content: ''; /* 必须，生成内容 */
+    position: absolute; /* 绝对定位 */
+    bottom: 0; /* 定位在 a 标签的底部 */
+    left: 8px; /* 从左边起始点开始，预留2px的空间 */
+    width: calc(100% - 16px); /* 总宽度减去4px，确保比 a 标签宽度少4px */
+    /* 移除原有的 height 设置 */
+    border-bottom: 2px dashed #2196F3; /* 修改这里的值来设置虚线的高度，这里设为2px */
+}
+/* 当鼠标悬停在 a 标签上时，隐藏下划线 */
+.zxf-modal-footer .btn-link:hover {
+    text-decoration: none;
+}
+
+/* 操作按钮 - 更紧凑 */
+.zxf-modal-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.zxf-modal-action-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+    padding: 0;
+}
+
+.zxf-modal-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* iframe样式优化 */
+.zxf-modal-content:has(.zxf-modal-iframe-container) {
+    padding: 0!important;
+    margin: 0!important;
+}
+
+.zxf-modal-content iframe{
+    border-width: 0;
+}
+
+.zxf-modal-iframe-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    flex-grow: 1;
+
+    min-height: 200px;
+    background: #f5f5f5;
+}
+
+.zxf-modal-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: transparent;
+}
+
+/* 进度条 */
+.zxf-modal-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #eee;
+    z-index: 5;
+}
+
+.zxf-modal-progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 100%;
+    transition: width linear;
+}
+
+/* 最小化样式优化 */
+.zxf-modal-minimized {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10001;
+    cursor: pointer;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.zxf-modal-minimized-title {
+    color: #333;
+}
+
+.zxf-modal-minimized-restore {
+    background: none;
+    border: none;
+    color: #2196F3;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 4px;
+    margin-left: 4px;
+}
+
+.zxf-modal-minimized-restore:hover {
+    text-decoration: underline;
+}
+
+/* 抖动动画优化 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.zxf-modal-shake {
+    animation: shake 0.4s;
+}
+
+/* 主题样式优化 */
+.zxf-modal-theme-default .zxf-modal-header {
+    background-color: #f8f9fa;
+}
+
+.zxf-modal-theme-primary .zxf-modal-header {
+    background-color: #2196F3;
+    color: white;
+}
+
+.zxf-modal-theme-primary .zxf-modal-title {
+    color: white;
+}
+
+.zxf-modal-theme-success .zxf-modal-header {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.zxf-modal-theme-success .zxf-modal-title {
+    color: white;
+}
+
+.zxf-modal-theme-warning .zxf-modal-header {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.zxf-modal-theme-danger .zxf-modal-header {
+    background-color: #F44336;
+    color: white;
+}
+
+.zxf-modal-theme-danger .zxf-modal-title {
+    color: white;
+}
+
+.zxf-modal-theme-danger .zxf-modal-action-btn {
+    color: white;
+}
+
+.zxf-modal-theme-dark .zxf-modal-container {
+    background-color: #343a40;
+    color: white;
+}
+
+.zxf-modal-theme-dark .zxf-modal-header {
+    background-color: #2e3846;
+    border-bottom-color: #495057;
+}
+
+.zxf-modal-theme-dark .zxf-modal-title {
+    color: white;
+}
+
+.zxf-modal-theme-dark .zxf-modal-footer {
+    border-top-color: #495057;
+    background-color: #2e3846;
+}
+
+.zxf-modal-theme-dark .zxf-modal-content {
+    color: rgba(255, 255, 255, 0.85);
+    background-color: #2e3846;
+}
+
+.zxf-modal-theme-dark .zxf-modal-action-btn {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* 按钮主题优化 */
+.btn-primary {
+    background-color: #2196F3;
+    color: white;
+}
+
+.btn-success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-warning {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.btn-danger {
+    background-color: #F44336;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Toast 通知样式 - 完整实现 */
+.zxf-modal-toast-container {
+    position: fixed;
+    z-index: 11001;
+    pointer-events: none;
+    /* width: 100%;*/
+    padding: 6px; /* 添加边缘间距 */
+}
+
+.zxf-modal-toast {
+    position: relative;
+    min-width: 250px;
+    max-width: 350px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    color: white;
+    opacity: 0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    pointer-events: auto;
+    margin-bottom: 10px;
+    margin: 6px; /* 添加边缘间距 */
+}
+
+.zxf-modal-toast.show {
+    opacity: 1;
+}
+
+.zxf-modal-toast .toast-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+    padding: 0 0 0 10px;
+}
+
+.zxf-modal-toast .toast-close:hover {
+    opacity: 1;
+}
+
+.zxf-modal-toast .toast-icon {
+    margin-right: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.toast-top-right {
+    top: 15px;
+    right: 15px;
+}
+
+.toast-top-left {
+    top: 15px;
+    left: 15px;
+}
+
+.toast-bottom-right {
+    bottom: 15px;
+    right: 15px;
+}
+
+.toast-bottom-left {
+    bottom: 15px;
+    left: 15px;
+}
+
+.toast-top-center {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.toast-bottom-center {
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.toast-success {
+    background-color: #4CAF50;
+}
+
+.toast-error {
+    background-color: #F44336;
+}
+
+.toast-info {
+    background-color: #2196F3;
+}
+
+.toast-warning {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.toast-warning .toast-close,
+.toast-warning .toast-icon {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.3);
+    width: 100%;
+}
+
+.toast-progress-bar {
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    width: 100%;
+    transition: width linear;
+}
+
+/* 响应式优化 */
+@media (max-width: 576px) {
+    .zxf-modal-container {
+        /*width: 100% !important;*/
+        /*max-width: 100% !important;*/
+        /*max-height: 100vh;*/
+        /*border-radius: 0;*/
+    }
+
+    .zxf-modal-footer {
+        /*flex-direction: column;*/
+        gap: 6px;
+    }
+
+    .zxf-modal-footer .btn {
+        width: 100%;
+    }
+
+    .zxf-modal-actions {
+        top: 4px;
+        right: 4px;
+    }
+
+    .zxf-modal-toast {
+        max-width: calc(100% - 30px);
+    }
+}
+
+
+/* ==================== 表单基础样式 ==================== */
+.zxf-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0;
+}
+
+/* 表单项样式 */
+.zxf-modal-form-item {
+    display: flex;
+    margin-bottom: 2px;
+    position: relative;
+}
+
+/* 禁用状态 */
+.zxf-modal-form-item.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ==================== 标签对齐方式 ==================== */
+
+/* 左对齐（默认） */
+.zxf-modal-form-label-left .zxf-modal-form-item {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+/* 顶部对齐 */
+.zxf-modal-form-label-top .zxf-modal-form-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+/* ==================== 标签样式 ==================== */
+.zxf-modal-form-label {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 0;
+    flex-shrink: 0;
+    line-height: 1.5;
+    padding-top: 10px;
+    font-weight: 500;
+}
+
+/* 左对齐标签 - 支持自定义宽度 */
+.zxf-modal-form-label-left .zxf-modal-form-label {
+    padding-right: 15px;
+    text-align: right;
+    width: var(--label-width, 150px);
+    min-width: var(--label-width, 150px);
+}
+
+/* 顶部对齐标签 */
+.zxf-modal-form-label-top .zxf-modal-form-label {
+    width: 100%;
+    margin-bottom: 6px;
+    padding-top: 0;
+}
+
+/* ==================== 表单控件样式 ==================== */
+.zxf-modal-form-control {
+    flex: 1;
+    min-width: 0;
+}
+
+/* 通用输入控件样式 */
+.zxf-modal-form-control input,
+.zxf-modal-form-control textarea,
+.zxf-modal-form-control select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #dcdfe6;
+    border-radius: 2px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    color: #333;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+/* 输入框聚焦样式 */
+.zxf-modal-form-control input:focus,
+.zxf-modal-form-control textarea:focus,
+.zxf-modal-form-control select:focus {
+    border-color: #409eff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+}
+
+/* 文本域样式 */
+.zxf-modal-form-control textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+/* 禁用状态样式 */
+.zxf-modal-form-control input:disabled,
+.zxf-modal-form-control textarea:disabled,
+.zxf-modal-form-control select:disabled {
+    background-color: #f5f7fa;
+    color: #c0c4cc;
+    cursor: not-allowed;
+}
+
+/* ==================== 单选/复选框组样式 ==================== */
+.zxf-modal-form-radio-group,
+.zxf-modal-form-checkbox-group {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+/* 单选/复选框项样式 */
+.zxf-modal-form-radio-item,
+.zxf-modal-form-checkbox-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 10px;
+}
+
+/* 单选/复选框输入框样式 */
+.zxf-modal-form-radio-item input,
+.zxf-modal-form-checkbox-item input {
+    appearance:auto!important;
+    margin-right: 10px;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+/* ==================== 下拉选择框样式 ==================== */
+.zxf-modal-form-control select[multiple] {
+    min-height: 140px;
+    padding: 10px;
+}
+
+.zxf-modal-form-control select[multiple] option {
+    padding: 10px 14px;
+    margin: 5px 0;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.zxf-modal-form-control select[multiple] option:hover {
+    background-color: #f5f7fa;
+}
+
+.zxf-modal-form-control select[multiple] option:checked {
+    background-color: #409eff;
+    color: white;
+}
+
+/* ==================== 错误提示样式 ==================== */
+.zxf-modal-form-error {
+    color: #f56c6c;
+    font-size: 13px;
+    margin-top: 2px;
+    display: none;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.zxf-modal-form-item.error .zxf-modal-form-error {
+    display: block;
+}
+
+.zxf-modal-form-item.error input,
+.zxf-modal-form-item.error textarea,
+.zxf-modal-form-item.error select {
+    border-color: #f56c6c;
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+/* ==================== 表单底部按钮 ==================== */
+.zxf-modal-form-footer {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #ebeef5;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+/* ==================== 暗黑主题 ==================== */
+.zxf-modal-form-dark {
+    background-color: #2e3846;
+    color: #e6e6e6;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-label {
+    color: #e6e6e6;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-control input,
+.zxf-modal-form-dark .zxf-modal-form-control textarea,
+.zxf-modal-form-dark .zxf-modal-form-control select {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #f0f0f0;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-control input:focus,
+.zxf-modal-form-dark .zxf-modal-form-control textarea:focus,
+.zxf-modal-form-dark .zxf-modal-form-control select:focus {
+    border-color: #409eff;
+    box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2);
+}
+
+.zxf-modal-form-dark .zxf-modal-form-control select[multiple] option {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-control select[multiple] option:hover {
+    background-color: #3a3a3a;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-control select[multiple] option:checked {
+    background-color: #409eff;
+    color: white;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-footer {
+    border-top-color: #444;
+}
+
+.zxf-modal-form-dark .zxf-modal-form-error {
+    color: #ff7d7d;
+}
+
+/* ==================== 响应式调整 ==================== */
+@media (max-width: 768px) {
+    .zxf-modal-form-label-left .zxf-modal-form-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .zxf-modal-form-label-left .zxf-modal-form-label {
+        width: 100% !important;
+        min-width: 100% !important;
+        text-align: left;
+        padding: 0;
+        margin-bottom: 8px;
+        padding-top: 0;
+    }
+
+    .zxf-modal-form-error {
+        position: static;
+        margin-top: 6px;
+    }
+
+    .zxf-modal-form-radio-group,
+    .zxf-modal-form-checkbox-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .zxf-modal-form-control select[multiple] {
+        min-height: 120px;
+    }
+}

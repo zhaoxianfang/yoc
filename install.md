@@ -61,7 +61,19 @@ composer dump-autoload
 > 把 `config/database.php` 里面`sqlite`的 `'database'` 的值改为`'database' => database_path('database.sqlite')`
 
 
-运行迁移`php artisan migrate`
+```
+【重要】
+先修改database/migrations/ 里面的 users 迁移文件自字段(字段太少了)
+
+全部迁移
+php artisan migrate
+模块数据库迁移
+php artisan module:migrate Core
+刷新 Users 模块的迁移
+php artisan module:migrate-refresh Users
+迁移所有模块
+php artisan module:migrate
+```
 
 
 ## 6. 默认日志处理
