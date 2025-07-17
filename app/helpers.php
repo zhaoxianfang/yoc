@@ -4,6 +4,30 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Modules\System\Models\SystemConfig;
 
+if (! function_exists('source_local_website')) {
+    /**
+     * 判断跳转url的上一个地址（来源地址）是不是从本站跳转过来的
+     *
+     * @param  string  $returnType  返回类型，默认返回全部，可选值：status、url、all
+     */
+    function source_local_website(string $returnType = ''): bool|array|string|null
+    {
+        $referer = request()->header('referer', '');
+        // 判断是否为外部来源 (空referer或非本站URL)
+        $isExternal = empty($referer) || ! str_starts_with(
+            parse_url($referer, PHP_URL_HOST) ?? '',
+            parse_url(config('app.url'), PHP_URL_HOST) ?? ''
+        );
+
+        // 来源地址不是本站
+        return match ($returnType) {
+            'status' => (bool) ! $isExternal, // 返回来源是否是本站
+            'url' => $isExternal ? $referer : '', // 当来源地址是本站时，返回来源地址，否则返回空
+            default => [(bool) ! $isExternal, $referer], // 默认返回 [来源是否为本站,本站来源url]
+        };
+    }
+}
+
 if (! function_exists('cache_file')) {
     /**
      * 文件驱动缓存 助手函数
