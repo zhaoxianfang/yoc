@@ -4,7 +4,7 @@ namespace Modules\Logs\Handler;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Constants\ExceptParams;
+use Modules\System\Constants\ExceptParams;
 use Monolog\Handler\AbstractProcessingHandler;
 use Throwable;
 

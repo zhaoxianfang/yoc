@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Modules\Core\Services\SecurityServices;
+use Modules\System\Services\SecurityServices;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // 公共中间件【放在前面】
-        $middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
+        $middleware->append(\Modules\System\Http\Middleware\CommonBaseMiddleware::class);
 
         // 安全拦截
         // $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
@@ -34,7 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 接入异常处理类
-        \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions);
+        \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions, function ($code, $message) {
+            if ($code == 401) {
+                return to_route('login');
+            }
+        }, [401]);
 
         // 全局接管所有继承了 \Exception 的异常 渲染
         // $exceptions->render(function (\Throwable $e, Request $request) {
