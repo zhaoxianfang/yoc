@@ -68,7 +68,7 @@ composer dump-autoload
 全部迁移
 php artisan migrate
 模块数据库迁移
-php artisan module:migrate Core
+php artisan module:migrate System
 刷新 Users 模块的迁移
 php artisan module:migrate-refresh Users
 迁移所有模块
