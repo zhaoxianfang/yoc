@@ -16,7 +16,7 @@
 @endsection
 
 @section('head_css')
-    <link href="{{ asset('static/libs/zxf/css/bootstrap-form.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('static/libs/zxf/css/bootstrap-form.min.css') }}" rel="stylesheet" type="text/css">
 @endsection
 
 @section('content')

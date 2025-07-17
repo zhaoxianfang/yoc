@@ -4,7 +4,7 @@
 
 @section('head_css')
     @parent
-    <link href="{{ asset('static/libs/zxf/css/bootstrap-form.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('static/libs/zxf/css/bootstrap-form.min.css') }}" rel="stylesheet" type="text/css">
     <style>
         .toc{display: none!important;}
         .app-container{grid-template-columns: 220px 1fr 10px!important;}

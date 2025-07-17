@@ -3,7 +3,7 @@
     .app-container{grid-template-columns: 220px 1fr 10px!important;}
     .book-sum{height: unset!important;}
 </style>
-<link href="{{ asset('static/libs/zxf/css/bootstrap-form.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ asset('static/libs/zxf/css/bootstrap-form.min.css') }}" rel="stylesheet" type="text/css">
 
 <div class="book-cards row no-gutters bg-white">
     <ul class="custom-tabs">

@@ -18,7 +18,7 @@
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<link href="{{ asset('static/libs/zxf/css/bootstrap-col.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ asset('static/libs/zxf/css/bootstrap-col.min.css') }}" rel="stylesheet" type="text/css">
 <link href="{{ asset('static/docs/css/docs_v2.min.css') }}" rel="stylesheet" type="text/css">
 <link href="{{ asset('static/libs/zxf/modal/modal.min.css') }}" rel="stylesheet" type="text/css">
 
