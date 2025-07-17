@@ -87,8 +87,7 @@ class CommonBaseMiddleware extends MiddlewareAbstract
 
                 $context = [
                     'request' => $request->input(),
-                    'response' => is_json($respString) ? json_decode($respString, true) : 'HTML PAGE!',
-                    'view_path' => $request->attributes->get('resp_view_path', ''), // 响应的视图路径
+                    'response' => is_json($respString) ? json_decode($respString, true) : $request->attributes->get('resp_view_path', ''), // 响应的json数据 或者 视图路径
                 ];
                 $intercept = $request->attributes->get('intercept', ''); // 被拦截的信息
                 // 当前环境是生产环境

@@ -24,8 +24,11 @@ class Blacklist extends Model
     /**
      * 类型转换
      *
-     * @var array
+     * @return array<string, string>
      */
-    protected $casts = [
-    ];
+    protected function casts(): array
+    {
+        return [
+        ];
+    }
 }

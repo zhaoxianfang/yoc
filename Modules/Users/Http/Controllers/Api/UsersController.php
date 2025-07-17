@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Logs\Http\Controllers\Api;
+namespace Modules\Users\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class LogsController extends Controller
+class UsersController extends Controller
 {
     /**
      * Display a listing of the resource.

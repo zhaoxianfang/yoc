@@ -55,25 +55,14 @@ composer dump-autoload
 
 或者在`PhpStorm`中配置中搜索`Laravel Pint`并启用
 
-## 5. 全局异常处理
-
-引导文件`bootstrap/app.php`中接入异常处理
-
-```php
-->withExceptions(function (Exceptions $exceptions): void {
-    // 定义异常处理类
-    \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions);
-})
-```
-
-## 6. laravel 迁移文件处理
+## 5. laravel 迁移文件处理
 
 > 重新定义 users 迁移文件
 
 运行迁移`php artisan migrate`
 
 
-## 7. 默认日志处理
+## 6. 默认日志处理
 
 在`.env` 文件中定义默认日志渠道
 
@@ -85,7 +74,7 @@ LOG_CHANNEL=database
 引导文件`config/logging.php`定义默认日志处理
 
 ```php
-创建一个日志处理模块 Logs
+// 创建一个日志处理模块 Logs
 php artisan module:make Logs
 ```
 
@@ -141,47 +130,52 @@ php artisan module:make Logs
 ],
 ```
 
+## 7. 全局异常处理 和 安全拦截
+
+```
+创建一个全局核心模块 Core
+php artisan module:make Core
+```
+
+引导文件`bootstrap/app.php`中接入异常处理 和 安全拦截中间件
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    // 公共中间件【放在前面】
+    $middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
+    // 安全拦截[高级用法见:https://weisifang.com/docs/doc/2_300]
+    $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
+})
+->withExceptions(function (Exceptions $exceptions): void {
+    // 定义异常处理类
+    \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions);
+})
+```
+
 ## 8. 分页 && 错误页
 
 ```
 php artisan vendor:publish --tag=laravel-pagination
 
 php artisan vendor:publish --tag=laravel-errors
-```
 
-## 9. 系统安全：引导文件`config/logging.php`中接入安全拦截中间件 `SecurityMiddleware`
-
-```
-->withMiddleware(function (Middleware $middleware): void {
-    // 公共中间件【放在前面】
-    $middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
-    // 安全拦截
-    $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
-})
+// 注意：把 errors/ 整个复制
 ```
 
 
-## x. 安装passport
+## 9. 安装passport
+
+创建一个用户模块 Users
+```php
+php artisan module:make Users
+```
 
 ```php
-composer require laravel/passport
-php artisan migrate
+// 会自动运行迁移
+php artisan install:api --passport
 ```
 
+在`Users`模块下创建`User`模型，然后删除`app`下默认的`User`模型
+s
 
-## x. 创建一个全局核心模块
-
-```
-创建一个全局核心模块 Core
-php artisan module:make Core
-
-制作全局中间件
-php artisan module:make-middleware CommonBaseMiddleware Core
-
-// 在bootstrap/app.php 的 withMiddleware 里面注册全局中间件
-$middleware->append(\Modules\Core\Http\Middleware\CommonBaseMiddleware::class);
-
-// 手动注册 admin 中间件组
-```
-
-
+部署 Passport

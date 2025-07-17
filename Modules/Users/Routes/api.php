@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Modules\Logs\Http\Controllers\Api;
+use Modules\Users\Http\Controllers\Api;
 
 /*
  *--------------------------------------------------------------------------
@@ -15,16 +15,16 @@ use Modules\Logs\Http\Controllers\Api;
  *
  */
 
-Route::prefix('logs')->name('api.logs.')->group(function () {
+Route::prefix('users')->name('api.users.')->group(function () {
     // Route::get('user', function (Request $request) {
-    //     return 'logs Api';
+    //     return 'users Api';
     //     return $request->user();
     // });
 
-    Route::get('', [Api\LogsController::class, 'index'])->name('list');
+    Route::get('', [Api\UsersController::class, 'index'])->name('list');
 });
 
 // OR 资源路由
 // Route::middleware([])->prefix('v1')->group(function () {
-//     Route::apiResource('logs', Api\LogsController::class)->names('logs');
+//     Route::apiResource('users', Api\UsersController::class)->names('users');
 // });
