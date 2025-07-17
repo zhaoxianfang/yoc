@@ -2,8 +2,8 @@
 
 namespace Modules\Logs\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
 use zxf\Laravel\Modules\Traits\PathNamespace;
 
 class LogsServiceProvider extends ServiceProvider

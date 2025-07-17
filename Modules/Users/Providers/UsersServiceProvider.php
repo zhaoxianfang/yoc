@@ -2,10 +2,10 @@
 
 namespace Modules\Users\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
-use zxf\Laravel\Modules\Traits\PathNamespace;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
+use zxf\Laravel\Modules\Traits\PathNamespace;
 
 class UsersServiceProvider extends ServiceProvider
 {

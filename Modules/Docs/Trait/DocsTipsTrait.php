@@ -9,16 +9,8 @@ use Illuminate\Http\Response;
  */
 trait DocsTipsTrait
 {
-
     /**
      * 提示页面
-     *
-     * @param string $message
-     * @param string $describe
-     * @param array  $btn
-     * @param string $type
-     *
-     * @return Response
      */
     protected function tips(string $message = '', string $describe = '', array $btn = [], string $type = 'info'): Response
     {
@@ -37,12 +29,6 @@ trait DocsTipsTrait
 
     /**
      * 错误提示页面
-     *
-     * @param string $message
-     * @param string $describe
-     * @param array  $btn
-     *
-     * @return Response
      */
     public function tip_error(string $message = '', string $describe = '', array $btn = []): Response
     {
@@ -51,12 +37,6 @@ trait DocsTipsTrait
 
     /**
      * 成功提示页面
-     *
-     * @param string $message
-     * @param string $describe
-     * @param array  $btn
-     *
-     * @return Response
      */
     public function tip_success(string $message = '', string $describe = '', array $btn = []): Response
     {
@@ -65,12 +45,6 @@ trait DocsTipsTrait
 
     /**
      * 警告提示页面
-     *
-     * @param string $message
-     * @param string $describe
-     * @param array  $btn
-     *
-     * @return Response
      */
     public function tip_warning(string $message = '', string $describe = '', array $btn = []): Response
     {
@@ -79,12 +53,6 @@ trait DocsTipsTrait
 
     /**
      * 提示页面
-     *
-     * @param string $message
-     * @param string $describe
-     * @param array  $btn
-     *
-     * @return Response
      */
     public function tip_info(string $message = '', string $describe = '', array $btn = []): Response
     {

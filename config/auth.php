@@ -76,7 +76,7 @@ return [
         //     'model' => env('AUTH_MODEL', App\Models\User::class),
         // ],
 
-          // 新增
+        // 新增
         'users' => [
             'driver' => 'eloquent',
             'model' => \Modules\Users\Models\User::class,

@@ -14,7 +14,7 @@ use Modules\Users\Http\Controllers\Web;
  |
  */
 
-Route::prefix('users')->name('users.')->group(function() {
+Route::prefix('users')->name('users.')->group(function () {
     Route::get('', [Web\UsersController::class, 'index'])->name('list');
 });
 // 资源路由

@@ -14,7 +14,7 @@ use Modules\System\Http\Controllers\Web;
  |
  */
 
-Route::prefix('system')->name('system.')->group(function() {
+Route::prefix('system')->name('system.')->group(function () {
     Route::get('', [Web\SystemController::class, 'index'])->name('list');
 });
 // 资源路由

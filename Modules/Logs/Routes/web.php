@@ -14,7 +14,7 @@ use Modules\Logs\Http\Controllers\Web;
  |
  */
 
-Route::prefix('logs')->name('logs.')->group(function() {
+Route::prefix('logs')->name('logs.')->group(function () {
     Route::get('', [Web\LogsController::class, 'index'])->name('list');
 });
 // 资源路由

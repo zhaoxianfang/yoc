@@ -1968,4 +1968,4 @@ function handleImageFallback(defaultImage) {
     return setupObserver();
 }
 // 监听图片加载失败时使用默认图片
-handleImageFallback('/static/images/load_error.jpg');
+handleImageFallback('/static/images/system/load_error.jpg');

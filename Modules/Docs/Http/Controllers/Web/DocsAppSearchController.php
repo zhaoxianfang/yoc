@@ -4,9 +4,9 @@ namespace Modules\Docs\Http\Controllers\Web;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Docs\Http\Controllers\DocsBaseController;
 use Modules\Docs\Models\DocsApp;
 use Modules\Docs\Models\DocsDoc;
-use Modules\Docs\Http\Controllers\DocsBaseController;
 
 class DocsAppSearchController extends DocsBaseController
 {

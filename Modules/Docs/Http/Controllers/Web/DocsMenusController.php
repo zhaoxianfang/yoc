@@ -4,9 +4,9 @@ namespace Modules\Docs\Http\Controllers\Web;
 
 use Exception;
 use Illuminate\Http\Request;
+use Modules\Docs\Http\Controllers\DocsBaseController;
 use Modules\Docs\Models\DocsApp;
 use Modules\Docs\Models\DocsAppMenu;
-use Modules\Docs\Http\Controllers\DocsBaseController;
 
 class DocsMenusController extends DocsBaseController
 {
