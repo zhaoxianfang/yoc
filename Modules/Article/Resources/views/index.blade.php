@@ -1,9 +1,9 @@
-@extends('home::layouts.home')
+@extends('article::layouts.master')
 
 @section('content')
     <div class="content">
         <div class="message-box rect">
-            <p class="gradient">模块: {!! config('admin.name') !!}</p>
+            <p class="gradient">模块: {!! config('article.name') !!}</p>
             <p>文档:https://weisifang.com/docs/2</p>
             <p>插件:composer require zxf/tools&nbsp;&nbsp;&nbsp;</p>
         </div>

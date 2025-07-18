@@ -1,0 +1,8 @@
+<?php
+/**
+ * Admin 模块配置文件
+ *      调用方式：config('admin.name')
+ */
+return [
+    'name' => 'Admin',
+];

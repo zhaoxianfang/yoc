@@ -18060,7 +18060,7 @@ html[data-layout=topnav] .topnav .navbar {
     padding: 0
 }
 
-@media (min-width: 992px) {
+@media (min-width: 768px) {
     html[data-layout=topnav] .topnav .navbar-nav .nav-item:first-of-type .nav-link {
         padding-left:0
     }
@@ -18094,7 +18094,7 @@ html[data-layout=topnav] .topnav .navbar-nav .nav-link .menu-icon svg {
 }
 
 html[data-layout=topnav] .topnav .navbar-nav .nav-link .menu-arrow {
-    margin-left: calc(var(--ins-sidenav-item-icon-size) * .5)
+    margin-left: calc(var(--ins-sidenav-item-icon-size) * .1)
 }
 
 html[data-layout=topnav] .topnav .navbar-nav .dropdown .dropdown-menu {
@@ -18174,7 +18174,7 @@ html[data-layout=topnav] .page-title-head {
     }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 767.98px) {
     html[data-layout=topnav] .topnav {
         max-height:360px;
         overflow-y: auto
@@ -24441,7 +24441,7 @@ html[data-layout=topnav] .flex-horizontal-top-search .topbar-search{
 html[data-layout=topnav] .flex-horizontal-topnav .menu-arrow{
     margin-left: 2px;
 }
-@media (max-width: 991.98px) {
+@media (max-width: 767.98px) {
     html[data-layout=topnav] .flex-horizontal-topnav {
         max-height: unset!important;
         overflow-y: auto!important;

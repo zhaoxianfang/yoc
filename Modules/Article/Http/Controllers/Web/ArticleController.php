@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Home\Http\Controllers\Web;
+namespace Modules\Article\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Home\Http\Controllers\HomeBaseController;
 
-class HomeController extends HomeBaseController
+class ArticleController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('home::index');
+        return view('article::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class HomeController extends HomeBaseController
      */
     public function create()
     {
-        return view('home::create');
+        return view('article::create');
     }
 
     /**
@@ -33,7 +33,7 @@ class HomeController extends HomeBaseController
      */
     public function show($id)
     {
-        return view('home::show');
+        return view('article::show');
     }
 
     /**
@@ -41,7 +41,7 @@ class HomeController extends HomeBaseController
      */
     public function edit($id)
     {
-        return view('home::edit');
+        return view('article::edit');
     }
 
     /**
