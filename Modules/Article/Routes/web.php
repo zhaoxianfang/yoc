@@ -29,6 +29,5 @@ Route::prefix('article')->name('article.')->group(function () {
         ->where('article', '^\d+(?:\.html)?$');
 });
 
-
 // 资源路由
 // Route::resource('article', Web\ArticleController::class)->names('article');

@@ -14,7 +14,7 @@ use Modules\Admin\Http\Controllers\Web;
  |
  */
 
-Route::prefix('admin')->name('admin.')->group(function() {
+Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('', [Web\AdminController::class, 'index'])->name('list');
 });
 // 资源路由

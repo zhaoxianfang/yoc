@@ -18040,7 +18040,7 @@ html[data-layout=topnav] .app-topbar .topbar-menu {
 
 html[data-layout=topnav] .content-page {
     margin-left: 0;
-    min-height: calc(100vh - var(--ins-topbar-height) - 43px)
+    min-height: calc(100vh - var(--ins-topbar-height) - 0px)
 }
 
 html[data-layout=topnav] .topnav {

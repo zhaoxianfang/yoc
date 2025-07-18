@@ -2,8 +2,8 @@
 
 namespace Modules\Article\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
 use Modules\Article\Models\Article;
 use Modules\Article\Policies\ArticlePolicy;
 use zxf\Laravel\Modules\Traits\PathNamespace;
