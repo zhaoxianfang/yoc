@@ -1,25 +1,25 @@
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">
-        <div class="d-flex align-items-center gap-1">
+        <div class="d-flex align-items-center gap-0">
             <!-- Topbar Brand Logo -->
             <div class="logo-topbar">
                 <!-- Logo light -->
                 <a href="/" class="logo-light">
                     <span class="logo-lg">
-                        <img src="{{ asset('static/inspinia/v4.0/assets/images/logo.png') }}" alt="logo">
+                        <img src="{{ asset('static/images/logo_long.png') }}" alt="logo">
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-sm.png') }}" alt="small logo">
+                        <img src="{{ asset('static/images/logo.png') }}" alt="small logo">
                     </span>
                 </a>
 
                 <!-- Logo Dark -->
                 <a href="/" class="logo-dark">
                     <span class="logo-lg">
-                        <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-black.png') }}" alt="dark logo">
+                        <img src="{{ asset('static/images/logo_long.png') }}" alt="dark logo">
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-sm.png') }}" alt="small logo">
+                        <img src="{{ asset('static/images/logo.png') }}" alt="small logo">
                     </span>
                 </a>
             </div>

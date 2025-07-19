@@ -2,9 +2,9 @@
 <div class="topbar-item nav-user">
     <div class="dropdown">
         <a class="topbar-link dropdown-toggle drop-arrow-none px-2" data-bs-toggle="dropdown" data-bs-offset="0,16" href="layouts-horizontal.html#!" aria-haspopup="false" aria-expanded="false">
-            <img src="{{ asset('static/inspinia/v4.0/assets/images/users/user-2.jpg') }}" width="32" class="rounded-circle me-lg-2 d-flex" alt="user-image">
+            <img src="{{ asset('static/modules/common/img/default_user.png') }}" width="32" class="rounded-circle me-lg-0 d-flex" alt="user-image">
             <div class="d-lg-flex align-items-center gap-1 d-none">
-                <h5 class="my-0">Damian D.</h5>
+                <h5 class="my-0">小威</h5>
                 <i class="ti ti-chevron-down align-middle"></i>
             </div>
         </a>
@@ -15,7 +15,7 @@
             </div>
 
             <!-- My Profile -->
-            <a href="pages-profile.html" class="dropdown-item">
+            <a href="javascript:void(0);" class="dropdown-item">
                 <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
                 <span class="align-middle">Profile</span>
             </a>
@@ -48,7 +48,7 @@
             <div class="dropdown-divider"></div>
 
             <!-- Lock -->
-            <a href="auth-lock-screen.html" class="dropdown-item">
+            <a href="javascript:void(0);" class="dropdown-item">
                 <i class="ti ti-lock me-2 fs-17 align-middle"></i>
                 <span class="align-middle">Lock Screen</span>
             </a>

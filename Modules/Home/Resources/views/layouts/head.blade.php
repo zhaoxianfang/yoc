@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://weisifang.com">
 
 <!-- App favicon -->
-<link rel="shortcut icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="shortcut icon" href="{{ asset('favicon1.ico') }}" sizes="any">
 
 <!-- Theme Config Js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/config.js') }}"></script>

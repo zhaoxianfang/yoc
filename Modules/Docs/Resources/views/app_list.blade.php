@@ -80,7 +80,11 @@
         <!-- Laravel分页演示 -->
         <div class="col-12">
             <div class="text-center bg-gray">
-                {{ $docs_apps->appends(request()->query())->links()}}
+                @if(is_mobile())
+                    {{ $docs_apps->appends(['keyword'=>request()->input('keyword','')])->links('pagination::simple-bootstrap-5') }}
+                @else
+                    {{ $docs_apps->appends(['keyword'=>request()->input('keyword','')])->onEachSide(4)->links('pagination::bootstrap-5') }}
+                @endif
             </div>
         </div>
     </div>

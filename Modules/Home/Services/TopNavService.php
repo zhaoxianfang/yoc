@@ -119,6 +119,9 @@ class TopNavService
      */
     public function megaMenu(): string
     {
+        // TODO: 临时关闭
+        return '';
+
         if (empty($this->navBoardList)) {
             return '';
         }

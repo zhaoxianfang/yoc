@@ -17624,6 +17624,10 @@ html[data-menu-color=light][data-topbar-color=dark] .sidenav-menu .sidenav-user,
     content: "\ea5f";
     font-family: tabler-icons
 }
+html[data-layout=topnav] .dropdown-menu .menu-arrow{
+    position: absolute!important;
+    right: calc(var(--ins-sidenav-item-padding-x) * 1)!important;
+}
 
 [aria-expanded=true] .menu-arrow {
     -webkit-transform: rotate(-180deg);
