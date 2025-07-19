@@ -9,7 +9,7 @@
         </div>
         <div class="logo">
             <a href="/" class="logo-icon"title="返回整站首页" data-tips="right">
-                <img src="{{ asset('static/images/logo.png') }}" style="width: 25px;height: 25px;margin-bottom: -4px;" alt="Docs Logo">
+                <img src="{{ asset('static/images/logo/logo.png') }}" style="width: 25px;height: 25px;margin-bottom: -4px;" alt="Docs Logo">
             </a>
             <span id="logoText" class="hidden"></span>
             <a href="/docs/" id="logoText-0" title="返回文档首页" data-tips="bottom">{{ $docs_app->app_name ??  config('app.name','威四方') . '在线文档'}}</a>
@@ -54,11 +54,11 @@
                 </div>
             </div>
         </div>
-        <img src="{{auth()->guest()?'/static/images/logo.jpg':auth('web')->user()->cover??'/static/images/logo.jpg'}}" alt="用户头像" class="avatar" id="userAvatar">
+        <img src="{{auth()->guest()?'/static/images/logo/logo.jpg':auth('web')->user()->cover??'/static/images/logo.jpg'}}" alt="用户头像" class="avatar" id="userAvatar">
         <div class="mobile-menu-btn header-right-menu-btn" id="headerMenuToggle">☰</div>
         <div class="user-card" id="userCard">
             <div class="user-card-header">
-                <img src="{{auth()->guest()?'/static/images/logo.jpg':auth('web')->user()->cover??'/static/images/logo.jpg'}}" alt="用户头像" class="user-card-avatar">
+                <img src="{{auth()->guest()?'/static/images/logo/logo.jpg':auth('web')->user()->cover??'/static/images/logo.jpg'}}" alt="用户头像" class="user-card-avatar">
                 <div>
                     <div class="user-card-name">{{ auth('web')->guest()?'未登录':auth('web')->user()->nickname??'无名' }}</div>
                     <div class="user-card-email">wsf@example.com</div>

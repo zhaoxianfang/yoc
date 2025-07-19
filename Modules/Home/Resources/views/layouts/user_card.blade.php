@@ -2,7 +2,7 @@
 <div class="topbar-item nav-user">
     <div class="dropdown">
         <a class="topbar-link dropdown-toggle drop-arrow-none px-2" data-bs-toggle="dropdown" data-bs-offset="0,16" href="layouts-horizontal.html#!" aria-haspopup="false" aria-expanded="false">
-            <img src="{{ asset('static/modules/common/img/default_user.png') }}" width="32" class="rounded-circle me-lg-0 d-flex" alt="user-image">
+            <img src="{{ asset('static/images/system/default_user.png') }}" width="32" class="rounded-circle me-lg-0 d-flex" alt="user-image">
             <div class="d-lg-flex align-items-center gap-1 d-none">
                 <h5 class="my-0">小威</h5>
                 <i class="ti ti-chevron-down align-middle"></i>

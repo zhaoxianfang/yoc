@@ -6,20 +6,20 @@
                 <!-- Logo light -->
                 <a href="/" class="logo-light">
                     <span class="logo-lg">
-                        <img src="{{ asset('static/images/logo_long.png') }}" alt="logo">
+                        <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="logo">
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('static/images/logo.png') }}" alt="small logo">
+                        <img src="{{ asset('static/images/logo/logo.png') }}" alt="small logo">
                     </span>
                 </a>
 
                 <!-- Logo Dark -->
                 <a href="/" class="logo-dark">
                     <span class="logo-lg">
-                        <img src="{{ asset('static/images/logo_long.png') }}" alt="dark logo">
+                        <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="dark logo">
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('static/images/logo.png') }}" alt="small logo">
+                        <img src="{{ asset('static/images/logo/logo.png') }}" alt="small logo">
                     </span>
                 </a>
             </div>

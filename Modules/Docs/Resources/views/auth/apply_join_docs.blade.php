@@ -22,7 +22,7 @@
 {{--在docs_form 加样式 .docs_form-red  .docs_form-green .docs_form-purple .docs_form-blue 控制主题，默认为空--}}
 <div class="docs_form">
     <div class="logo-brand">
-        <img src="{{ asset('static/images/logo.png') }}" alt="logo">
+        <img src="{{ asset('static/images/logo/logo.png') }}" alt="logo">
     </div>
     <div class="docs_form-wrapper">
 

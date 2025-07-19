@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="{{ app()->getLocale() }}" data-theme="dark">
 <head>
 @include('docs::layouts.head')
 

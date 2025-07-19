@@ -205,7 +205,7 @@ class DocsAppManageController extends DocsBaseController
         $data64 = $qrcode
             ->content(url("docs/apply/{$docsApp->id}?from={$user->uuid}"))
             ->withText('扫码加入「'.$docsApp->app_name.'」', '', 8) // 可选
-            ->withLogo(public_path('static/images/logo_mini.jpg')) // 可选
+            ->withLogo(public_path('static/images/logo/logo_mini.jpg')) // 可选
             ->toBase64();
 
         return $this->showAppGuidePage($request, $docsApp, 'users', '成员管理', 'app_users', [

@@ -54,7 +54,7 @@
         function showToast(){
             let e=document.getElementById("toast-container"),t=(e||((e=document.createElement("div")).id="toast-container",e.className="toast-container position-fixed top-0 end-0 p-3",e.style.zIndex=1100,document.body.appendChild(e)),document.createElement("div"));t.className="toast text-bg-primary border-0 fade",t.setAttribute("role","alert"),t.setAttribute("aria-live","assertive"),t.setAttribute("aria-atomic","true"),t.innerHTML=`
         <div class="toast-header bg-white bg-opacity-10 text-white border-0">
-            <img src="/static/images/logo_mini.png" alt="brand-logo" height="16" class="me-1" />
+            <img src="/static/images/logo/logo_mini.png" alt="brand-logo" height="16" class="me-1" />
             <strong class="me-auto text-white">提示</strong>
             <small>{{ config('app.name','威四方') }}</small>
             <button type="button" class="ms-2 btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>

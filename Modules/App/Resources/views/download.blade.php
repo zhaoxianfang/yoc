@@ -43,7 +43,7 @@
         .logo {
             width: 150px;
             height: 150px;
-            background: url('{{ asset('/static/images/logo.jpg') }}') no-repeat center/contain;
+            background: url('{{ asset('/static/images/logo/logo.jpg') }}') no-repeat center/contain;
             border-radius: 50%;
             margin: 0 auto;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
