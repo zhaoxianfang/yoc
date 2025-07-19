@@ -2,55 +2,32 @@
 
 namespace Modules\Article\Http\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
+use Modules\Article\Models\Article;
+use Modules\Home\Http\Controllers\HomeBaseController;
 
-class ArticleController extends Controller
+class ArticleController extends HomeBaseController
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return Renderable
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('article::index');
+        return view('home::index');
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('article::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
 
     /**
      * Show the specified resource.
+     *
      */
-    public function show($id)
+    public function show(Article $article)
     {
-        return view('article::show');
+        $article->increment('read'); // 浏览次数+1
+        $article->load(['classify.parent', 'user']);
+
+        return view('article::web.article.detail', compact('article'));
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('article::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

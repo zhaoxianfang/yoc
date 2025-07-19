@@ -202,7 +202,7 @@ php artisan passport:keys
 令牌生命周期
 > 一般在`App\Providers\AuthServiceProvider`的`boot`方法中配置；
 > 使用zxf/tools 后 可以在任意一个模块的 `XxxServiceProvider` 里面配置;
-> 我们选择在 `UsersServiceProvider` 的 `boot`方法中配置，方便以后整个模块迁移；
+> 我们选择在 `SystemServiceProvider` 的 `boot`方法中配置，方便以后整个模块迁移；
 
 创建客户端令牌
 ```php

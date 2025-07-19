@@ -4,7 +4,7 @@
             <!-- Topbar Brand Logo -->
             <div class="logo-topbar">
                 <!-- Logo light -->
-                <a href="index.html" class="logo-light">
+                <a href="/" class="logo-light">
                     <span class="logo-lg">
                         <img src="{{ asset('static/inspinia/v4.0/assets/images/logo.png') }}" alt="logo">
                     </span>
@@ -14,7 +14,7 @@
                 </a>
 
                 <!-- Logo Dark -->
-                <a href="index.html" class="logo-dark">
+                <a href="/" class="logo-dark">
                     <span class="logo-lg">
                         <img src="{{ asset('static/inspinia/v4.0/assets/images/logo-black.png') }}" alt="dark logo">
                     </span>

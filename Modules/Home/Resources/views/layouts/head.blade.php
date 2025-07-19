@@ -1,5 +1,11 @@
 <meta charset="utf-8">
-<title>首页 | 威四方</title>
+
+@hasSection('title')
+    <title> @yield('title','') | {{ config('app.name','威四方') }}</title>
+@endif
+@sectionMissing('title')
+    <title>{{ config('app.name','威四方') }}</title>
+@endif
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Inspinia is the #1 best-selling admin dashboard template on Wrapmarket. Perfect for building CRM, CMS, project management tools, and custom web apps with clean UI, responsive design, and powerful features.">
 <meta name="keywords" content="Inspinia, admin dashboard, Wrapmarket, Wrapbootstrap, HTML template, Bootstrap admin, CRM template, CMS template, responsive admin, web app UI, admin theme, best admin template">

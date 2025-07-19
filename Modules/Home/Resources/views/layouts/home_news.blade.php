@@ -51,7 +51,7 @@
                                         <h2 class="text-body mb-1 fs-base d-flex justify-content-between">
                                             {{$article->title ?? '文章标题'}}
                                         </h2>
-                                        <p class="mb-1">{{ truncate($article->content ?? '',0,70)}}</p>
+                                        <p class="mb-1">{{ truncate($article->content ?? '',0,70) }}</p>
                                         <small class="badge fs-xs text-body-secondary">{{$article->publish_time ?? $article->created_at}}</small>
                                         <a href="javascript:;" class="badge badge-soft-primary p-1 float-end">来源:{{ $article->author ?? ($article->classify->parent->name .'/'. $article->classify->name) }}</a>
                                     </div>
@@ -62,7 +62,7 @@
                     </ul>
 
                     <div class="text-center mt-3">
-                        <a href="javascript:;" class="link-reset text-decoration-underline fw-semibold link-offset-3">
+                        <a href="{{ url("article/classify/{$classify->id}") }}" class="link-reset text-decoration-underline fw-semibold link-offset-3">
                             查看更多 <i class="ti ti-send-2"></i>
                         </a>
                     </div>

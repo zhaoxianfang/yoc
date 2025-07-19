@@ -4,6 +4,7 @@ namespace Modules\System\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 use zxf\Laravel\Modules\Traits\PathNamespace;
 
 class SystemServiceProvider extends ServiceProvider
@@ -19,6 +20,9 @@ class SystemServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 配置 Passport 令牌生命周期
+        $this->configPassport();
+
         // 加载观察者
         $this->bootObservers();
 
@@ -72,5 +76,15 @@ class SystemServiceProvider extends ServiceProvider
     protected function bootObservers()
     {
         //
+    }
+
+
+    // 配置 Passport 令牌生命周期
+    protected function configPassport(): void
+    {
+        // 默认情况下，Passport 发布的是长期有效的访问令牌，一年后到期
+        Passport::tokensExpireIn(now()->addDays(30)); // 令牌有效期时间（天）
+        Passport::refreshTokensExpireIn(now()->addDays(30)); // 刷新令牌有效期时间（天）
+        Passport::personalAccessTokensExpireIn(now()->addMonths(6)); // 个人访问令牌有效期时间（月）
     }
 }
