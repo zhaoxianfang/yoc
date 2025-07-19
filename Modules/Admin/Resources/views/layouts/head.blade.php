@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://weisifang.com">
 
 <!-- App favicon -->
-<link rel="shortcut icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
 @section('head_css_before')
     @hasSection('head_css_before')

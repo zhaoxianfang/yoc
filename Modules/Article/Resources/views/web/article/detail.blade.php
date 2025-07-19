@@ -1,4 +1,4 @@
-@extends('home::layouts.home')
+@extends('home::layouts.home_layout')
 @section('title', truncate($article->title,0,25))
 
 @section('head_css')

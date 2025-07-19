@@ -1,4 +1,4 @@
-@extends('home::layouts.home')
+@extends('home::layouts.home_layout')
 @section('title', (!empty($classify->parent)? $classify->parent->name.'/' : '').$classify->name)
 
 @section('head_css')

@@ -1,4 +1,4 @@
-@extends('home::layouts.home')
+@extends('home::layouts.home_layout')
 
 @section('content')
     @if (!empty($show_news_module) || is_crawler())

@@ -1,18 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" data-layout="topnav" data-topbar-color="light" data-menu-color="light" data-skin="modern" data-bs-theme="light" data-layout-position="fixed" data-sidenav-size="condensed" data-sidenav-user="true">
 <head>
-    @section('head_css_before')
-        @hasSection('head_css_before')
-        @endif
-    @show
 
     @include('home::layouts.head')
-
-    @section('head_css')
-        @hasSection('head_css')
-            <!-- 页面中引入page css -->
-        @endif
-    @show
 
 </head>
 <body>
