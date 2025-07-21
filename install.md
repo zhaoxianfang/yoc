@@ -39,6 +39,9 @@ php artisan vendor:publish --provider="zxf\Laravel\LaravelModulesServiceProvider
 php artisan key:generate
 ```
 
+修改本地化语言为中文：zh_CN
+修改时区为东八区 Asia/Shanghai
+
 ## 3. 重新加载composer
 
 ```
@@ -176,8 +179,27 @@ php artisan vendor:publish --tag=laravel-errors
 // 注意：把 errors/ 整个复制
 ```
 
+## 9. 在`routes/web.php` 路由文件中定义全局的`login`路由，并进行按照模块分流
+```php
+// auth 登录页面
+Route::get('login', function (Request $request) {
+    $message = '请先登录';
+    $code = 401;
 
-## 9. 安装passport
+    // 重定向 admin、docs 模块的登录地址
+    if(!empty($prefix =source_local_website('prefix')) && in_array($prefix,['admin','docs'])){
+        return to_route($prefix.'.login',[]);
+    }
+
+    if ($request->expectsJson() || $request->ajax()) {
+        return app('trace')->respJson($message, $code)->send();
+    } else {
+        return app('trace')->respView($message, $code)->send();
+    }
+})->name('login');
+```
+
+## 10. 安装passport
 
 创建一个用户模块 Users
 ```php
@@ -210,7 +232,7 @@ php artisan passport:client
 ```
 
 
-## 10.验证码
+## 11.验证码
 
 > https://github.com/mewebstudio/captcha
 

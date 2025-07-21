@@ -20,7 +20,7 @@ class DocsDoc extends Model
 
     const OPEN_TYPE_SENSITIVE = 9;
 
-    public static $openTypeMaps = [
+    public static array $openTypeMaps = [
         self::OPEN_TYPE_OPEN => '公开',
         self::OPEN_TYPE_NEED_LOGIN => '登录可见',
         self::OPEN_TYPE_ONLY_SELF => '仅自己可见',
@@ -34,7 +34,7 @@ class DocsDoc extends Model
 
     const TYPE_API = 3;
 
-    public static $typeMaps = [
+    public static array $typeMaps = [
         self::TYPE_EDITOR => 'editor',
         self::TYPE_MARKDOWN => 'markdown',
         self::TYPE_API => 'api',

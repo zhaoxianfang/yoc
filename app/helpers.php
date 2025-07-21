@@ -8,22 +8,41 @@ if (! function_exists('source_local_website')) {
     /**
      * 判断跳转url的上一个地址（来源地址）是不是从本站跳转过来的
      *
-     * @param  string  $returnType  返回类型，默认返回全部，可选值：status、url、all
+     * @param string $returnType 返回类型，默认返回全部，可选值：
+     *                           status: 返回来源地址是否为本站地址
+     *                           url:如果来源地址是本站地址，返回来源地址URL，否则返回 ''
+     *                           uri:如果来源地址是本站地址，返回来源地址URI，否则返回 ''
+     *                           prefix:如果来源地址是本站地址，返回来源地址URI的前缀地址，否则返回 ''
+     *                           all: 返回[是否来源本站,来源URL]
      */
     function source_local_website(string $returnType = ''): bool|array|string|null
     {
-        $referer = request()->header('referer', '');
-        // 判断是否为外部来源 (空referer或非本站URL)
-        $isExternal = empty($referer) || ! str_starts_with(
-            parse_url($referer, PHP_URL_HOST) ?? '',
-            parse_url(config('app.url'), PHP_URL_HOST) ?? ''
-        );
+        // 获取上一个 地址
+        $sessionUrl = session()->previousUrl();
+        $previousUrl = url()->previous();
+        $referer = !empty($sessionUrl)?$sessionUrl: (!empty($previousUrl)?$previousUrl:request()->header('referer', ''));
 
+        $isLocal = false;
+        if(!empty($referer)){
+            // 判断是否为本站来源 (本站URL)
+            $isLocal = str_starts_with(
+                parse_url($referer, PHP_URL_HOST) ?? '',
+                parse_url(config('app.url'), PHP_URL_HOST) ?? ''
+            );
+        }
+        $uri =  $uriPrefix = '';
+        if($isLocal) {
+            $uri = parse_url($referer, PHP_URL_PATH) ?? '';
+            // 获取 $uri 中 第一个 / 前的字符串
+            $uriPrefix = explode('/', ltrim(parse_url($uri, PHP_URL_PATH) ?? $uri, '/'))[0] ?? '';;
+        }
         // 来源地址不是本站
         return match ($returnType) {
-            'status' => (bool) ! $isExternal, // 返回来源是否是本站
-            'url' => $isExternal ? '' : $referer  , // 当来源地址是本站时，返回来源地址，否则返回空
-            default => [(bool) ! $isExternal, $referer], // 默认返回 [来源是否为本站,本站来源url]
+            'status' => (bool) $isLocal, // 返回来源是否是本站
+            'url' => !$isLocal ? '' : $referer  , // 当来源地址是本站时，返回来源地址，否则返回空
+            'uri' => !$isLocal ? '' : $uri ?? ''  , // 当来源地址是本站时，返回来源uri地址，否则返回空
+            'prefix' => !$isLocal ? '' : $uriPrefix ?? ''  , // 当来源地址是本站时，返回来源uri地址，否则返回空
+            default => [(bool) $isLocal, $referer], // 默认返回 [来源是否为本站,本站来源url]
         };
     }
 }

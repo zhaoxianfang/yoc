@@ -7,10 +7,16 @@ use Illuminate\Support\Facades\Route;
 //    return view('welcome');
 // });
 
-// Temp Api:auth 登录页面
+// auth 登录页面
 Route::get('login', function (Request $request) {
     $message = '请先登录';
     $code = 401;
+
+    // 重定向 admin、docs 模块的登录地址
+    if(!empty($prefix =source_local_website('prefix')) && in_array($prefix,['admin','docs'])){
+        return to_route($prefix.'.login',[]);
+    }
+
     if ($request->expectsJson() || $request->ajax()) {
         return app('trace')->respJson($message, $code)->send();
     } else {

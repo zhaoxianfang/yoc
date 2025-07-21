@@ -14,7 +14,7 @@ use Modules\Admin\Http\Controllers\Admin;
  |
  */
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function () {
     // 重定向到后台首页
     Route::redirect('/', '/admin/dashboard');
     // 后台首页、看板页面
