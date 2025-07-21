@@ -10,9 +10,8 @@ class AdminBaseController extends BaseController
 {
     public function initialize(Request $request, AdminMenuService $adminMenuService)
     {
-        //        dd($adminMenuService->getLeftMenu());
         view_share([
-            'admin_menu' => $adminMenuService->getLeftMenu(),
+            'admin_menu_html' => $adminMenuService->getLeftMenu(),
         ]);
     }
 }

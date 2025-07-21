@@ -24,6 +24,7 @@ class AdminMenuService
     {
         $menus = [];
         $activeUrlLink = request()->path(); // $activeUrlLink = 'admin/home';
+        // $activeUrlLink = '/admin/blog/articles'; // $activeUrlLink = 'admin/home';
         // ->setUrlPrefix('admin/')
 
         if (auth('admin')->guest()) {
@@ -62,6 +63,10 @@ class AdminMenuService
             ->setPid('pid')
             ->setSortType('weigh')
             ->setChildlist('children')
+            // addField：为所有满足筛选条件的数据都添加is_active字段属性
+            ->addFieldWithParentIds([['name','=',$activeUrlLink]], function() {
+                return ['is_active' => true];
+            })
             ->toTree();
     }
 
@@ -70,7 +75,28 @@ class AdminMenuService
         $html = '';
         foreach ($menus as $menu) {
             $hasChild = ! empty($menu['children']);
+            $menuIdStr = "sidebar_{$menu['id']}";
 
+            $hrefAttr = $hasChild? "data-bs-toggle='collapse' aria-expanded='false' aria-controls='{$menuIdStr}'" : '';
+            $href = $hasChild? "#{$menuIdStr}" : url($menu['name']);
+            $active = isset($menu['is_active']) && $menu['is_active']? 'active' : '';
+
+            $html .= "<li class='side-nav-item {$active}'>";
+            $html .= "<a href='{$href}' class='side-nav-link gap-1' {$hrefAttr}>";
+            // icon {$menu['icon']}
+            $html .= "<span class='menu-icon'><i class='{$menu['icon']}'></i></span>";
+            // $html .= "<span class='menu-text' data-lang='{$menu['title']}'>{$menu['title']}</span>";
+            $html .= "<span class='menu-text'>{$menu['title']}</span>";
+            $html .= !empty($menu['badge_text'])? "<span class='badge {$menu['badge_text_style']}'>{$menu['badge_text']}</span>" : '';
+            $html .= $hasChild?'<span class="menu-arrow"></span>':'';
+            $html .= '</a>';
+            if ($hasChild) {
+                $show = isset($menu['is_active']) && $menu['is_active']? 'show' : '';
+                $html .= "<div class='collapse {$show}' id='{$menuIdStr}'><ul class='sub-menu'>";
+                $html .= $this->menuToHtml($menu['children'], $level + 1);
+                $html .= '</ul></div>';
+            }
+            $html .= '</li>';
         }
 
         return $html;
@@ -129,124 +155,4 @@ class AdminMenuService
         return $list;
     }
 
-    public function temp()
-    {
-        $one = <<< 'HTML'
-        <li class="side-nav-item">
-            <a href="chat.html" class="side-nav-link gap-1">
-                <span class="menu-icon"><i class="ti ti-message-dots"></i></span>
-                <span class="menu-text" data-lang="chat"> Chat </span>
-                <span class="badge text-bg-danger">Icon</span>
-            </a>
-        </li>
-HTML;
-
-        $two = <<< 'HTML'
-        <li class="side-nav-item">
-            <a class="side-nav-link gap-1" data-bs-toggle="collapse" href="pages-empty.html#sidebarDashboards" aria-expanded="false" aria-controls="sidebarDashboards">
-                <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
-                <span class="menu-text" data-lang="dashboards">Dashboards</span>
-                <span class="badge bg-success">5</span>
-                <span class="menu-arrow"></span>
-            </a>
-            <div class="collapse" id="sidebarDashboards">
-                <ul class="sub-menu">
-                    <li class="side-nav-item">
-                        <a href="index.html" class="side-nav-link">
-                            <span class="menu-text" data-lang="dashboard-one">Dashboard v.1</span>
-                        </a>
-                    </li>
-                    <li class="side-nav-item">
-                        <a href="pages-empty.html#!" class="side-nav-link disabled">
-                            <span class="menu-text" data-lang="dashboard-four">Dashboard v.4</span>
-                            <span class="badge text-bg-light opacity-50" data-lang="dashboard-soon">soon</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-HTML;
-
-        $three = <<< 'HTML'
-        <li class="side-nav-item">
-            <a data-bs-toggle="collapse" href="pages-empty.html#sidebarMenuLevels" aria-expanded="false" aria-controls="sidebarMenuLevels" class="side-nav-link">
-                <span class="menu-icon"><i class="ti ti-sitemap"></i></span>
-                <span class="menu-text" data-lang="menu-levels"> Menu Levels </span>
-                <span class="menu-arrow"></span>
-            </a>
-            <div class="collapse" id="sidebarMenuLevels">
-                <ul class="sub-menu">
-                    <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="pages-empty.html#sidebarSecondLevel" aria-expanded="false" aria-controls="sidebarSecondLevel" class="side-nav-link">
-                            <span class="menu-text" data-lang="second-level"> Second Level </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse" id="sidebarSecondLevel">
-                            <ul class="sub-menu">
-                                <li class="side-nav-item">
-                                    <a href="javascript: void(0);" class="side-nav-link">
-                                        <span class="menu-text">Item 2.1</span>
-                                    </a>
-                                </li>
-                                <li class="side-nav-item">
-                                    <a href="javascript: void(0);" class="side-nav-link">
-                                        <span class="menu-text">Item 2.2</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </li>
-HTML;
-
-        $fore = <<< 'HTML'
-        <li class="side-nav-item">
-            <a data-bs-toggle="collapse" href="pages-empty.html#sidebarMenuLevels" aria-expanded="false" aria-controls="sidebarMenuLevels" class="side-nav-link">
-                <span class="menu-icon"><i class="ti ti-sitemap"></i></span>
-                <span class="menu-text" data-lang="menu-levels"> Menu Levels </span>
-                <span class="menu-arrow"></span>
-            </a>
-            <div class="collapse" id="sidebarMenuLevels">
-                <ul class="sub-menu">
-                    <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="pages-empty.html#sidebarThirdLevel" aria-expanded="false" aria-controls="sidebarThirdLevel" class="side-nav-link">
-                            <span class="menu-text" data-lang="third-level"> Third Level </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse" id="sidebarThirdLevel">
-                            <ul class="sub-menu">
-                                <li class="side-nav-item">
-                                    <a href="javascript: void(0);" class="side-nav-link">Item 1</a>
-                                </li>
-                                <li class="side-nav-item">
-                                    <a data-bs-toggle="collapse" href="pages-empty.html#sidebarFourthLevel" aria-expanded="false" aria-controls="sidebarFourthLevel" class="side-nav-link">
-                                        <span class="menu-text"> Item 2 </span>
-                                        <span class="menu-arrow"></span>
-                                    </a>
-                                    <div class="collapse" id="sidebarFourthLevel">
-                                        <ul class="sub-menu">
-                                            <li class="side-nav-item">
-                                                <a href="javascript: void(0);" class="side-nav-link">
-                                                    <span class="menu-text">Item 3.1</span>
-                                                </a>
-                                            </li>
-                                            <li class="side-nav-item">
-                                                <a href="javascript: void(0);" class="side-nav-link">
-                                                    <span class="menu-text">Item 3.2</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </li>
-HTML;
-
-    }
 }

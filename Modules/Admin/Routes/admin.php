@@ -15,5 +15,8 @@ use Modules\Admin\Http\Controllers\Admin;
  */
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('', [Admin\AdminHomeController::class, 'index'])->name('home');
+    // 重定向到后台首页
+    Route::redirect('/', '/admin/dashboard');
+    // 后台首页、看板页面
+    Route::get('dashboard', [Admin\DashboardController::class, 'index'])->name('home');
 });
