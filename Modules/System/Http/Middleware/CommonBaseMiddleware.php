@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
-use Modules\Logs\Models\Crawler;
 use Modules\System\Contracts\MiddlewareAbstract;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -101,6 +100,6 @@ class CommonBaseMiddleware extends MiddlewareAbstract
             }
         }
         // 爬虫检测
-        // Crawler::checkCrawlerAndWrite();
+        // \Modules\Logs\Models\Crawler::checkCrawlerAndWrite();
     }
 }

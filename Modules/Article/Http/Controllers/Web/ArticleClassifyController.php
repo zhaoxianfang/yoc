@@ -11,7 +11,7 @@ class ArticleClassifyController extends HomeBaseController
     {
 
         $articles = $classify->articles()
-            ->select(['id', 'user_id', 'classify_id', 'title', 'summary','content', 'author', 'publish_time', 'sort', 'type', 'read', 'like', 'spider', 'source_type', 'source_url', 'created_at', 'updated_at', 'status'])
+            ->select(['id', 'user_id', 'classify_id', 'title', 'summary', 'content', 'author', 'publish_time', 'sort', 'type', 'read', 'like', 'spider', 'source_type', 'source_url', 'created_at', 'updated_at', 'status'])
             ->orderByDesc('sort')
             ->orderByDesc('id')
             ->paginate(12);

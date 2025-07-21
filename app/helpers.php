@@ -28,6 +28,35 @@ if (! function_exists('source_local_website')) {
     }
 }
 
+if (! function_exists('group_rules')) {
+    /**
+     * 获取后台 管理员组下单 的 菜单/按钮 列表
+     *      结构：group_id => [menus.name=>menus.identify]
+     *
+     *
+     * @return array
+     */
+    function group_rules(bool $refresh = false)
+    {
+        if ($refresh) {
+            // 刷新数据
+            cache_file(['group_rule' => []]);
+        }
+        if (empty($groupRules = cache_file('group_rule'))) {
+            $groups = \Modules\Admin\Models\AdminGroup::where('admin_groups.expiration_at', '>', now()->addMinutes(30))->where('status', 1)->with(['menus'])->get()->toArray();
+            $groupRules = [];
+            foreach ($groups as $group) {
+                // 获取权限列表
+                // group_id => [menus.name=>menus.identify]
+                $groupRules[$group['id']] = collect($group['menus'])->pluck('identify', 'name')->toArray();
+            }
+            cache_file(['group_rule' => $groupRules]);
+        }
+
+        return $groupRules;
+    }
+}
+
 if (! function_exists('cache_file')) {
     /**
      * 文件驱动缓存 助手函数

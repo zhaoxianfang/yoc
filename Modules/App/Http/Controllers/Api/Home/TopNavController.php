@@ -2,7 +2,7 @@
 
 namespace Modules\App\Http\Controllers\Api\Home;
 
-use Modules\Blog\Models\ArticleClassifies;
+use Modules\Article\Models\ArticleClassifies;
 use Modules\System\Http\Controllers\Api\ApiBaseController;
 
 class TopNavController extends ApiBaseController

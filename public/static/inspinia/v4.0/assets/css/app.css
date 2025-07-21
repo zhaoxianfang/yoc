@@ -17619,6 +17619,9 @@ html[data-menu-color=light][data-topbar-color=dark] .sidenav-menu .sidenav-user,
     transition: transform .1s ease-in-out;
     transition: transform .1s ease-in-out,-webkit-transform .1s ease-in-out
 }
+.side-nav .badge ~ .menu-arrow{
+    margin-left: unset!important;
+}
 
 .menu-arrow:before {
     content: "\ea5f";

@@ -2,8 +2,8 @@
 
 namespace Modules\Admin\Exceptions;
 
-use Modules\Core\Exceptions\CustomHandler;
 use Throwable;
+use zxf\Laravel\Trace\LaravelCommonException;
 
 class Handler
 {
@@ -12,8 +12,8 @@ class Handler
      */
     public function render($request, Throwable $e)
     {
-        $code = CustomHandler::$code;
-        $message = CustomHandler::$message;
+        $code = LaravelCommonException::$code;
+        $message = LaravelCommonException::$message;
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(compact('code', 'message'));

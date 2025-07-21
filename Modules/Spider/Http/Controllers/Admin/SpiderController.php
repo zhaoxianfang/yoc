@@ -4,7 +4,7 @@ namespace Modules\Spider\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Modules\Admin\Http\Controllers\AdminBaseController;
-use Modules\Blog\Models\ArticleClassifies;
+use Modules\Article\Models\ArticleClassifies;
 use Modules\Spider\Http\Resources\SpiderTaskListResource;
 use Modules\Spider\Models\SpiderTask;
 use Modules\Spider\Services\SpiderHandleService;

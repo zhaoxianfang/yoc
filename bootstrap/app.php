@@ -34,6 +34,29 @@ return Application::configure(basePath: dirname(__DIR__))
         ];
         $encoded = base64_encode(json_encode($securityConfig));
         $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class.':'.$encoded);
+        // $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
+
+        // Csrf 排除
+        $middleware->validateCsrfTokens(except: \Modules\System\Services\ExceptCsrfTokensServices::$except);
+
+        // 添加到分组，定义不存在的分组
+        $middleware->prependToGroup('admin', [
+            // 复制 laravel 默认的web中间件组进来
+            Illuminate\Cookie\Middleware\EncryptCookies::class,
+            Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            Illuminate\Session\Middleware\StartSession::class,
+            Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+            Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ]);
+
+        // 追加到分组,组已经存在，例如：web、api
+        $middleware->appendToGroup('admin', [
+            // Custom admin Middleware
+            // \Modules\Admin\Http\Middleware\AdminAuthMiddleware::class,
+            // 'throttle:global_admin',
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 接入异常处理类
@@ -42,11 +65,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 return to_route('login');
             }
         }, [401]);
-
-        // 全局接管所有继承了 \Exception 的异常 渲染
-        // $exceptions->render(function (\Throwable $e, Request $request) {
-        //     dd($e);
-        // });
     })
     ->withSchedule(function (Schedule $schedule) {
         // 自定任务调度

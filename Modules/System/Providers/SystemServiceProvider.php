@@ -78,7 +78,6 @@ class SystemServiceProvider extends ServiceProvider
         //
     }
 
-
     // 配置 Passport 令牌生命周期
     protected function configPassport(): void
     {

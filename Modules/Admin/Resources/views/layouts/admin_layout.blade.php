@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" data-skin="modern" data-bs-theme="light" data-menu-color="gradient" data-topbar-color="light" data-layout-position="fixed" data-sidenav-size="condensed" data-sidenav-user="true" class="sidebar-enable">
+<html lang="{{ app()->getLocale() }}" data-skin="modern">
 
 <head>
 

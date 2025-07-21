@@ -21,7 +21,6 @@ class ArticleController extends HomeBaseController
 
     /**
      * Show the specified resource.
-     *
      */
     public function show(Article $article)
     {

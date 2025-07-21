@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Admin\Http\Controllers\Web;
+use Modules\Admin\Http\Controllers\Admin;
 
 /*
  |--------------------------------------------------------------------------
@@ -15,7 +15,5 @@ use Modules\Admin\Http\Controllers\Web;
  */
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('', [Web\AdminController::class, 'index'])->name('list');
+    Route::get('', [Admin\AdminHomeController::class, 'index'])->name('home');
 });
-// 资源路由
-// Route::resource('admin', Web\AdminController::class)->names('admin');

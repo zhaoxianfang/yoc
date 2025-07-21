@@ -75,10 +75,11 @@
         <li class="side-nav-title" data-lang="menu-title">Menu</li>
 
         <li class="side-nav-item">
-            <a data-bs-toggle="collapse" href="pages-empty.html#sidebarDashboards" aria-expanded="false" aria-controls="sidebarDashboards" class="side-nav-link">
+            <a data-bs-toggle="collapse" href="pages-empty.html#sidebarDashboards" aria-expanded="false" aria-controls="sidebarDashboards" class="side-nav-link gap-1">
                 <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
                 <span class="menu-text" data-lang="dashboards">Dashboards</span>
                 <span class="badge bg-success">5</span>
+                <span class="menu-arrow"></span>
             </a>
             <div class="collapse" id="sidebarDashboards">
                 <ul class="sub-menu">

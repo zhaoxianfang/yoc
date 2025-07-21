@@ -2,7 +2,7 @@
 
 namespace Modules\Task\Services;
 
-use Modules\Blog\Models\Article;
+use Modules\Article\Models\Article;
 use Modules\Docs\Models\DocsDoc;
 use Modules\Home\Services\SitemapService;
 
