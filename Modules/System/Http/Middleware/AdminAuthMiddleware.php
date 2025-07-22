@@ -36,7 +36,7 @@ class AdminAuthMiddleware extends MiddlewareAbstract
             return $next($request);
         }
 
-        if (auth('admin')->guest() || !auth('admin')->user()->checkAuth()) {
+        if (auth('admin')->guest() || ! auth('admin')->user()->checkAuth()) {
             return to_route($this->loginRoute);
         }
 

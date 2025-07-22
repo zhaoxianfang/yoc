@@ -16,6 +16,7 @@ class AdminAuthController extends AdminBaseController
         if (auth('admin')->check()) {
             return redirect()->route('admin.home');
         }
+
         return view('admin::auth/login');
     }
 
@@ -26,7 +27,7 @@ class AdminAuthController extends AdminBaseController
             'username' => 'required|min:11|max:50',
             'password' => 'required|min:6',
             // 'captcha'  => 'required|captcha', //TODO: 图片验证码
-             'tn_r' => 'required|TnCode',
+            'tn_r' => 'required|TnCode',
         ], [
             'mobile.required' => '请输入手机号',
             'mobile.min' => '手机号格式错误',
@@ -42,19 +43,19 @@ class AdminAuthController extends AdminBaseController
         $remember = false; // 是否记住密码
 
         // 判断是邮箱还是手机号
-        $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL)? 'email': 'mobile';
+        $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
 
         // 重构认证凭据
         $authCredentials = [
             $field => $credentials['username'],
-            'password' => $credentials['password']
+            'password' => $credentials['password'],
         ];
 
         // dd(encrypt('abc'));
         if (! auth('admin')->attempt($authCredentials, false)) {
             return response()->json([
                 'code' => 401,
-                'message' => '账号或者密码错误'
+                'message' => '账号或者密码错误',
             ], 401);
         }
 
@@ -76,26 +77,30 @@ class AdminAuthController extends AdminBaseController
             return $this->json([
                 'code' => 200,
                 'message' => '退出成功',
-                'url'=>route('admin.auth.login')
+                'url' => route('admin.auth.login'),
             ]);
         }
+
         return to_route('admin.auth.login', [], 302);
     }
 
     // 忘记密码
-    public function forgetPassword(){
+    public function forgetPassword()
+    {
         return view('admin::auth/forget-password');
     }
 
     // 重置密码
-    public function retrievePassword(Request $request){
+    public function retrievePassword(Request $request)
+    {
         if (request()->ajax()) {
             return $this->json([
                 'code' => 200,
                 'message' => '此功能正在开发中...',
-                'url'=>route('admin.auth.forget_password')
+                'url' => route('admin.auth.forget_password'),
             ]);
         }
+
         return to_route('admin.auth.forget_password', [], 302);
     }
 }

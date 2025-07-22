@@ -64,7 +64,7 @@ class AdminMenuService
             ->setSortType('weigh')
             ->setChildlist('children')
             // addField：为所有满足筛选条件的数据都添加is_active字段属性
-            ->addFieldWithParentIds([['name','=',$activeUrlLink]], function() {
+            ->addFieldWithParentIds([['name', '=', $activeUrlLink]], function () {
                 return ['is_active' => true];
             })
             ->toTree();
@@ -77,9 +77,9 @@ class AdminMenuService
             $hasChild = ! empty($menu['children']);
             $menuIdStr = "sidebar_{$menu['id']}";
 
-            $hrefAttr = $hasChild? "data-bs-toggle='collapse' aria-expanded='false' aria-controls='{$menuIdStr}'" : '';
-            $href = $hasChild? "#{$menuIdStr}" : url($menu['name']);
-            $active = isset($menu['is_active']) && $menu['is_active']? 'active' : '';
+            $hrefAttr = $hasChild ? "data-bs-toggle='collapse' aria-expanded='false' aria-controls='{$menuIdStr}'" : '';
+            $href = $hasChild ? "#{$menuIdStr}" : url($menu['name']);
+            $active = isset($menu['is_active']) && $menu['is_active'] ? 'active' : '';
 
             $html .= "<li class='side-nav-item {$active}'>";
             $html .= "<a href='{$href}' class='side-nav-link gap-1' {$hrefAttr}>";
@@ -87,11 +87,11 @@ class AdminMenuService
             $html .= "<span class='menu-icon'><i class='{$menu['icon']}'></i></span>";
             // $html .= "<span class='menu-text' data-lang='{$menu['title']}'>{$menu['title']}</span>";
             $html .= "<span class='menu-text'>{$menu['title']}</span>";
-            $html .= !empty($menu['badge_text'])? "<span class='badge {$menu['badge_text_style']}'>{$menu['badge_text']}</span>" : '';
-            $html .= $hasChild?'<span class="menu-arrow"></span>':'';
+            $html .= ! empty($menu['badge_text']) ? "<span class='badge {$menu['badge_text_style']}'>{$menu['badge_text']}</span>" : '';
+            $html .= $hasChild ? '<span class="menu-arrow"></span>' : '';
             $html .= '</a>';
             if ($hasChild) {
-                $show = isset($menu['is_active']) && $menu['is_active']? 'show' : '';
+                $show = isset($menu['is_active']) && $menu['is_active'] ? 'show' : '';
                 $html .= "<div class='collapse {$show}' id='{$menuIdStr}'><ul class='sub-menu'>";
                 $html .= $this->menuToHtml($menu['children'], $level + 1);
                 $html .= '</ul></div>';
@@ -154,5 +154,4 @@ class AdminMenuService
 
         return $list;
     }
-
 }

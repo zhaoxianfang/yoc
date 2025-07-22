@@ -155,7 +155,7 @@ class DocsApp extends Model
      * @demo  DocsApp::Open()->...
      *        DocsApp::open()->orWhere->...
      *
-     * @param Builder $query
+     * @param  Builder  $query
      * @return void
      */
     public function scopeOpen($query)
