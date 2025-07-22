@@ -1,0 +1,21 @@
+{
+    "throttle": "您尝试的登录次数过多，请 :seconds 秒后再试。",
+    "throttled": "请稍候再试。",
+    "token": "无效的 token",
+    "user": "找不到对应的用户。",
+    "Page Not Found": "404:页面不存在!",
+    "Request Error": "请求异常",
+    "Server Error": "500:服务异常",
+    "Unauthorized": "401:未授权!",
+    "Payment Required": "402:请先付款!",
+    "Forbidden": "403:禁止访问!",
+    "Page Expired": "419:页面已过期!",
+    "Too Many Requests": "429:请求太过于频繁!",
+    "Service Unavailable": "503:服务不可用!",
+    "Success": "成功",
+    "error": "出错啦",
+    "tips": "提示",
+    "Showing":"显示",
+    "to":"到",
+    "results":"结果"
+}

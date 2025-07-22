@@ -2058,9 +2058,21 @@
                 .then(function(response) {
                     // 检查响应状态
                     if (!response.ok) {
-                        var error = new Error('HTTP错误: ' + response.status);
-                        error.response = response;
-                        throw error;
+                        // 尝试读取响应内容并打印
+                        return response.text().then(text => {
+                            var error;
+                            // 判断 text 是否为 JSON
+                            if(Functions.is_json(text)){
+                                let res = JSON.parse(text);
+                                error =  new Error(response.status+ ':' + (res.message || res.msg || '请求失败'));
+                                error.response = response;
+                                throw error;
+                            }else{
+                                error = new Error('请求失败: ' + response.status);
+                                error.response = response;
+                                throw error;
+                            }
+                        });
                     }
 
                     // 根据responseType处理响应数据
@@ -2972,7 +2984,7 @@
 
             // 创建消息元素
             const msgBox = document.createElement('div');
-            msgBox.className = 'my-layer-msg-box';
+            msgBox.className = 'my-layer-msg-box my_layer';
             msgBox.id = 'my_layer_' + random_id;
             msgBox.textContent = msg;
 
@@ -3007,11 +3019,18 @@
             this._id = random_id;
             return this;
         },
-        // 关闭消息
+        // 关闭某个消息
         close: function() {
             const msgElement = document.getElementById('my_layer_' + this._id);
             if (msgElement) {
                 msgElement.remove();
+            }
+        },
+        // 关闭所有消息
+        closeAll: function() {
+            const msgElements = document.querySelectorAll('.my_layer');
+            for (let i = 0; i < msgElements.length; i++) {
+                msgElements[i].remove();
             }
         }
     };
@@ -3064,6 +3083,423 @@
         },
     };
 
+    /**
+     * DOM 操作工具类
+     * 提供类似 jQuery 的 DOM 操作和事件处理功能
+     */
+    var Dom = {
+        /**
+         * DOM 查询方法
+         * @param {string|Element|Array|NodeList} selector - 选择器或DOM元素
+         * @param {Element} [context=document] - 查询上下文
+         * @returns {Array} 匹配的元素数组
+         *
+         * @example
+         * // ID选择器
+         * Dom.query('#main');
+         *
+         * // 类选择器
+         * Dom.query('.item');
+         *
+         * // 复杂选择器
+         * Dom.query('ul li.active');
+         *
+         * // 从指定上下文查询
+         * Dom.query('.item', document.getElementById('container'));
+         *
+         * // 传入DOM元素
+         * Dom.query(document.getElementById('test'));
+         *
+         * // 传入DOM数组
+         * Dom.query([elem1, elem2]);
+         */
+        query: function(selector, context) {
+            // 处理空选择器
+            if (!selector) {
+                return [];
+            }
+
+            context = context || document;
+
+            // 处理DOM元素输入
+            if (selector.nodeType === 1) {
+                return [selector];
+            }
+
+            // 处理DOM元素数组或NodeList
+            if (Array.isArray(selector) || selector instanceof NodeList) {
+                return Array.from(selector);
+            }
+
+            // 处理字符串选择器
+            if (typeof selector === 'string') {
+                // 优化ID选择器
+                if (selector[0] === '#' && !selector.match(/[ .<>:~]/)) {
+                    const el = context.getElementById(selector.slice(1));
+                    return el ? [el] : [];
+                }
+
+                // 通用选择器查询
+                try {
+                    return Array.from(context.querySelectorAll(selector));
+                } catch (e) {
+                    console.error(`无效的选择器: ${selector}`);
+                    return [];
+                }
+            }
+
+            console.error('不支持的选择器类型:', selector);
+            return [];
+        },
+
+        /**
+         * 绑定事件处理函数
+         * @param {string|Element|Array|NodeList} element - 目标元素或选择器
+         * @param {string} events - 事件名称（多个事件用空格分隔）
+         * @param {string} [selector] - 委托选择器（可选）
+         * @param {Object} [data] - 传递给事件处理函数的额外数据（可选）
+         * @param {Function} handler - 事件处理函数
+         * @param {boolean} [one=false] - 是否只执行一次（内部使用）
+         * @returns {void}
+         *
+         * @example
+         * // 简单点击事件
+         * Dom.on('#btn', 'click', function(e) {
+         *     console.log('按钮被点击');
+         * });
+         *
+         * // 事件委托
+         * Dom.on('#list', 'click', '.item', function(e) {
+         *     console.log('列表项被点击', this);
+         * });
+         *
+         * // 传递额外数据
+         * Dom.on('#btn', 'click', {id: 123}, function(e) {
+         *     console.log('按钮ID:', e.data.id);
+         * });
+         *
+         * // 多事件绑定
+         * Dom.on('#input', 'focus blur', function(e) {
+         *     console.log('输入框焦点变化:', e.type);
+         * });
+         */
+        on: function(element, events, selector, data, handler, one) {
+            // 参数重载处理
+            if (typeof selector === 'function') {
+                handler = selector;
+                data = undefined;
+                selector = undefined;
+            } else if (typeof data === 'function') {
+                handler = data;
+                data = undefined;
+            }
+
+            // 验证处理函数
+            if (typeof handler !== 'function') {
+                console.error('事件处理函数必须是一个函数');
+                return;
+            }
+
+            // 处理多个事件
+            const eventList = events.split(' ').filter(e => e.trim());
+            if (eventList.length === 0) {
+                console.error('未提供有效的事件名称');
+                return;
+            }
+
+            // 获取目标元素
+            const elements = this.query(element);
+            if (elements.length === 0) {
+                console.warn('未找到匹配的元素');
+                return;
+            }
+
+            // 为每个元素的每个事件绑定处理函数
+            elements.forEach(el => {
+                eventList.forEach(eventName => {
+                    this._addEventHandler(el, eventName, selector, data, handler, one);
+                });
+            });
+        },
+
+        /**
+         * 添加事件处理函数（内部方法）
+         * @private
+         */
+        _addEventHandler: function(el, eventName, selector, data, handler, one) {
+            // 创建实际执行的处理函数
+            const realHandler = function(e) {
+                // 处理事件委托
+                let target = e.target;
+                let currentTarget = el;
+
+                if (selector) {
+                    // 查找匹配选择器的元素
+                    while (target && target !== currentTarget) {
+                        if (target.matches(selector)) {
+                            currentTarget = target;
+                            break;
+                        }
+                        target = target.parentNode;
+                    }
+
+                    // 如果没有匹配的元素则返回
+                    if (!target || (target === el && !el.matches(selector))) {
+                        return;
+                    }
+                }
+
+                // 添加额外数据到事件对象
+                if (data !== undefined) {
+                    e.data = data;
+                }
+
+                // 执行处理函数，确保this指向当前元素
+                const result = handler.call(currentTarget, e);
+
+                // 如果是一次性事件，执行后解绑
+                if (one) {
+                    this._removeEventHandler(el, eventName, realHandler);
+                }
+
+                return result;
+            };
+
+            // 存储原始处理函数引用，便于解绑
+            realHandler.originalHandler = handler;
+
+            // 存储处理函数以便管理
+            const eventKey = `DomEvent_${eventName}`;
+            if (!el[eventKey]) {
+                el[eventKey] = [];
+            }
+            el[eventKey].push(realHandler);
+
+            // 绑定事件
+            el.addEventListener(eventName, realHandler);
+        },
+
+        /**
+         * 移除事件处理函数（内部方法）
+         * @private
+         */
+        _removeEventHandler: function(el, eventName, handler) {
+            const eventKey = `DomEvent_${eventName}`;
+            const handlers = el[eventKey] || [];
+
+            for (let i = handlers.length - 1; i >= 0; i--) {
+                const h = handlers[i];
+                if (!handler || h === handler || h.originalHandler === handler) {
+                    el.removeEventListener(eventName, h);
+                    handlers.splice(i, 1);
+                }
+            }
+
+            if (handlers.length === 0) {
+                delete el[eventKey];
+            } else {
+                el[eventKey] = handlers;
+            }
+        },
+
+        /**
+         * 绑定一次性事件处理函数
+         * @param {string|Element|Array|NodeList} element - 目标元素或选择器
+         * @param {string} events - 事件名称（多个事件用空格分隔）
+         * @param {string} [selector] - 委托选择器（可选）
+         * @param {Object} [data] - 传递给事件处理函数的额外数据（可选）
+         * @param {Function} handler - 事件处理函数
+         * @returns {void}
+         *
+         * @example
+         * // 一次性点击事件
+         * Dom.one('#btn', 'click', function() {
+         *     console.log('这个只会执行一次');
+         * });
+         */
+        one: function(element, events, selector, data, handler) {
+            this.on(element, events, selector, data, handler, true);
+        },
+
+        /**
+         * 解绑事件处理函数
+         * @param {string|Element|Array|NodeList} element - 目标元素或选择器
+         * @param {string} [events] - 事件名称（多个事件用空格分隔，不传则解绑所有事件）
+         * @param {string|Function} [selector] - 委托选择器或处理函数（可选）
+         * @param {Function} [handler] - 要解绑的特定处理函数（可选）
+         * @returns {void}
+         *
+         * @example
+         * // 解绑特定处理函数
+         * const handler = function() { console.log('点击'); };
+         * Dom.on('#btn', 'click', handler);
+         * Dom.off('#btn', 'click', handler);
+         *
+         * // 解绑所有点击事件
+         * Dom.off('#btn', 'click');
+         *
+         * // 解绑所有事件
+         * Dom.off('#btn');
+         *
+         * // 解绑委托事件
+         * Dom.off('#list', 'click', '.item');
+         */
+        off: function(element, events, selector, handler) {
+            // 参数重载处理
+            if (typeof selector === 'function') {
+                handler = selector;
+                selector = undefined;
+            }
+
+            // 获取目标元素
+            const elements = this.query(element);
+            if (elements.length === 0) {
+                console.warn('未找到匹配的元素');
+                return;
+            }
+
+            // 确定要解绑的事件列表
+            let eventList = [];
+            if (events) {
+                eventList = events.split(' ').filter(e => e.trim());
+            } else {
+                // 如果没有指定事件，则解绑元素上的所有事件
+                elements.forEach(el => {
+                    eventList = eventList.concat(
+                        Object.keys(el)
+                            .filter(key => key.startsWith('DomEvent_'))
+                            .map(key => key.replace('DomEvent_', ''))
+                    );
+                });
+                eventList = [...new Set(eventList)]; // 去重
+            }
+
+            if (eventList.length === 0) {
+                console.warn('未提供有效的事件名称');
+                return;
+            }
+
+            // 解绑每个元素的每个事件
+            elements.forEach(el => {
+                eventList.forEach(eventName => {
+                    if (selector) {
+                        // 解绑特定委托选择器的事件
+                        const eventKey = `DomEvent_${eventName}`;
+                        const handlers = el[eventKey] || [];
+
+                        handlers.forEach(h => {
+                            if (h.originalHandler === handler ||
+                                (handler === undefined && h.selector === selector)) {
+                                this._removeEventHandler(el, eventName, h);
+                            }
+                        });
+                    } else {
+                        // 解绑普通事件
+                        this._removeEventHandler(el, eventName, handler);
+                    }
+                });
+            });
+        },
+
+        /**
+         * 触发事件
+         * @param {string|Element|Array|NodeList} element - 目标元素或选择器
+         * @param {string} eventName - 事件名称
+         * @param {Object} [extraParameters] - 额外参数（可选）
+         * @returns {void}
+         *
+         * @example
+         * // 触发点击事件
+         * Dom.trigger('#btn', 'click');
+         *
+         * // 触发自定义事件并传递数据
+         * Dom.trigger('#element', 'customEvent', {detail: '数据'});
+         */
+        trigger: function(element, eventName, extraParameters) {
+            // 获取目标元素
+            const elements = this.query(element);
+            if (elements.length === 0) {
+                console.warn('未找到匹配的元素');
+                return;
+            }
+
+            if (!eventName) {
+                console.error('未提供事件名称');
+                return;
+            }
+
+            // 为每个元素触发事件
+            elements.forEach(el => {
+                let event;
+
+                // 创建适当类型的事件对象
+                if (typeof CustomEvent === 'function') {
+                    // 支持CustomEvent的浏览器
+                    event = new CustomEvent(eventName, {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: extraParameters
+                    });
+                } else if (typeof Event === 'function') {
+                    // 支持Event但不支持CustomEvent的浏览器
+                    event = new Event(eventName, {
+                        bubbles: true,
+                        cancelable: true
+                    });
+
+                    // 添加额外参数
+                    if (extraParameters) {
+                        event.detail = extraParameters;
+                        Object.assign(event, extraParameters);
+                    }
+                } else {
+                    // 旧版浏览器
+                    event = document.createEvent('Event');
+                    event.initEvent(eventName, true, true);
+
+                    // 添加额外参数
+                    if (extraParameters) {
+                        event.detail = extraParameters;
+                        for (const key in extraParameters) {
+                            if (!event[key]) {
+                                event[key] = extraParameters[key];
+                            }
+                        }
+                    }
+                }
+
+                // 触发事件
+                el.dispatchEvent(event);
+            });
+        }
+    };
+
+    /**
+     * 添加常用事件的快捷方法
+     * // eg:
+     * Dom.click('#btn2', function() {
+     *     console.log('Button 2 clicked');
+     * });
+     */
+    ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout',
+     'mousedown', 'mouseup', 'mousemove', 'keydown', 'keypress', 'keyup',
+     'submit', 'change', 'focus', 'blur', 'focusin', 'focusout', 'resize',
+     'scroll', 'select', 'contextmenu'].forEach(function(eventName) {
+        Dom[eventName] = function(element, selector, data, handler) {
+            // 参数重载处理
+            if (typeof selector === 'function') {
+                handler = selector;
+                selector = undefined;
+                data = undefined;
+            } else if (typeof data === 'function') {
+                handler = data;
+                data = undefined;
+            }
+
+            Dom.on(element, eventName, selector, data, handler);
+        };
+    });
+
     var myTools = {
         // 表单处理类
         form:FormHandle,
@@ -3073,8 +3509,12 @@
         http:HttpRequest,
         // 监听页面加载
         load:onPageLoad,
+        // 网页 Dom 操作处理类
+        dom:Dom,
         // 消息提示
         msg: (msg, timer = 3.5)=>Message.msg(msg, timer),
+        // 关闭所有消息
+        closeAllMsg:()=>Message.closeAll(),
 
         /**
          * 初始化方法

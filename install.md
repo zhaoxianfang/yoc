@@ -188,7 +188,7 @@ Route::get('login', function (Request $request) {
 
     // 重定向 admin、docs 模块的登录地址
     if(!empty($prefix =source_local_website('prefix')) && in_array($prefix,['admin','docs'])){
-        return to_route($prefix.'.login',[]);
+        return to_route($prefix.'.auth.login',[]);
     }
 
     if ($request->expectsJson() || $request->ajax()) {
@@ -250,7 +250,25 @@ php artisan vendor:publish --provider="Mews\Captcha\CaptchaServiceProvider"
 
 ## 11. 新增helpers.php 组手函数文件
 
-## 12. 设置文件夹权限
+
+## 12. 发布语言文件(本地化)
+
+```
+php artisan lang:publish
+```
+
+### 检索翻译字符串
+
+```
+// 查找本地化文件(例如leng 下的 en 或 zh_CN 等语言文件夹下单的 messages.php 里面的 'hello' 字符串)翻译
+__('messages.hello');
+
+// 取消短键 messages, 直接翻译 hello; 会去找 leng 下的 en.json 或 zh_CN.json 等语言配置文件，不存在时返回传入__的字符串
+__('hello');
+```
+
+
+## 13. 设置文件夹权限
 
 ```
 chmod -R 775 /www/
@@ -271,23 +289,6 @@ chown -R nobody.nobody /www/
 ```
 php artisan storage:link
 ```
-
-## 发布语言文件(本地化)
-
-```
-php artisan lang:publish
-```
-
-### 检索翻译字符串
-
-```
-// 查找本地化文件(例如leng 下的 en 或 zh_CN 等语言文件夹下单的 messages.php 里面的 'hello' 字符串)翻译
-__('messages.hello');
-
-// 取消短键 messages, 直接翻译 hello; 会去找 leng 下的 en.json 或 zh_CN.json 等语言配置文件，不存在时返回传入__的字符串
-__('hello');
-```
-
 
 ## 定时任务「任务调度」
 

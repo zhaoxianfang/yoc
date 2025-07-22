@@ -14,7 +14,7 @@ Route::get('login', function (Request $request) {
 
     // 重定向 admin、docs 模块的登录地址
     if(!empty($prefix =source_local_website('prefix')) && in_array($prefix,['admin','docs'])){
-        return to_route($prefix.'.login',[]);
+        return to_route($prefix.'.auth.login',[]);
     }
 
     if ($request->expectsJson() || $request->ajax()) {

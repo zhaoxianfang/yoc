@@ -16,8 +16,14 @@ class Handler
         $message = LaravelCommonException::$message;
 
         if ($request->ajax() || $request->expectsJson()) {
+            if(auth('admin')->guest()){
+                return app('trace')->respJson($message, $code)->send();
+            }
             return response()->json(compact('code', 'message'));
         } else {
+            if(auth('admin')->guest()){
+                return app('trace')->respView($message, $code)->send();
+            }
             return response()->view('admin::tips/error', compact('code', 'message'), 200)->header('Content-Type', 'text/html');
         }
     }

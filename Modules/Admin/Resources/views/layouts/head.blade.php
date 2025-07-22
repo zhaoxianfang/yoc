@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 
 @hasSection('title')
-    <title> @yield('title','') | {{ config('app.name','威四方') }}</title>
+    <title> @yield('title','') | {{ config('app.name','威四方') }}后台</title>
 @endif
 @sectionMissing('title')
     <title>{{ config('app.name','威四方') }}</title>

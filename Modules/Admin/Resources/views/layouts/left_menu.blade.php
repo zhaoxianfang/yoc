@@ -5,8 +5,8 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <a href="pages-profile.html" class="link-reset">
-                    <img src="{{ asset('static/images/system/default_user.png') }}" alt="user-image" class="rounded-circle mb-2 avatar-md">
-                    <span class="sidenav-user-name fw-bold">Damian D.</span>
+                    <img src="{{ auth('admin')->user()['user']['cover'] ?? asset('/static/images/system/default_user.png') }}" alt="user-image" class="rounded-circle mb-2 avatar-md">
+                    <span class="sidenav-user-name fw-bold">{{ auth('admin')->check() ? auth('admin')->user()['nickname'] : '无名' }}</span>
                     <span class="fs-12 fw-semibold" data-lang="user-role">Art Director</span>
                 </a>
             </div>
@@ -61,9 +61,9 @@
                     </a>
 
                     <!-- Logout -->
-                    <a href="javascript:void(0);" class="dropdown-item text-danger fw-semibold">
+                    <a href="{{ route('admin.auth.logout') }}" class="dropdown-item text-danger fw-semibold">
                         <i class="ti ti-logout-2 me-2 fs-17 align-middle"></i>
-                        <span class="align-middle">Log Out</span>
+                        <span class="align-middle">退出</span>
                     </a>
                 </div>
             </div>
@@ -74,7 +74,12 @@
     <ul class="side-nav">
         <li class="side-nav-title" data-lang="menu-title">Menu</li>
 
-        {!! empty($admin_menu_html)?'':$admin_menu_html !!}
+        {!! !empty($admin_menu_html)?$admin_menu_html:'<li class="side-nav-item">
+            <a href="javascript:;" class="side-nav-link bg-danger text-white disabled">
+                <span class="menu-icon"><i class="ti ti-ban"></i></span>
+                <span class="menu-text"> 操作异常 </span>
+            </a>
+        </li>' !!}
 
     </ul>
 </div>

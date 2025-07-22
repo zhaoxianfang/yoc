@@ -53,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // 追加到分组,组已经存在，例如：web、api
         $middleware->appendToGroup('admin', [
             // Custom admin Middleware
-            // \Modules\Admin\Http\Middleware\AdminAuthMiddleware::class,
+            \Modules\System\Http\Middleware\AdminAuthMiddleware::class,
             // 'throttle:global_admin',
         ]);
 

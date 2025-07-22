@@ -1,4 +1,5 @@
 @extends('admin::layouts.admin_layout')
+@section('title', '看板')
 
 @section('content')
     <div class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 align-items-center">
