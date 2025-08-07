@@ -4504,7 +4504,7 @@ textarea.form-control-lg {
 }
 
 .nav-tabs .nav-link {
-    margin-bottom: calc(-1 * var(--ins-nav-tabs-border-width));
+    margin-bottom: calc(-3 * var(--ins-nav-tabs-border-width));
     border: var(--ins-nav-tabs-border-width) solid transparent;
     border-top-left-radius: var(--ins-nav-tabs-border-radius);
     border-top-right-radius: var(--ins-nav-tabs-border-radius)
