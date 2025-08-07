@@ -349,3 +349,21 @@ if (! function_exists('number_to_word')) {
         return $englist[$number] ?? 'undefined';
     }
 }
+
+if (! function_exists('admin_auth')) {
+    /**
+     * 判断 admin 是否有 $authString 权限
+     *
+     * @param  string  $authString  admin_menus表的 name 或者 identify 字段
+     * @param  string  $passString  有权限时返回的字符串
+     * @return false|string
+     */
+    function admin_auth(string $authString = '', string $passString = '')
+    {
+        if (auth('admin')->guest()) {
+            return false;
+        }
+
+        return auth('admin')->user()->checkAuth($authString) ? $passString : false;
+    }
+}

@@ -16,7 +16,7 @@
     <div class="sidenav-menu">
 
         <!-- Brand Logo -->
-        <a href="index.html" class="logo">
+        <a href="#" class="logo">
             <span class="logo logo-light">
                 <span class="logo-lg"><img src="{{ asset('static/images/logo/logo_long.png') }}" alt="logo"></span>
                 <span class="logo-sm"><img src="{{ asset('static/images/logo/logo.png') }}" alt="small logo"></span>
@@ -88,6 +88,16 @@
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
 
 <script src="{{ asset('static/libs/zxf/js/tools.js') }}" type='text/javascript'></script>
+
+@hasSection('use_datatables')
+    <script src="{{ asset('static/libs/DataTables/DataTables-2.1.2/datatables.min.js') }}"></script>
+
+    <!-- 时间 -->
+    <script src="{{ asset('static/libs/daterangepicker/moment.min.js') }}"></script>
+    <script src="{{ asset('static/libs/daterangepicker/daterangepicker.min.js') }}"></script>
+
+    <script src="{{ asset('static/libs/zxf/js/data_tables/data_tables.min.js') }}"></script>
+@endif
 
 @section('page_js')
     @hasSection('page_js')

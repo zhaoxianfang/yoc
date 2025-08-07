@@ -31,6 +31,13 @@
 
 <link href="{{ asset('static/libs/zxf/css/tools.css') }}" rel="stylesheet" type="text/css">
 
+@hasSection('use_datatables')
+    <!-- 时间 -->
+    <link rel="stylesheet" href="{{ asset('static/libs/daterangepicker/daterangepicker.min.css') }}" />
+    <!-- datatables-table -->
+    <link rel="stylesheet" href="{{ asset('static/libs/DataTables/DataTables-2.1.2/datatables.min.css') }}" />
+@endif
+
 @section('head_css')
     @hasSection('head_css')
         <!-- 页面中引入page css -->

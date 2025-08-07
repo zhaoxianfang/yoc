@@ -47,4 +47,23 @@ class BaseController extends Controller
         // 初始化策略类
         $this->gate = Gate::class;
     }
+
+    public function dataTablesXX($list = [], $total = 0, $errorMsg = '')
+    {
+        // draw 相当于是 datatables 插件需要展示的页码编号，[相当重要][必须有]
+        $draw = (int) request()->input('draw', 1);
+        if ($errorMsg) {
+            return $this->json(['rows' => $list, 'total' => $total, 'draw' => $draw, 'error' => $errorMsg]);
+        }
+
+        // DataTables 渲染数据放在 data 或 list 或 rows 里面
+        return $this->json(['rows' => $list, 'total' => $total, 'draw' => $draw]);
+        // return $this->json([
+        //     'list'            => $list, // 数据列表
+        //     'recordsTotal'    => $total,// 数据总条数
+        //     "draw"            => $draw, // (int)响应计数器
+        //     "recordsFiltered" => $total, // (int)筛选后的总记录数
+        //     'error'           => $errorMsg, // 注意：仅有错误信息时才返回error字段，请不要返回此字段
+        // ]);
+    }
 }
