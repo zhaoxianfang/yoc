@@ -17668,7 +17668,7 @@ html[data-sidenav-size=condensed] .app-topbar {
 
 html[data-sidenav-size=condensed] .content-page {
     margin-left: var(--ins-sidenav-width-sm);
-    min-height: 1900px
+    min-height: calc(100vh - var(--ins-topbar-height));
 }
 
 html[data-sidenav-size=condensed] .sidenav-menu {

@@ -333,3 +333,19 @@ if (! function_exists('send_email')) {
         }
     }
 }
+
+if (! function_exists('number_to_word')) {
+    // 把数字转换为英语单词(0~20)
+    function number_to_word($number): string
+    {
+        $englist = [
+            'zero', 'one', 'two', 'three', 'four',
+            'five', 'six', 'seven', 'eight', 'nine',
+            'ten', 'eleven', 'twelve', 'thirteen',
+            'fourteen', 'fifteen', 'sixteen', 'seventeen',
+            'eighteen', 'nineteen', 'twenty',
+        ];
+
+        return $englist[$number] ?? 'undefined';
+    }
+}

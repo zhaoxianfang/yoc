@@ -87,6 +87,8 @@
 <!-- App js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
 
+<script src="{{ asset('static/libs/zxf/js/tools.js') }}" type='text/javascript'></script>
+
 @section('page_js')
     @hasSection('page_js')
         <!-- 页面中引入page js -->

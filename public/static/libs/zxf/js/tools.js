@@ -50,7 +50,6 @@
                 // 必填验证
                 required: {
                     validate: function(value, param, field) {
-                        if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
                         if (field.type === 'file') return field.files && field.files.length > 0;
                         return !Functions.isEmpty( value);
                     }.bind(this),
@@ -270,24 +269,72 @@
                     message: '请输入有效的信用卡号'
                 },
 
-                // 远程验证
                 remote: {
-                    validate: async function(value, param, field) {
+                    /**
+                     * 远程验证
+                     * @param value 验证的值
+                     * @param url 远程验证的URL
+                     * @param field 当前字段对象
+                     * @returns {Promise<*|boolean>}
+                     */
+                    validate: async function(value, url, field) {
+                        let _this = this;
+                        if(Functions.isEmpty(value)){
+                            return true;
+                        }
                         try {
-                            const formData = new FormData();
-                            formData.append(field.name, value);
+                            let join_callback = field.getAttribute('data-join');
+                            let tempJson = {};
+                            if(join_callback){
+                                // 判断 join_callback 是否为 json 字符串 或者函数
+                                if(typeof join_callback === 'string'){
+                                    if(Functions.is_function(join_callback)){
+                                        tempJson = window[join_callback](field);
+                                    }else if(Functions.is_json(join_callback) ){
+                                        join_callback = JSON.parse(join_callback);
+                                        tempJson = join_callback;
+                                    }
+                                }else{
+                                    console.error('验证规则执行错误:remote');
+                                    return false;
+                                }
+                            }
+                            tempJson[field.getAttribute('name')] = value;
 
-                            const response = await fetch(param, {
+                            const formData = new FormData(); // 不需要手动设置 Content-Type，浏览器会自动设置
+                            // 把 tempJson 的数据全部添加到 formData 中
+                            for (let key in tempJson) {
+                                formData.append(key, tempJson[key]);
+                            }
+                            // 发送请求
+                            const response = await fetch(url, {
                                 method: 'POST',
                                 body: formData
                             });
 
-                            if (!response.ok) throw new Error('Network response was not ok');
-
+                            if (!response.ok){
+                                // 尝试读取响应内容并打印
+                                return response.text().then(text => {
+                                    // 判断 text 是否为 JSON
+                                    if(Functions.is_json(text)){
+                                        let res = JSON.parse(text);
+                                        _this.message = response.status+ ':' + (res.message || res.msg || '请求失败');
+                                        return false;
+                                    }else{
+                                        _this.message = '远程验证请求失败: ' + response.status;
+                                        return false;
+                                    }
+                                });
+                            }
                             const result = await response.json();
-                            return result.success || result.code === 200;
+
+                            if( result.check || result.code === 200){
+                                return true;
+                            }
+                            _this.message = result.message || result.msg || '验证失败';
+                            return false;
                         } catch (error) {
-                            console.error('远程验证错误:', error);
+                            _this.message = '远程验证请求失败: ' + error.message;
                             return false;
                         }
                     },
@@ -481,9 +528,10 @@
          * 验证单个字段
          * @method validateField
          * @param {HTMLElement} field - 表单字段元素
+         * @param form
          * @return {Promise<boolean>} 是否验证通过
          */
-        validateField: async function(field) {
+        validateField: async function(field,form =  null) {
             const rules = field.getAttribute('data-rule')?.split('|').filter(rule => rule.trim() !== '') || [];
 
             // 如果是nullable且值为空，跳过验证
@@ -505,12 +553,19 @@
             for (const rule of rules) {
                 if (rule === 'nullable') continue;
 
-                const [ruleName, param] = rule.split(':');
-                const ruleDef = this.rules[ruleName];
+                let [ruleName, param] = rule.split(':');
+                let ruleDef = this.rules[ruleName];
 
                 if (!ruleDef) {
-                    console.warn('未知的验证规则:', ruleName);
-                    continue;
+                    // 判断 rule 规则 是否为 remote(xxx) 的形式，如果是:ruleName 的值为 remote；param的值为 xxx
+                    if (ruleName.startsWith('remote(')) {
+                        ruleName = 'remote';
+                        param = rule.slice(7, -1); // url
+                        ruleDef = this.rules[ruleName];
+                    }else{
+                        console.warn('未知的验证规则:', ruleName);
+                        continue;
+                    }
                 }
 
                 let validationResult;
@@ -518,7 +573,12 @@
 
                 // 特殊字段处理
                 if (field.type === 'checkbox' || field.type === 'radio') {
-                    fieldValue = field.checked;
+                    // 处理单选按钮组
+                    if (field.type === 'radio') {
+                        fieldValue = Functions.getRadioValue(field.name, form);
+                    }else{
+                        fieldValue = Functions.getCheckboxValue(field.name, form);
+                    }
                 } else if (field.type === 'file') {
                     fieldValue = field;
                 }
@@ -575,7 +635,6 @@
 
             // 显示错误消息
             let errorMessage = this.findErrorMessageElement(field);
-
             if (errorMessage) {
                 errorMessage.textContent = message;
                 errorMessage.classList.add('show');
@@ -604,25 +663,44 @@
          * @return {HTMLElement|null} 错误消息元素
          */
         findErrorMessageElement: function(field) {
-            // 尝试查找错误消息元素
-            if (field.type === 'radio') {
-                // 对于单选按钮，错误消息可能在父容器中
-                const container = field.closest('.form-control-container');
-                if (container) {
-                    return container.querySelector('.' + this.config.errorMessageClass);
-                }
-            } else if (field.type === 'file') {
-                // 对于文件输入，错误消息可能在包装元素后面
-                const wrapper = field.closest('.file-input-wrapper');
-                if (wrapper && wrapper.nextElementSibling &&
-                    wrapper.nextElementSibling.classList.contains(this.config.errorMessageClass)) {
-                    return wrapper.nextElementSibling;
-                }
-            } else {
-                // 对于常规字段，错误消息可能是下一个兄弟元素
-                if (field.nextElementSibling &&
-                    field.nextElementSibling.classList.contains(this.config.errorMessageClass)) {
-                    return field.nextElementSibling;
+
+            // 对于单选按钮，错误消息可能在父容器中
+            const container = field.closest(".form-control-container");
+            if (container) {
+                return container.querySelector("." + this.config.errorMessageClass);
+            }
+
+            // 对于文件输入，错误消息可能在包装元素后面
+            const wrapper = field.closest(".file-input-wrapper");
+            if (wrapper && wrapper.nextElementSibling &&
+                wrapper.nextElementSibling.classList.contains(this.config.errorMessageClass)) {
+                return wrapper.nextElementSibling;
+            }
+
+            // 对于常规字段，错误消息可能是下一个兄弟元素
+            if (field.nextElementSibling &&
+                field.nextElementSibling.classList.contains(this.config.errorMessageClass)) {
+                return field.nextElementSibling;
+            }
+
+            // bs-4
+
+            // 判断 field 元素的祖先元素中是否有 .row 或者 .form-group
+            const parent = field.closest(".form-group, .row");
+            if (parent) {
+                let findShowErrorEle = parent.querySelector("." + this.config.errorMessageClass);
+
+                if (findShowErrorEle) {
+                    return findShowErrorEle;
+                } else {
+                    if(field.classList.contains('custom-select')){
+                        field.parentElement.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
+                        return field.parentElement.nextElementSibling;
+                    }else{
+                        // 在 field 元素之后添加一个错误消息元素 span.error-message
+                        field.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
+                        return field.nextElementSibling;
+                    }
                 }
             }
 
@@ -960,7 +1038,7 @@
             const fields = form.querySelectorAll('[data-rule]');
 
             for (const field of fields) {
-                const fieldValid = await this.validateField(field);
+                const fieldValid = await this.validateField(field,form);
                 if (!fieldValid) {
                     isValid = false;
                 }
@@ -1658,6 +1736,14 @@
             }
         },
         /**
+         * 判断是否为函数
+         * @param string
+         * @returns {boolean}
+         */
+        is_function: function (string) {
+            return typeof string === 'function' || (window.hasOwnProperty(string) && typeof window[string] === 'function');
+        },
+        /**
          * 去除html 标签
          * @return   {[type]}              [description]
          * @param str
@@ -1890,6 +1976,16 @@
 
             // 返回处理后的 HTML 字符串
             return doc.body.innerHTML;
+        },
+        // 获取单选框radio的值
+        getRadioValue(name,form=null) {
+            const selected = (form === null ? document : form).querySelector(`input[name="${name}"]:checked`);
+            return selected ? selected.value : null;
+        },
+        // 获取复选框checkbox的值
+        getCheckboxValue(name,form=null) {
+            const selected = (form === null ? document : form).querySelectorAll(`input[name="${name}"]:checked`);
+            return Array.from(selected).map(item => item.value);
         },
     };
 

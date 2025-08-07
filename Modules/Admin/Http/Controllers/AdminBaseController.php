@@ -15,6 +15,7 @@ class AdminBaseController extends BaseController
         }
         view_share([
             'admin_menu_html' => $adminMenuService->getLeftMenu(),
+            'admin' => auth('admin')->user(),
         ]);
     }
 }
