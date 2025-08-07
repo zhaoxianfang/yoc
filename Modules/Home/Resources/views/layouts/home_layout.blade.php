@@ -33,7 +33,7 @@
                                 <img class="" src="/static/images/system/beian.png" alt="BeiAn Logo" style="width: 13px;height: 13px;">
                                 滇公网安备53010202002026
                             </a>&nbsp;&nbsp;|&nbsp;&nbsp;
-                            <a href="https://beian.miit.gov.cn" target="_blank" class="float-end">滇ICP备<span class="fw-bold">16003347</span>号-2</a>
+                            <a href="https://beian.miit.gov.cn" target="_blank" class="float-end"> {!! setting('common.beian') ?? '滇ICP备<span class="fw-bold">16003347</span>号-2' !!} </a>
                         </div>
                     </div>
                 </div>

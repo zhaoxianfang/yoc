@@ -11,6 +11,6 @@
             <img class="d-none" src="https://weisifang.com/static/images/system/beian.png" alt="BeiAn Logo" style="width: 12px;height: 12px;margin-bottom: -2px;">
             滇公网安备53010202002026
         </a>
-        <a class="" href="https://beian.miit.gov.cn" target="_blank">滇ICP备16003347号-2</a>
+        <a class="" href="https://beian.miit.gov.cn" target="_blank">{!! setting('common.beian') ?? '滇ICP备<span class="fw-bold">16003347</span>号-2' !!}</a>
     </div>
 </footer>
