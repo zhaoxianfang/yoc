@@ -58,11 +58,11 @@
                                         @case('string')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}" placeholder="" data-rule="{{$group['rule']??''}}">
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -70,11 +70,11 @@
                                         @case('password')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <input type="password" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}" placeholder="" data-rule="{{$group['rule']??''}}">
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -82,11 +82,11 @@
                                         @case('text')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <textarea class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" placeholder="" cols="30" rows="5" data-rule="{{$group['rule']??''}}">{{$group['value']??''}}</textarea>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -94,11 +94,11 @@
                                         @case('number')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <input type="number" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}" placeholder="" class="form-control" data-rule="{{$group['rule']??''}}">
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -106,7 +106,7 @@
                                         @case('date')
                                             <div class="form-group row datepicker-date">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <div class="input-group m-b date">
                                                         <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}"  data-rule="{{$group['rule']??''}}">
                                                         <div class="input-group-append">
@@ -115,7 +115,7 @@
                                                     </div>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -123,7 +123,7 @@
                                         @case('date_y')
                                             <div class="form-group row datepicker-date_y">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <div class="input-group m-b date">
                                                         <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}"  data-rule="{{$group['rule']??''}}">
                                                         <div class="input-group-append">
@@ -132,7 +132,7 @@
                                                     </div>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -140,7 +140,7 @@
                                         @case('date_y_m')
                                             <div class="form-group row datepicker-date_y_m">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <div class="input-group m-b date">
                                                         <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}"  data-rule="{{$group['rule']??''}}">
                                                         <div class="input-group-append">
@@ -149,7 +149,7 @@
                                                     </div>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -157,7 +157,7 @@
                                         @case('time')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <div class="input-group clockpicker" data-autoclose="true">
                                                         <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$group['value']??''}}"  data-rule="{{$group['rule']??''}}">
                                                         <div class="input-group-append">
@@ -166,7 +166,7 @@
                                                     </div>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -174,7 +174,7 @@
                                         @case('daterange')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <div class="input-daterange input-group">
                                                         <input type="text" class="form-control" name="config[{{$group['group']}}][{{$group['name']}}][start]" value="{{($group['value'] && $group['value']['start'])?$group['value']['start']:''}}"  data-rule="{{$group['rule']??''}}">
                                                         <span class="input-group-addon">to</span>
@@ -182,7 +182,7 @@
                                                     </div>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -190,7 +190,7 @@
                                         @case('select')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <select class="form-control m-b select2 custom-select" name="config[{{$group['group']}}][{{$group['name']}}]" data-rule="{{$group['rule']??''}}">
                                                         <option value="">无</option>
                                                         @foreach ($group['content'] as $value => $title)
@@ -200,7 +200,7 @@
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
 
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -208,7 +208,7 @@
                                         @case('selects')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     <select class="form-control m-b select2 custom-select" name="config[{{$group['group']}}][{{$group['name']}}][]" multiple="multiple" data-rule="{{$group['rule']??''}}">
                                                         <option value="">无</option>
                                                         @foreach ($group['content'] as $value => $title)
@@ -217,7 +217,7 @@
                                                     </select>
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -225,7 +225,7 @@
                                         @case('checkbox')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     @foreach ($group['content'] as $value => $title)
                                                         <div class="i-checks">
                                                             <label> <input type="checkbox" name="config[{{$group['group']}}][{{$group['name']}}][]" value="{{$value??''}}"  data-rule="{{$group['rule']??''}}" @if (in_array($value,(array)$group['value'])) checked @endif> <i></i> {{ $title }} </label>
@@ -233,7 +233,7 @@
                                                     @endforeach
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
@@ -241,7 +241,7 @@
                                         @case('radio')
                                             <div class="form-group row">
                                                 <label class="col-sm-2 col-form-label">{{$group['title']}}</label>
-                                                <div class="col-sm-8">
+                                                <div class="col-sm-7">
                                                     @foreach ($group['content'] as $value => $title)
                                                         <div class="i-checks">
                                                             <label> <input type="radio" name="config[{{$group['group']}}][{{$group['name']}}]" value="{{$value??''}}"  data-rule="{{$group['rule']??''}}" @if ($value == $group['value']) checked @endif> <i></i> {{ $title }} </label>
@@ -249,7 +249,7 @@
                                                     @endforeach
                                                     <span class="form-text m-b-none">提示:{{$group['tip']??''}}</span>
                                                 </div>
-                                                <label class="col-sm-2 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
+                                                <label class="col-sm-3 col-form-label">setting('{{$group['group'].'.'.$group['name']}}')</label>
                                             </div>
                                             <div class="hr-line-dashed"></div>
                                             @break
