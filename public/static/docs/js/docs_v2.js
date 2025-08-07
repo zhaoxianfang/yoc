@@ -1776,6 +1776,8 @@ function custom_load_page(id,title,dataset){
         window.history.pushState(null, '', pageUrl);
 
         setArticleHTML(data.content_html || '');
+        // 修改page 的title; 把 document.title 里面的第一个 | 符号或者 第一个 - 符号之前的内容替换为 title
+        document.title = document.title.replace(/^[^|-]+[|-]/, title + ' | ');
 
         Modal.closeAll();
     },function (err){
