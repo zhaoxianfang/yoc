@@ -45,7 +45,7 @@
                     "title":"图标",
                     "orderable": false, //是否参与排序 Boolean
                     "render" : function ( value, type, row, meta ) {
-                        return '<span class="' + (!row.ismenu || row.status == 'hidden' ? 'text-muted' : '') + '"><i class="' + value + '"></i></span>';
+                        return '<span class="fs-20 ' + (!row.ismenu || row.status == 'hidden' ? 'text-muted' : '') + '"><i class="' + value + '"></i></span>';
                     }
                 },
                 {
@@ -112,7 +112,7 @@
                                 'text':'编辑',
                                 "title":"编辑["+row.title+']',
                                 'type':'btn',
-                                "icon": "fa fa-pencil", // fa 按钮小图标 ,例如 fa fa-pencil
+                                "icon": "fa fa-pencil ti ti-pencil", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'layer_open',
                                 'class_type':'info',
                                 'url_name':'edit_url',
@@ -124,6 +124,7 @@
                                 'text':'删除',
                                 "title":"确认删除["+row.title+']吗？',
                                 'type':'btn',
+                                "icon": "fa fa-trash ti ti-trash", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'confirm_open',
                                 'class_type':'danger',
                                 'url_name':'del_url',

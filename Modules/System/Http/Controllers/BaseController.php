@@ -48,7 +48,7 @@ class BaseController extends Controller
         $this->gate = Gate::class;
     }
 
-    public function dataTablesXX($list = [], $total = 0, $errorMsg = '')
+    public function dataTables($list = [], $total = 0, $errorMsg = ''): \Illuminate\Http\JsonResponse
     {
         // draw 相当于是 datatables 插件需要展示的页码编号，[相当重要][必须有]
         $draw = (int) request()->input('draw', 1);

@@ -691,7 +691,7 @@ pre:not(.CodeMirror pre):not(.cherry-markdown pre):not(.cherry pre),code:not(.Co
  * =============================================================================================
  */
 /** 修改默认 radio、checkbox 样式 开始 */
-input[type=radio] {
+input[type=radio]:not(.form-check-input) {
     width: 16px;
     height: 16px;
     font-family: Arial;
@@ -705,7 +705,7 @@ input[type=radio] {
     outline: none !important;
 }
 
-input[type=radio]:after {
+input[type=radio]:not(.form-check-input):after {
     content: "";
     display: block;
     font-family: Arial;
@@ -723,7 +723,7 @@ input[type=radio]:after {
     left: -2px;
 }
 
-input[type=radio]:checked:after {
+input[type=radio]:not(.form-check-input):checked:after {
     content: "✓";
     font-family: Arial;
     font-size: 16px;
@@ -734,7 +734,7 @@ input[type=radio]:checked:after {
     margin: 1px;
 }
 
-input[type=checkbox] {
+input[type=checkbox]:not(.form-check-input) {
     width: 16px;
     height: 16px;
     display: inline-block;
@@ -747,7 +747,7 @@ input[type=checkbox] {
     outline: none !important;
 }
 
-input[type=checkbox]:after {
+input[type=checkbox]:not(.form-check-input):after {
     content: "";
     display: block;
     width: 15px;
@@ -762,7 +762,7 @@ input[type=checkbox]:after {
     box-sizing: border-box;
 }
 
-input[type=checkbox]:checked:after {
+input[type=checkbox]:not(.form-check-input):checked:after {
     content: '\2713';
     font-family: Arial;
     background-color: #fff;
@@ -772,18 +772,18 @@ input[type=checkbox]:checked:after {
     font-weight: bold;
 }
 
-input[type=radio][disabled], input[type=checkbox][disabled], input[type=radio][disabled] + label, input[type=checkbox][disabled] + label {
+input[type=radio][disabled]:not(.form-check-input), input[type=checkbox][disabled]:not(.form-check-input), input[type=radio][disabled]:not(.form-check-input) + label, input[type=checkbox][disabled]:not(.form-check-input) + label {
     cursor: not-allowed;
 }
 
-input[type=radio], input[type=checkbox], input[type=radio] + label, input[type=checkbox] + label {
+input[type=radio]:not(.form-check-input), input[type=checkbox]:not(.form-check-input), input[type=radio]:not(.form-check-input) + label, input[type=checkbox]:not(.form-check-input) + label {
     cursor: pointer;
 }
 
-input[type=radio] + label, input[type=checkbox] + label {
+input[type=radio]:not(.form-check-input) + label, input[type=checkbox]:not(.form-check-input) + label {
     margin-bottom: 0!important;
 }
-input[type=radio], input[type=checkbox]{
+input[type=radio]:not(.form-check-input), input[type=checkbox]:not(.form-check-input){
     margin-right: 4px;
 }
 /**

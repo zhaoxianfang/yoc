@@ -479,23 +479,38 @@ class Modal {
     setupIframeEvents() {
         if (!this.iframe) return;
 
-        // 监听来自iframe的消息
-        window.addEventListener('message', (e) => {
+        // 事件监听处理
+        this.messageHandler = (e) => {
             // 忽略非同源消息
             // if (e.source !== this.iframe.contentWindow) return;
 
-            // 处理来自iframe的消息
+            // 处理来自iframe的消息: 关闭弹窗
             if(e.data && e.data.type === 'close'){
                 // 关闭当前弹窗
                 this.close();
+                return ;
+            }
+            // 处理来自iframe的消息: 模拟点击父页面
+            if(e.data && e.data.type === 'triggerClick'){
+                document.querySelector(e.data.selector)?.click();
+                return ;
+            }
+            // 处理来自iframe的消息: 关闭当前弹窗 并 模拟点击父页面
+            if(e.data && e.data.type === 'closeAndTriggerClick'){
+                // 关闭当前弹窗
+                this.close();
+                // 点击父页面的元素
+                document.querySelector(e.data.selector)?.click();
                 return ;
             }
             if(typeof receiveModalData === 'function'){
                 // 把数据推送到父页面
                 receiveModalData(e.data);
             }
+        };
 
-        });
+        // 监听来自iframe的消息
+        window.addEventListener('message', this.messageHandler);
 
         // 监听 iframe 加载完成
         this.iframe.addEventListener('load', () => {
@@ -581,6 +596,28 @@ class Modal {
         const bottomBtns = iframeDoc.querySelector('.layer-bottom-btns');
         if (!bottomBtns) return;
 
+        // 1. 检查并注入 form_after 方法
+        const iframeWindow = this.iframe.contentWindow;
+        if (typeof iframeWindow.form_after === 'undefined') {
+            const script = iframeDoc.createElement('script');
+            script.textContent = `
+            // 提交后回调
+            function form_after(resOrErr) {
+                // 判断是否存在 code 属性 且code 的值为 200
+                if (typeof resOrErr.code !== 'undefined' && resOrErr.code === 200) {
+                    Modal.success(resOrErr.message || '操作成功!', {position: 'top-right',timeout: 2500});
+                    setTimeout(function () {
+                        // 关闭弹窗并触发模拟点击父页面的 .date-table-tools-refresh-btn 按钮
+                        parent.postMessage({type: 'closeAndTriggerClick',selector: '.date-table-tools-refresh-btn'}, '*');
+                    }, 2600)
+                } else {
+                    Modal.error(resOrErr.message || '操作失败!', {position: 'top-right',timeout: 3000});
+                }
+            }
+        `;
+            iframeDoc.head.appendChild(script);
+        }
+
         // 1. 保留原始按钮在 iframe 中但隐藏它们
         bottomBtns.style.display = 'none';
 
@@ -606,21 +643,39 @@ class Modal {
             proxyBtn.textContent = originalBtn.textContent;
             proxyBtn.style.cssText = originalBtn.style.cssText;
 
-            // 复制内联事件处理器
-            if (originalBtn.onclick) {
-                proxyBtn.onclick = originalBtn.onclick;
-            }
-            if (originalBtn.onmouseover) {
-                proxyBtn.onmouseover = originalBtn.onmouseover;
-            }
-            // 可以添加更多事件类型的复制...
+            // 添加点击事件处理程序
+            proxyBtn.addEventListener('click', (e) => {
+                // 阻止默认行为（如果有）
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
 
-            // 特殊处理 postMessage 调用
-            if (originalBtn.hasAttribute('onclick') &&
-                originalBtn.getAttribute('onclick').includes('parent.postMessage')) {
-                const originalOnclick = originalBtn.getAttribute('onclick');
-                proxyBtn.setAttribute('onclick', originalOnclick);
-            }
+                // 触发原始按钮的点击事件
+                if (originalBtn.click) {
+                    originalBtn.click();
+                } else {
+                    // 创建并触发点击事件
+                    const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    originalBtn.dispatchEvent(clickEvent);
+                }
+
+                // 特殊处理 postMessage 调用
+                if (originalBtn.hasAttribute('onclick') &&
+                    originalBtn.getAttribute('onclick').includes('parent.postMessage')) {
+                    const originalOnclick = originalBtn.getAttribute('onclick');
+                    // 在 iframe 的上下文中执行原始 onclick 代码
+                    try {
+                        const iframeWindow = this.iframe.contentWindow;
+                        iframeWindow.eval(originalOnclick);
+                    } catch (error) {
+                        console.error('执行 iframe 按钮点击事件出错:', error);
+                    }
+                }
+            });
 
             // 添加到弹窗底部
             this.footer.appendChild(proxyBtn);
@@ -775,6 +830,11 @@ class Modal {
         // 恢复页面滚动
         if (!this.options.bodyScroll) {
             document.body.style.overflow = '';
+        }
+
+        // 移除消息监听器
+        if (this.messageHandler) {
+            window.removeEventListener('message', this.messageHandler);
         }
 
         // 清除定时器

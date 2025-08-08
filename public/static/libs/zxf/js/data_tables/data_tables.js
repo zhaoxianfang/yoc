@@ -354,19 +354,22 @@
                 },
                 "error": function (jqXHR, textStatus, errorThrown) {
                     console.log("jqXHR", jqXHR);
+
+                    TableTools.events.bindClickEvent();
                     // 隐藏加载提示
                     $(".dt-processing").hide();
+                    const errorMsg = (jqXHR.status === 404) ? jqXHR.status+"请求的资源不存在" : jqXHR.status+"获取数据异常~";
 
-                    $('.dt-empty').text(jqXHR.statusText);
+                    $('.dt-empty').text(errorMsg);
 
                     // 这个 "error" 回调实际上不会被触发，因为这不是 DataTables 的标准配置方式
                     if(typeof Modal != "undefined"){
-                        Modal.error(jqXHR.statusText, {
+                        Modal.error(errorMsg, {
                             position: 'center',
-                            timeout: 6000
+                            timeout: 3000
                         });
                     }else if(typeof myTools != "undefined"){
-                        myTools.msg(jqXHR.statusText,6);
+                        myTools.msg(errorMsg,3);
                     }else{
                     }
                 }
@@ -698,12 +701,12 @@
 
             // 添加刷新按钮
             if ((this.options.showRefreshBtn === undefined || this.options.showRefreshBtn) && this.urls.index_url && this.urls.index_url.length > 0) {
-                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs btn-sm date-table-tools-refresh-btn\"><i class=\"fa fa-refresh\"></i> 刷新</button>";
+                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs date-table-tools-refresh-btn\"><i class=\"fa fa-refresh ti ti-refresh\"></i> 刷新</button>";
                 btnBoxArea.append(refreshBtn);
             }
             // 添加创建按钮
             if (this.urls.add_url && this.urls.add_url.length > 0) {
-                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs btn-sm date-table-tools-plus-btn\"><i class=\"fa fa-plus\"></i> 添加</button>";
+                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs date-table-tools-plus-btn\"><i class=\"fa fa-plus ti ti-plus\"></i> 添加</button>";
                 btnBoxArea.append(addBtn);
             }
             // 附加表头按钮
@@ -713,7 +716,7 @@
             }
             // 添加自定义搜索按钮
             if (this.options.show_custom_search) {
-                var searchBtn = "<button type=\"button\"  class=\"btn btn-success m-1 btn-xs btn-sm date-table-tools-search-btn float-right\"><i class=\"fa fa-search\"></i> 搜索</button>";
+                var searchBtn = "<button type=\"button\"  class=\"btn btn-success m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search\"></i> 搜索</button>";
                 btnBoxArea.append(searchBtn);
             }
 
@@ -775,7 +778,7 @@
                     color = colorArr[value % colorArr.length] || "primary";
                     color = (config.options[value] && config.options[value].class) ? config.options[value].class : color;
                 }
-                return "<span class=\"text-" + color + "\"><i class=\"fa fa-circle\"></i>" + text + "</span>";
+                return "<span class=\"text-" + color + "\"><i class=\"fa fa-circle ti ti-circle-filled\"></i>" + text + "</span>";
             },
             // plain,primary,success,info,warning,danger
             label: function (opts = {}) {
@@ -788,7 +791,7 @@
             },
             icon: function (opts = {}) {
                 if ( !opts.text) return "";
-                opts.text = opts.text.indexOf(" ") > - 1 ? opts.text : "fa fa-" + opts.text;
+                opts.text = opts.text.indexOf(" ") > - 1 ? opts.text : ("fa fa-" + opts.text + " ti ti-" + opts.text);
                 //渲染fontawesome图标
                 return "<i class=\"" + opts.text + "\"></i> " + opts.text;
             },
@@ -825,6 +828,10 @@
                 if (config.data && config.data[config.field]) {
                     toggle_status = (config.data[config.field] == config.open_value) ? "on" : "off";
                 }
+
+                // ti
+                return '<div class="form-check form-check-'+(toggle_status == "on" ?'success':'secondary')+' form-switch mb-2"><input type="checkbox" disabled class="form-check-input" '+(toggle_status == "on"?'checked': '')+'></div>';
+                // fa
                 return "<a href='javascript:;' data-toggle='tooltip' class='btn-change' ><i class='fa " + (toggle_status == "on" ? "fa-toggle-on " : "fa-toggle-off ") + (toggle_status == "on" ? "text-success" : "fa-flip-horizontal text-gray") + " fa-2x'></i></a>";
             },
             image: function (opts = {}) {
@@ -852,10 +859,10 @@
                     "text": "链接",
                     "type": "url",
                 }, opts);
-                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\"><i class=\"fa fa-link\"></i></a></span></div>";
+                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\"><i class=\"fa fa-link ti ti-link\"></i></a></span></div>";
             },
             ip: function (opts = {}) {
-                return "<a class=\"btn btn-xs btn-sm btn-ip bg-success\"><i class=\"fa fa-map-marker\"></i> " + opts.text + "</a>";
+                return "<a class=\"btn btn-xs btn-ip bg-success\"><i class=\"fa fa-map-marker ti ti-map-pin\"></i> " + opts.text + "</a>";
             },
             // type: default,primary,success,info,warning,danger,link
             btn: function (opts = {}) {
@@ -877,7 +884,7 @@
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, null);
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" disabled class=\"btn btn-xs btn-sm m-1 disabled btn-" + config.class_type + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" disabled class=\"btn btn-xs m-1 disabled btn-" + config.class_type + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 if (config.event_type == "callback" && typeof config.callback == "function") {
@@ -885,7 +892,7 @@
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, config.data);
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" class=\"btn btn-xs btn-sm m-1 btn-" + config.class_type + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" class=\"btn btn-xs m-1 btn-" + config.class_type + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 var ext_class = "";
@@ -915,7 +922,7 @@
                     config.url_name = "";
                 }
                 var url = !myTools.func.isEmpty(config.url_name) ? myTools.func.replaceString(TableTools.getObj().urls[config.url_name], config.url_params) : "javascript:;";
-                return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-sm btn-" + config.class_type +
+                return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.class_type +
                     " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
             },
         },
@@ -991,14 +998,30 @@
                     var url = $(this).data("url");
                     var title = $(this).data("title");
                     var options = $(this).data("options") || {"maxmin": false};
-                    my.layer.open(url, title, options);
+
+                    // Iframe弹窗 并处理iframe 完全加载完成事件：
+                    let eventModal = Modal.iframe(title, url, '80%', '80%');
+
+                    // eventModal.onIframeComplete((_modal) => {
+                    //     console.log('complete 第一个事件',_modal);
+                    // }).onIframeComplete((_modal) => {
+                    //     console.log('complete 第二个事件',_modal);
+                    // });
                 });
                 $(".date-table-open-iframe-btn").on("click", function (e) {
                     e.preventDefault();
                     var url = $(this).data("url");
                     var title = $(this).data("title");
                     var options = $(this).data("options") || "{}";
-                    my.layer.open(url, title, options);
+
+                    // Iframe弹窗 并处理iframe 完全加载完成事件：
+                    let eventModal = Modal.iframe(title, url, '80%', '80%');
+
+                    // eventModal.onIframeComplete((_modal) => {
+                    //     console.log('complete 第一个事件',_modal);
+                    // }).onIframeComplete((_modal) => {
+                    //     console.log('complete 第二个事件',_modal);
+                    // });
                 });
                 $(".date-table-jump-url-btn").on("click", function (e) {
                     e.preventDefault();

@@ -3939,6 +3939,13 @@ textarea.form-control-lg {
     --ins-btn-border-radius: var(--ins-border-radius-sm)
 }
 
+.btn-group-xs>.btn,.btn-xs {
+    --ins-btn-padding-y: 0.2rem;
+    --ins-btn-padding-x: 0.3rem;
+    --ins-btn-font-size: 0.7rem;
+    --ins-btn-border-radius: var(--ins-border-radius-sm)
+}
+
 .fade {
     -webkit-transition: opacity .15s linear;
     transition: opacity .15s linear
@@ -22414,7 +22421,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
 }
 
 .dt-column-title {
-    padding-right: 30px
+    /*padding-right: 30px*/
 }
 
 .dt-child-rows-btn {
