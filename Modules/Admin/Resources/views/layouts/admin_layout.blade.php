@@ -89,7 +89,7 @@
 
 <script src="{{ asset('static/libs/zxf/js/tools.js') }}" type='text/javascript'></script>
 <!-- modal 弹出层 -->
-<script src="{{ asset('static/libs/zxf/modal/modal.js') }}" charset="utf-8"></script>
+<script src="{{ asset('static/libs/zxf/modal/modal.min.js') }}" charset="utf-8"></script>
 
 @hasSection('use_datatables')
     <script src="{{ asset('static/libs/DataTables/DataTables-2.1.2/datatables.min.js') }}"></script>
