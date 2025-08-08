@@ -45,7 +45,7 @@ return new class extends Migration
             $table->string('title', 60)->nullable()->comment('菜单名称 例如：控制面板');
             $table->unsignedTinyInteger('ismenu')->default(1)->index()->comment('是否为菜单：1菜单，0按钮');
             $table->integer('weigh')->default(0)->comment('权重');
-            $table->string('icon', 20)->nullable()->comment('小图标');
+            $table->string('icon', 40)->nullable()->comment('小图标');
             $table->string('badge_text', 20)->nullable()->comment('徽标');
             $table->string('badge_text_style', 20)->nullable()->default('label-info')->comment('徽标样式');
             $table->unsignedBigInteger('create_by')->default(0)->index()->comment('创建人');

@@ -230,6 +230,10 @@
                 $("#chooseicon ul li:not([data-font*='" + $(this).val() + "'])").hide();
             }
         });
+        // #icon输入框的值变动时#icon-preview的值一起变动
+        $(document).on('keyup', '#icon', function () {
+            $("#icon-preview").attr('class', $(this).val());
+        })
         //点击search icon小图标弹出层
         $(document).on('click', ".btn-search-icon", function () {
             var iconlist = [];
