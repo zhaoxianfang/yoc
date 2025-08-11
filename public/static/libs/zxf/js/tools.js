@@ -3140,6 +3140,28 @@
     var EventHandle = {
         init: function() {
             this.setCopyPreCodeBtn();
+            this.initAjaxRequest();
+        },
+        initAjaxRequest: function() {
+            // 获取所有的 a.ajax_request ;然后使用post 提交请求
+            const ajaxRequestLinks = document.querySelectorAll('a.ajax_request');
+            ajaxRequestLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    $.ajax({
+                        url: link.href,
+                        type: 'POST',
+                        data: {},
+                        success: function(data) {
+                            Message.msg(data.message || data.msg);
+                        },
+                        error: function(xhr, status, error) {
+                            Message.msg(error);
+                        }
+                    });
+                })
+            })
         },
         // 设置复制代码块按钮
         setCopyPreCodeBtn: function() {

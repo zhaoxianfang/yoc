@@ -687,7 +687,12 @@
 
                         <!-- Divider -->
                         <div class="dropdown-divider"></div>
+                        <a href="{{ url("/admin/system/clear/setting") }}" class="dropdown-item ajax_request">
+                            <i class="ti ti-lock me-2 fs-17 align-middle"></i>
+                            <span class="align-middle">更新缓存</span>
+                        </a>
 
+                        <div class="dropdown-divider"></div>
                         <!-- Lock -->
                         <a href="auth-lock-screen.html" class="dropdown-item">
                             <i class="ti ti-lock me-2 fs-17 align-middle"></i>
