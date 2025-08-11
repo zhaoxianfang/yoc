@@ -1,17 +1,8 @@
-@extends('admin::layouts.admin_layer')
+@extends('admin::layouts.admin_layer_layout')
 
 @section('head_css')
-    @parent
-    <link href="{{ asset('static/inspinia/v2.9/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('static/inspinia/v2.9/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <style>
         .rule-handle{padding: 0;}
-        .select2-container--bootstrap4 .select2-selection--single{
-            height: 34px!important;
-            padding: 0;
-            margin: 0;
-        }
-        .select2{padding: 0!important;}
         #mytip{position: absolute!important;}
         .extend-rule input{ padding: 0; }
         .extend-rule input::placeholder {
@@ -75,7 +66,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>所属类型:</label>
                 <div class="col-xs-12 col-sm-10">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[type]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[type]" style="border-radius:0px;" >
                         <option value="1">文章正文</option>
                         <option value="2" selected>文章列表</option>
                         <option value="3">报刊</option>
@@ -102,8 +93,8 @@
                         </div>
                         <input type="text" class="form-control col-sm-4 rule-xpath p-0" value="" name="rules[xpath][]" placeholder="例如://h2 或 #content" autocomplete="off" data-tips="bottom" title="css元素选择器或者XPath规则" />
                         <div class="col-sm-2 p-0">
-                            <button type="button" class="btn btn-success add_custom_row_item" ><i class="fa fa-plus" aria-hidden="true"></i></button>
-                            <button type="button" class="btn btn-danger trash_custom_row_item" data-key="0" style="display: none;" ><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-success add_custom_row_item" ><i class="ti ti-plus" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-danger trash_custom_row_item" data-key="0" style="display: none;" ><i class="ti ti-trash" aria-hidden="true"></i></button>
                         </div>
                         <div class="extend-rule col-sm-2 row p-0" style="display: none;">
                             <input type="text" class="form-control col-xs-12 col-sm-6 rule-title" value="" name="rules[extend_rule][first][]" placeholder="下标1" autocomplete="off" data-tips="bottom" title="[匹配文字部分]提取正则表达式获取内容的数组下标index,一般填1或者2" />
@@ -137,7 +128,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>采集成功后保存的方式:</label>
                 <div class="col-xs-12 col-sm-10">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[success][save]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[success][save]" style="border-radius:0px;" >
                         <option value="default" selected>默认保存到文章数据</option>
                         <option value="custom">自定义</option>
                     </select>
@@ -146,7 +137,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2">下一个任务:</label>
                 <div class="col-xs-12 col-sm-10">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[next_tasks_id]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[next_tasks_id]" style="border-radius:0px;" >
                         <option value="0">无</option>
                         @foreach ($sub_tasks as $subTask)
                             <option value="{{ $subTask['id'] }}">{{ $subTask['name'] }}</option>
@@ -158,7 +149,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>文章关联的分类:</label>
                 <div class="col-xs-12 col-sm-10">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[extend][classify_id]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[extend][classify_id]" style="border-radius:0px;" >
                         <option value="0">无</option>
                         @foreach ($classify_list as $classify)
                             <option value="{{ $classify['id'] }}">{{ $classify['name'] }}</option>
@@ -193,18 +184,6 @@
 
 @section('page_js')
     @parent
-    <!-- Select2 -->
-    <script src="{{ asset('static/inspinia/v2.9/js/plugins/select2/select2.full.min.js') }}"></script>
-    <script type="text/javascript">
-        $(function () {
-            //Initialize
-            $(".select2").select2({
-                theme: 'bootstrap4',
-                placeholder: "请选择",
-                allowClear: false
-            });
-        })
-    </script>
     <script type="text/javascript">
         $(function () {
             $('.choose-rule-type').change( function() {

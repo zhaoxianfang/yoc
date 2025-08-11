@@ -1,8 +1,7 @@
-@extends('admin::layouts.admin')
+@extends('admin::layouts.admin_layout')
 @section('title', "定时任务")
-@section('page_inner_title', "定时任务")
 
-@section('use_datatables', "1")
+@section('use_datatables', "true")
 
 @section('head_css')
 

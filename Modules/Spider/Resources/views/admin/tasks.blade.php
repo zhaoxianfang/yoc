@@ -1,4 +1,4 @@
-@extends('admin::layouts.admin')
+@extends('admin::layouts.admin_layout')
 @section('page_inner_title', "爬虫列表")
 
 @section('content')

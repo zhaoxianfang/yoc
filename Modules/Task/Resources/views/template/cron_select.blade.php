@@ -1,15 +1,8 @@
-<style>
-    .select2-container--bootstrap4 .select2-selection{border-radius: 0!important;}
-    .select2{padding: 0!important;}
-    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice{margin: 0!important;}
-    /* ul.select2-selection__rendered li{font-size: 10px!important;} */
-    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove{margin:-1px 0 0 0 !important;}
-</style>
 
             <div class="form-group row">
                 <label for="" class="control-label col-xs-12 col-sm-2">{{ !empty($show_label)?'Crontab选择器':'' }}</label>
                 <div class="col-xs-12 col-sm-10 row m-0">
-                    <select class="form-control col-sm select2 cron-field" multiple="multiple" placeholder="分钟" id="cron_minute" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}} >
+                    <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="分钟" id="cron_minute" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}} >
                         <option value="*" selected>每分钟</option>
                         @for ($i = 0; $i < 60; $i++)
                             <option value="{{ $i }}">{{ $i }}分</option>
@@ -20,7 +13,7 @@
                         <option value="*/20">每20分钟</option>
                         <option value="*/30">每30分钟</option>
                     </select>
-                    <select class="form-control col-sm select2 cron-field" multiple="multiple" placeholder="小时" id="cron_hour" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
+                    <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="小时" id="cron_hour" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
                         <option value="*" selected>每小时</option>
                         @for ($i = 0; $i < 24; $i++)
                             <option value="{{ $i }}">{{ $i }}点</option>
@@ -29,7 +22,7 @@
                         <option value="9-17">从9点到17点</option>
                         <option value="18-23">从18点到23点</option>
                     </select>
-                    <select class="form-control col-sm select2 cron-field" multiple="multiple" placeholder="日期" id="cron_day_of_month" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
+                    <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="日期" id="cron_day_of_month" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
                         <option value="*" selected>每天</option>
                         @for ($i = 1; $i < 32; $i++)
                             <option value="{{ $i }}">{{ $i }}日</option>
@@ -37,7 +30,7 @@
                         <option value="1-15">从1日到15日</option>
                         <option value="15-31">从15日到31日</option>
                     </select>
-                    <select class="form-control col-sm select2 cron-field" multiple="multiple" placeholder="月份" id="cron_month" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
+                    <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="月份" id="cron_month" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
                         <option value="*" selected>每月</option>
                         @for ($i = 1; $i < 13; $i++)
                             <option value="{{ $i }}">{{ $i }}月</option>
@@ -45,7 +38,7 @@
                         <option value="3-7">从3月到7月</option>
                         <option value="9-12">从9月到12月</option>
                     </select>
-                    <select class="form-control col-sm select2 cron-field" multiple="multiple" placeholder="星期" id="cron_day_of_week" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
+                    <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="星期" id="cron_day_of_week" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}}   >
                         <option value="*" selected>每周</option>
                         <option value="0">周日</option>
                         <option value="1">周一</option>
@@ -63,18 +56,13 @@
 
 
 
-
+@section('page_js')
+    @parent
 <script type="text/javascript">
     // 接收传入的参数有 callback_dom(选择或解析后的结果赋值给的元素，eg: #test或.test),analysis_value(默认值),disabled(表单是否禁止编辑，true|1|disabled 表示禁止编辑) 三个参数
     var callback_dom = "{{$callback_dom??'#cron'}}"; // 回调的dom
     var analysis_value = "{{$analysis_value??'* * * * *'}}"; // 需要解析的值，例如 把 * * * * * 解析到 表单的select 选项中
     $(function () {
-        //Initialize
-        // $(".select2").select2({
-        //     theme: 'bootstrap4',
-        //     placeholder: "请选择",
-        //     allowClear: false
-        // });
         function generateCronExpression() {
             let minute = getSelectedValues($('#cron_minute'));
             let hour = getSelectedValues($('#cron_hour'));
@@ -132,4 +120,5 @@
         generateCronExpression();
     })
 </script>
+@endsection
 

@@ -1,4 +1,4 @@
-@extends('admin::layouts.admin_layer')
+@extends('admin::layouts.admin_layer_layout')
 
 @section('head_css')
     @parent

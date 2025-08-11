@@ -1,8 +1,7 @@
-@extends('admin::layouts.admin')
+@extends('admin::layouts.admin_layout')
 @section('title', "爬虫列表")
-@section('page_inner_title', "爬虫列表")
 
-@section('use_datatables', "1")
+@section('use_datatables', "true")
 
 @section('head_css')
 
@@ -189,7 +188,7 @@
                                 'text':'编辑',
                                 "title":"编辑["+row.name+']',
                                 'type':'btn',
-                                "icon": "fa fa-pencil", // fa 按钮小图标 ,例如 fa fa-pencil
+                                "icon": "ti ti-pencil", // fa 按钮小图标 ,例如 ti ti-pencil
                                 'event_type':'layer_open',
                                 'class_type':'info',
                                 'url_name':'edit_url',
@@ -223,7 +222,7 @@
                         'type':'btn',
                         'event_type':'callback',
                         'class_type':'info',
-                        'icon':'fa fa-asterisk',
+                        'icon':'ti ti-asterisk',
                         'data':'null',
                         'callback':function (data) {
                             Modal.iframe('爬虫规则测试', '/admin/spider/list/rule_test', '80%', '80%');
@@ -233,7 +232,7 @@
                         'type':'btn',
                         'event_type':'callback',
                         'class_type':'outline btn-primary',
-                        'icon':'fa fa-info',
+                        'icon':'ti ti-info',
                         'data':'null',
                         'callback':function (data) {
                             Modal.iframe('cron 配置帮助', '/admin/task/cron/cron_help', '80%', '80%');

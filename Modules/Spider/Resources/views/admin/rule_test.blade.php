@@ -1,9 +1,6 @@
-@extends('admin::layouts.admin_layer')
+@extends('admin::layouts.admin_layer_layout')
 
 @section('head_css')
-    @parent
-    <link href="{{ asset('static/inspinia/v2.9/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('static/inspinia/v2.9/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <style>
         #pre_rule_res{
             background-color: #fff;
@@ -43,7 +40,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2">测试已有采集任务:</label>
                 <div class="col-xs-12 col-sm-8">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[task_id]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[task_id]" style="border-radius:0px;" >
                         <option value="0">不使用或没有任务</option>
                         @foreach ($tasks as $task)
                             <option value="{{ $task['id'] }}">[{{ $task['id'] }}]: {{ $task['name'] }}</option>
@@ -73,7 +70,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2">采集类型:</label>
                 <div class="col-xs-12 col-sm-8">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[type]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[type]" style="border-radius:0px;" >
                         <option value="1" selected>文章详情</option>
                         <option value="2" >文章列表</option>
                     </select>
@@ -85,7 +82,7 @@
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2">调试模式:</label>
                 <div class="col-xs-12 col-sm-8">
-                    <select class="form-control select2  col-xs-12 col-sm-12" name="row[is_debug]" style="border-radius:0px;" >
+                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[is_debug]" style="border-radius:0px;" >
                         <option value="debug" selected>调试模式「极力推荐」</option>
                         <option value="0" >补采模式</option>
                     </select>
@@ -124,17 +121,9 @@
 @endsection
 
 @section('page_js')
-    @parent
-    <!-- Select2 -->
-    <script src="{{ asset('static/inspinia/v2.9/js/plugins/select2/select2.full.min.js') }}"></script>
     <script type="text/javascript">
         $(function () {
-            //Initialize
-            $(".select2").select2({
-                theme: 'bootstrap4',
-                placeholder: "请选择",
-                allowClear: false
-            });
+
         })
 
         function form_after(res){
