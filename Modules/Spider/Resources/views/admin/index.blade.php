@@ -200,6 +200,7 @@
                                 'text':'删除',
                                 "title":"确认删除["+row.name+']吗？',
                                 'type':'btn',
+                                "icon": "ti ti-trash",
                                 'event_type':'confirm_open',
                                 'class_type':'danger',
                                 'url_name':'del_url',
@@ -232,7 +233,7 @@
                         'type':'btn',
                         'event_type':'callback',
                         'class_type':'outline btn-primary',
-                        'icon':'ti ti-info',
+                        'icon':'ti ti-question-mark',
                         'data':'null',
                         'callback':function (data) {
                             Modal.iframe('cron 配置帮助', '/admin/task/cron/cron_help', '80%', '80%');

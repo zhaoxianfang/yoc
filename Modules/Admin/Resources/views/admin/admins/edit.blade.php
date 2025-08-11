@@ -18,7 +18,7 @@
                     </select>
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="nickname" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>姓名:</label>
@@ -26,7 +26,7 @@
                     <input type="text" class="form-control" id="nickname" name="row[nickname]" placeholder="" value="{{$info->nickname ?? ''}}" data-rule="required" />
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="mobile" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>手机号:</label>
@@ -34,7 +34,7 @@
                     <input type="text" class="form-control" id="mobile" name="row[mobile]" placeholder="" value="{{$info->mobile ?? ''}}" data-join="check_field" data-rule="required|mobile|remote(/admin/system/admins/check_field)" />
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="password" class="control-label col-xs-12 col-sm-2">密码:</label>
@@ -43,7 +43,7 @@
                     <span class="form-text m-b-none">提示: 强密码 (至少8位(数字、大写字母、小写字母、特殊字符 至少四选三))</span>
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="email" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>邮箱号:</label>
@@ -51,7 +51,7 @@
                     <input type="text" class="form-control" id="email" name="row[email]" placeholder="" value="{{$info->email ?? ''}}" data-join="check_field" data-rule="required|email|remote(/admin/system/admins/check_field)" />
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="id_card" class="control-label col-xs-12 col-sm-2">身份证号:</label>
@@ -59,7 +59,7 @@
                     <input type="text" class="form-control" id="id_card" name="row[id_card]" placeholder="" value="{{$info->id_card ?? ''}}" data-join="check_field" data-rule="id_card|remote(/admin/system/admins/check_field)" />
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="gender" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>性别:</label>
@@ -72,7 +72,7 @@
                     </label>
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="remark" class="control-label col-xs-12 col-sm-2">备注:</label>
@@ -80,7 +80,7 @@
                     <textarea class="form-control" id="remark" name="row[remark]">{{$info->remark??''}}</textarea>
                 </div>
             </div>
-            <div class="border-top border-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
             <div class="form-group row g-lg-2 g-1">
                 <label for="content" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>状态:</label>

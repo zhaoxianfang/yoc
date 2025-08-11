@@ -1,7 +1,7 @@
 
             <div class="form-group row">
-                <label for="" class="control-label col-xs-12 col-sm-2">{{ !empty($show_label)?'Crontab选择器':'' }}</label>
-                <div class="col-xs-12 col-sm-10 row m-0">
+                <label for="" class="control-label cols-12 col-sm-2">{{ !empty($show_label)?'Crontab选择器':'' }}</label>
+                <div class="cols-12 col-sm-10 row m-0">
                     <select class="form-control col-sm custom-select cron-field" multiple="multiple" placeholder="分钟" id="cron_minute" style="border-radius:0;" {{empty($disabled) || !in_array($disabled,['disabled','1','true']) ?'':'disabled'}} >
                         <option value="*" selected>每分钟</option>
                         @for ($i = 0; $i < 60; $i++)

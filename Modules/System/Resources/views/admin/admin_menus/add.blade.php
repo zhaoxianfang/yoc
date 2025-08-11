@@ -55,7 +55,7 @@
                     </div>
                 </div>
 
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
                 <div class="form-group row g-lg-2 g-1">
                     <label for="name" class="col-form-label col-sm-2"><font color="#FF0000">*</font>父级:</label>
@@ -68,7 +68,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
                 <div class="form-group row g-lg-2 g-1">
                     <label for="name" class="col-form-label col-sm-2"><font color="#FF0000">*</font>规则名称:</label>
@@ -77,7 +77,7 @@
                         <span style="color:#999;" class="fs-10">从跟目录下开始添加，例如 "/admin/test/add"</span>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
                 <div class="form-group row g-lg-2 g-1">
                     <label for="module" class="col-form-label col-sm-2"><font color="#FF0000">*</font>标题:</label>
@@ -85,7 +85,7 @@
                         <input type="text" class="form-control" id="title" name="row[title]" value="" data-rule="required" />
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="icon" class="col-form-label col-sm-2">小图标:</label>
                     <div class="col-sm-10">
@@ -99,14 +99,14 @@
                         <span style="color:#999;" class="fs-10">快捷搜索=><a href="https://tabler.io/icons" target="_blank">tabler</a> 3.33版本</span>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="weigh" class="col-form-label col-sm-2">权重:</label>
                     <div class="col-sm-10">
                         <input type="number" class="form-control" id="weigh" name="row[weigh]" value="0" data-rule="required" />
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
                 <div class="form-group row g-lg-2 g-1">
                     <label for="badge_text" class="col-form-label col-sm-2">菜单徽章文字:</label>
@@ -114,7 +114,7 @@
                         <input type="text" class="form-control" id="badge_text" name="row[badge_text]" value="" placeholder="一般不设置" />
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
                 <div class="form-group row g-lg-2 g-1">
                     <label for="badge_text_style" class="col-form-label col-sm-2">菜单徽章样式:</label>
@@ -134,7 +134,7 @@
                         <span style="color:#ccc;" class="fs-10">仅在设置了菜单徽章文字后生效</span>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
 
 
                 <div class="form-group row g-lg-2 g-1">
@@ -143,7 +143,7 @@
                         <textarea class="form-control" id="remark" name="row[remark]"></textarea>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="content" class="col-form-label col-sm-2"><font color="#FF0000">*</font>状态:</label>
                     <div class="col-sm-10">

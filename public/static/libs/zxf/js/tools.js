@@ -1168,7 +1168,9 @@
         createCustomUI: function(select) {
             // 创建包装容器
             const wrapper = document.createElement('div');
-            wrapper.className = 'custom-select-wrapper';
+            wrapper.className = 'custom-select-wrapper ' + (select.className || '');
+            // 移除 wrapper.className 里面的form-control
+            wrapper.className = wrapper.className.replace('form-control', '');
 
             // 将select放入包装容器
             select.parentNode.insertBefore(wrapper, select);
@@ -1211,7 +1213,10 @@
          */
         createDisplayElement: function(select) {
             const display = document.createElement('div');
-            display.className = 'custom-select-display';
+            display.className = 'custom-select-display ' + (select.className || '');
+            // 移除 display.className 里面的form-control
+            display.className = display.className.replace('form-control', '');
+
             display.tabIndex = select.disabled ? -1 : 0;
 
             // 如果是多选，添加标签容器

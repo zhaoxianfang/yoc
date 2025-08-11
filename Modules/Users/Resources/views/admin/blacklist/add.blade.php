@@ -14,12 +14,14 @@
                 <input type="text" class="form-control" id="ip" name="row[ip]" placeholder="" value="" data-rule="required|ip" />
             </div>
         </div>
+        <div class="border-top border-dashed my-2"></div>
         <div class="form-group row g-lg-2 g-1">
             <label for="visits" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>访问次数:</label>
             <div class="col-xs-12 col-sm-8">
                 <input type="number" min="1" step="1" class="form-control" id="visits" name="row[visits]" placeholder="" value="1" data-rule="required" />
             </div>
         </div>
+        <div class="border-top border-dashed my-2"></div>
         <div class="form-group row g-lg-2 g-1">
             <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>类型:</label>
             <div class="col-xs-12 col-sm-8">
@@ -31,6 +33,7 @@
                 </label>
             </div>
         </div>
+        <div class="border-top border-dashed my-2"></div>
         <div class="form-group row g-lg-2 g-1">
             <label for="remark" class="control-label col-xs-12 col-sm-2">备注:</label>
             <div class="col-xs-12 col-sm-8">
@@ -41,11 +44,10 @@
         <div class="form-group row g-lg-2 g-1">
 
         </div>
-        <div class="form-group hidden layer-footer">
-            <div class="col-xs-12 col-sm-12">
-                <button type="submit" class="btn btn-success btn-embossed ">确定</button>
-                <button type="reset" class="btn btn-default btn-embossed">重置</button>
-            </div>
+        {{-- 操作按钮 使用 .layer-bottom-btns 元素盒子--}}
+        <div class="layer-bottom-btns">
+            <button class="btn btn-light" onclick="parent.postMessage({type: 'close'}, '*')">取消</button>
+            <button class="btn btn-primary" type="submit">提交</button>
         </div>
     </form>
 </div>

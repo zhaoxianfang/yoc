@@ -29,14 +29,14 @@
                         </select>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="name" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>管理员组名称:</label>
                     <div class="col-xs-12 col-sm-8">
                         <input type="text" class="form-control" id="name" name="row[group_name]" placeholder="" value="" data-rule="required" />
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="name" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>过期时间:</label>
                     <div class="col-xs-12 col-sm-8 datepicker-date">
@@ -49,7 +49,7 @@
                         <span class="form-text m-b-none">提示:授权此管理员组的可用期限,有效期至 选择日期那天的23:59:59</span>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="remark" class="control-label col-xs-12 col-sm-2">权限节点:</label>
                     <div class="col-xs-12 col-sm-8">
@@ -57,14 +57,14 @@
                         <div id="treelist" class="ztree">正在加载中...</div>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="remark" class="control-label col-xs-12 col-sm-2">备注:</label>
                     <div class="col-xs-12 col-sm-8">
                         <textarea class="form-control" id="remark" name="row[remark]"></textarea>
                     </div>
                 </div>
-                <div class="border-top border-dashed"></div>
+                <div class="border-top border-dashed my-2"></div>
                 <div class="form-group row g-lg-2 g-1">
                     <label for="content" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>状态:</label>
                     <div class="col-xs-12 col-sm-8">

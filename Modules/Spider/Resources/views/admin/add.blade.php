@@ -2,7 +2,6 @@
 
 @section('head_css')
     <style>
-        .rule-handle{padding: 0;}
         #mytip{position: absolute!important;}
         .extend-rule input{ padding: 0; }
         .extend-rule input::placeholder {
@@ -27,6 +26,7 @@
                     <input type="text" class="form-control" id="name" name="row[name]" placeholder="" value="" data-rule="required" />
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="url" class="control-label col-xs-12 col-sm-2">采集网址:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -34,6 +34,7 @@
                     <span class="form-text m-b-none">提示:一般情况下，子任务无需填写(针对文章类型),如果是列表类型的就需要填写</span>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="domain_prefix" class="control-label col-xs-12 col-sm-2">采集前缀:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -41,6 +42,7 @@
                     <span class="form-text m-b-none">提示:采集前缀都是以<code>/</code>结尾；作用有些跳转链接是以 <code>./</code>或<code>../</code>开头的相对位置链接</span>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="sub_tasks" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>是否子任务:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -53,6 +55,7 @@
                     <span class="form-text m-b-none">提示: 一般地，子任务是由主任务调用的，例如文章列表会去调度文件详情子任务</span>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="timer" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>cron时间:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -60,9 +63,9 @@
                     <span class="form-text m-b-none">提示: 5个占位的cron时间规则，例如 <code>7 10 * * 4,0</code>表示每周四和周日的10:07,尽量避开凌晨<code>4:00~4:30</code>执行定时任务</span>
                 </div>
             </div>
-
+            <div class="border-top border-dashed my-2"></div>
             @include('task::template.cron_select', ['callback_dom'=>'#timer','analysis_value'=>'','show_label'=>'','disabled'=>'false'])
-
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>所属类型:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -74,45 +77,44 @@
                     </select>
                 </div>
             </div>
-
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="rules" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>采集规则:</label>
                 <div class="col-xs-12 col-sm-10">
                     <div class="row custom_row_item" style="margin:0;">
-                        <input type="text" class="form-control col-sm-2 rule-title p-0" value="" name="rules[title][]" placeholder="例如:title" autocomplete="off" data-tips="bottom" title="url前缀 别名 例如：测试环境" />
-                        <div class="form-control col-sm-2 rule-handle p-0">
-                            <select class="form-control col-xs-12 col-sm-12 choose-rule-type" name="rules[field_handle][]" style="border-radius:0;"  >
-                                <option value="0" >原格式</option>
-                                <option value="1" selected>清洗html</option>
-                                <option value="2" >提取时间</option>
-                                <option value="3" >纯text文字</option>
-                                <option value="4" >正则原格式</option>
-                                <option value="5" >正则text</option>
-                                <option value="6" data-tips="bottom" title="例如：来源等内容是和时间、发布人等都是放在一个html标签中，需要把来源提取出来...">清洗text并识别kickOut字典</option>
-                            </select>
-                        </div>
-                        <input type="text" class="form-control col-sm-4 rule-xpath p-0" value="" name="rules[xpath][]" placeholder="例如://h2 或 #content" autocomplete="off" data-tips="bottom" title="css元素选择器或者XPath规则" />
+                        <input type="text" class="form-control col-sm rule-title p-0" value="" name="rules[title][]" placeholder="例如:title" autocomplete="off" data-tips="bottom" title="url前缀 别名 例如：测试环境" />
+
+                        <select class="form-control rule-handle col-sm choose-rule-type  p-0" name="rules[field_handle][]" style="border-radius:0;"  >
+                            <option value="0" >原格式</option>
+                            <option value="1" selected>清洗html</option>
+                            <option value="2" >提取时间</option>
+                            <option value="3" >纯text文字</option>
+                            <option value="4" >正则原格式</option>
+                            <option value="5" >正则text</option>
+                            <option value="6" data-tips="bottom" title="例如：来源等内容是和时间、发布人等都是放在一个html标签中，需要把来源提取出来...">清洗text并识别kickOut字典</option>
+                        </select>
+                        <input type="text" class="form-control col-sm rule-xpath p-0" value="" name="rules[xpath][]" placeholder="例如://h2 或 #content" autocomplete="off" data-tips="bottom" title="css元素选择器或者XPath规则" />
                         <div class="col-sm-2 p-0">
                             <button type="button" class="btn btn-success add_custom_row_item" ><i class="ti ti-plus" aria-hidden="true"></i></button>
                             <button type="button" class="btn btn-danger trash_custom_row_item" data-key="0" style="display: none;" ><i class="ti ti-trash" aria-hidden="true"></i></button>
                         </div>
-                        <div class="extend-rule col-sm-2 row p-0" style="display: none;">
-                            <input type="text" class="form-control col-xs-12 col-sm-6 rule-title" value="" name="rules[extend_rule][first][]" placeholder="下标1" autocomplete="off" data-tips="bottom" title="[匹配文字部分]提取正则表达式获取内容的数组下标index,一般填1或者2" />
-                            <input type="text" class="form-control col-xs-12 col-sm-6 rule-title" value="" name="rules[extend_rule][href][]" placeholder="下标2" autocomplete="off" data-tips="bottom" title="[可选,匹配href部分]提取正则表达式获取第二内容的数组下标index;例如获取href的数组下标,一般填1或者2" />
+                        <div class="extend-rule col-sm row p-0" style="display: none;">
+                            <input type="text" class="form-control col-sm rule-title" value="" name="rules[extend_rule][first][]" placeholder="下标1" autocomplete="off" data-tips="bottom" title="[匹配文字部分]提取正则表达式获取内容的数组下标index,一般填1或者2" />
+                            <input type="text" class="form-control col-sm rule-title" value="" name="rules[extend_rule][href][]" placeholder="下标2" autocomplete="off" data-tips="bottom" title="[可选,匹配href部分]提取正则表达式获取第二内容的数组下标index;例如获取href的数组下标,一般填1或者2" />
                         </div>
                     </div>
                     <div class="custom_row_divider"></div>
 
                     <div id="create_custom_row_box"></div>
                     <button type="button" class="btn btn-primary btn-xs" id="add_new_field">新增一个采集字段</button>
-                    <span class="form-text m-b-none">提示: 1、注意<code>/text():仅直接文本节点</code> 和 <code>//text():递归所有子文本</code>在使用上的区别</span>
+                    <br /><span class="form-text m-b-none">提示: 1、注意<code>/text():仅直接文本节点</code> 和 <code>//text():递归所有子文本</code>在使用上的区别</span>
                     <span class="form-text m-b-none">2、建议把<code>/html/body...</code> 规则替换为 <code>//body...</code>规则</span>
                     <span class="form-text m-b-none">3、建议标题字段设为<code>清洗html</code>网页内容设为<code>原格式</code>时间相关设为<code>提取时间</code></span>
                     <span class="form-text m-b-none">使用正则匹配时的第一个下标数字匹配<code>文字部分</code>,第二个下标数字匹配<code>href链接部分「可选参数」</code></span>
                     <span class="form-text m-b-none">4、字段名称参照:<code>title</code>,<code>content</code>,<code>summary</code>,<code>author</code>,<code>publish_time</code></span>
                 </div>
             </div>
-
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="url_can_repeated" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>重复采集:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -125,6 +127,7 @@
                     <span class="form-text m-b-none">提示: 内容会自动变更的网页(例如:文章列表)设置为能重复采集，文章详情等一般不变更的设置为能重复采集</span>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>采集成功后保存的方式:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -134,6 +137,7 @@
                     </select>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2">下一个任务:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -146,6 +150,7 @@
                     <span class="form-text m-b-none">提示: 如果此任务是列表采集任务，则可能会用到下一个任务来继续采集文章内容等</span>
                 </div>
             </div>
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="type" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>文章关联的分类:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -157,7 +162,7 @@
                     </select>
                 </div>
             </div>
-
+            <div class="border-top border-dashed my-2"></div>
             <div class="form-group row">
                 <label for="content" class="control-label col-xs-12 col-sm-2"><font color="#FF0000">*</font>状态:</label>
                 <div class="col-xs-12 col-sm-10">
@@ -171,11 +176,10 @@
             </div>
             <div class="form-group row">
             </div>
-            <div class="form-group hidden layer-footer">
-                <div class="col-xs-12 col-sm-12">
-                    <button type="submit" class="btn btn-success btn-embossed ">确定</button>
-                    <button type="reset" class="btn btn-default btn-embossed">重置</button>
-                </div>
+            {{-- 操作按钮 使用 .layer-bottom-btns 元素盒子--}}
+            <div class="layer-bottom-btns">
+                <button class="btn btn-light" onclick="parent.postMessage({type: 'close'}, '*')">取消</button>
+                <button class="btn btn-primary" type="submit">提交</button>
             </div>
         </form>
     </div>

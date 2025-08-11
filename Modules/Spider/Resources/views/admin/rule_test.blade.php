@@ -37,9 +37,9 @@
 
         <form id="add-form" class="form-horizontal form-ajax card-body" role="form" data-toggle="validator" method="POST" action="">
 
-            <div class="form-group row">
+            <div class="form-group row g-lg-2 g-1">
                 <label for="type" class="control-label col-xs-12 col-sm-2">测试已有采集任务:</label>
-                <div class="col-xs-12 col-sm-8">
+                <div class="col-xs-12 col-sm-10">
                     <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[task_id]" style="border-radius:0px;" >
                         <option value="0">不使用或没有任务</option>
                         @foreach ($tasks as $task)
@@ -50,15 +50,16 @@
                 </div>
             </div>
 
-            <div class="hr-line-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
-            <div class="form-group row">
+            <div class="form-group row g-lg-2 g-1">
                 <label for="url" class="control-label col-xs-12 col-sm-2">采集地址URL</label>
                 <div class="col-xs-12 col-sm-10">
                     <input type="text" class="form-control" id="url" name="row[url]" placeholder="例如: https://example.com" value="" data-rule="" />
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="border-top border-dashed my-2"></div>
+            <div class="form-group row g-lg-2 g-1">
                 <label for="rule" class="control-label col-xs-12 col-sm-2">爬虫采集规则:<br><code>xpath</code>或<code>css</code>元素选择器</label>
                 <div class="col-xs-12 col-sm-10">
                     <input type="text" class="form-control" id="rule" name="row[rule]" placeholder="例如: //h2 或者 #content" value="" data-rule="" />
@@ -66,22 +67,22 @@
                     <span class="form-text m-b-none">2、建议把<code>/html/body...</code> 规则替换为 <code>//body...</code>规则</span>
                 </div>
             </div>
-
-            <div class="form-group row">
+            <div class="border-top border-dashed my-2"></div>
+            <div class="form-group row g-lg-2 g-1">
                 <label for="type" class="control-label col-xs-12 col-sm-2">采集类型:</label>
-                <div class="col-xs-12 col-sm-8">
-                    <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[type]" style="border-radius:0px;" >
+                <div class="col-xs-12 col-sm-10">
+                    <select class="form-control custom-select  col-xs-12 col-sm-12 w-100" name="row[type]" style="border-radius:0px;" >
                         <option value="1" selected>文章详情</option>
                         <option value="2" >文章列表</option>
                     </select>
                 </div>
             </div>
 
-            <div class="hr-line-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
-            <div class="form-group row">
+            <div class="form-group row g-lg-2 g-1">
                 <label for="type" class="control-label col-xs-12 col-sm-2">调试模式:</label>
-                <div class="col-xs-12 col-sm-8">
+                <div class="col-xs-12 col-sm-10">
                     <select class="form-control custom-select  col-xs-12 col-sm-12" name="row[is_debug]" style="border-radius:0px;" >
                         <option value="debug" selected>调试模式「极力推荐」</option>
                         <option value="0" >补采模式</option>
@@ -90,18 +91,18 @@
                 </div>
             </div>
 
-            <div class="hr-line-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
-            <div class="form-group row">
+            <div class="form-group row g-lg-2 g-1">
                 <label class="control-label col-xs-12 col-sm-2"></label>
                 <div class="col-xs-12 col-sm-10">
                     <button type="submit" class="btn btn-success btn-embossed ">提交测试</button>
                 </div>
             </div>
 
-            <div class="hr-line-dashed"></div>
+            <div class="border-top border-dashed my-2"></div>
 
-            <div class="form-group row">
+            <div class="form-group row g-lg-2 g-1">
                 <label class="control-label col-xs-12 col-sm-2">结果预览</label>
                 <div class="col-xs-12 col-sm-10">
                     <pre id="preview_box" style="display: none;"></pre>
@@ -109,12 +110,11 @@
                 </div>
             </div>
 
-            <div class="form-group hidden layer-footer">
-                <div class="col-xs-12 col-sm-12">
-                    {{--                    <button type="submit" class="btn btn-success btn-embossed ">确定</button>--}}
-                    {{--                    <button type="reset" class="btn btn-default btn-embossed">重置</button>--}}
-                </div>
-            </div>
+            {{-- 操作按钮 使用 .layer-bottom-btns 元素盒子--}}
+{{--            <div class="layer-bottom-btns">--}}
+{{--                <button class="btn btn-light" onclick="parent.postMessage({type: 'close'}, '*')">取消</button>--}}
+{{--                <button class="btn btn-primary" type="submit">提交</button>--}}
+{{--            </div>--}}
         </form>
     </div>
 

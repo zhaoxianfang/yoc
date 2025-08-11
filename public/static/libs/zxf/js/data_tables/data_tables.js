@@ -716,7 +716,7 @@
             }
             // 添加自定义搜索按钮
             if (this.options.show_custom_search) {
-                var searchBtn = "<button type=\"button\"  class=\"btn btn-success m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search\"></i> 搜索</button>";
+                var searchBtn = "<button type=\"button\"  class=\"btn btn-primary m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search\"></i> 搜索</button>";
                 btnBoxArea.append(searchBtn);
             }
 
