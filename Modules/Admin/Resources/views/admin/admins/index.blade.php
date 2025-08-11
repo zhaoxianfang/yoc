@@ -1,11 +1,9 @@
-@extends('admin::layouts.admin')
-@section('title', "定时任务")
-@section('page_inner_title', "定时任务")
+@extends('admin::layouts.admin_layout')
+@section('title', "管理员管理")
 
-@section('use_datatables', "1")
+@section('use_datatables', "true")
 
 @section('head_css')
-
     <style>
 
     </style>
@@ -13,7 +11,7 @@
 
 @section('content')
     <div class="middle-box-0 text-left">
-        <table id="table1" class="table table-striped table-bordered table-hover" style="min-width: 1350px">
+        <table id="table1" class="table table-striped table-bordered table-hover">
         </table>
     </div>
 @endsection
@@ -30,10 +28,10 @@
         $(function () {
             //
             Table = TableTools.init({
-                index_url: '/admin/task/cron',
-                add_url: "{{ admin_auth('task/cron/create','/admin/task/cron/create') }}",
-                edit_url: "{{ admin_auth('task/cron/update','/admin/task/cron/{id}/edit') }}",
-                del_url: "{{ admin_auth('task/cron/delete','/admin/task/cron/{id}/delete') }}",
+                index_url: '/admin/system/admins',
+                add_url: "{{ admin_auth('system/admins/create','/admin/system/admins/create') }}",
+                edit_url: "{{ admin_auth('system/admins/update','/admin/system/admins/{id}/edit') }}",
+                del_url: "{{ admin_auth('system/admins/delete','/admin/system/admins/{id}/delete') }}",
                 detail_url: "",
             },[
                 {
@@ -42,49 +40,39 @@
                     "type": "string", //数据类型 String
                     // "visible": true, //是否可见 Boolean
                     "orderable": true, //是否参与排序 Boolean
-                    "width": "20px", //列宽 String ..px..x%,..em
+                    // "width": "20px", //列宽 String ..px..x%,..em
                     "search_type": "text", //搜索类型 String
                 },
                 {
-                    "data": "name",
-                    "title":"名称",
-                    "width": "120px", //列宽 String ..px..x%,..em
-                    "search_type": "text", //搜索类型 String
-                },
-                {
-                    "data": "timer",
-                    "title":"cron",
-                    "width": "100px", //列宽 String ..px..x%,..em
-                },
-                {
-                    "data": "cron_next_run_date",
-                    "title":"下一次运行时间",
-                    "width": "110px", //列宽 String ..px..x%,..em
-                },
-                {
-                    "data": "type",
-                    "title":"类型",
-                    "search_type": "select", //搜索类型 下拉
-                    "search_options": {"model":'模型',"func":'方法',"curl":'HTTP'}, //下拉搜索筛选项
+                    "data": "user.cover",
+                    "title":"头像",
                     "orderable": false, //是否参与排序 Boolean
-                    "width": "40px",
                     "render" : function ( value, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
-                                'type':'status',
-                                'options':'{"model":{"text":" 模型","class":"warning"},"func":{"text":" 方法","class":"info"},"curl":{"text":" HTTP","class":"success"}}',
-                                'field':'type',
-                                'data':row,
-                            }
+                                'type':'image',
+                                "value": value,
+                            },
                         ]);
                     }
                 },
                 {
-                    "data": "run_at",
-                    "title":"最近运行时间",
+                    "data": "nickname",
+                    "title":"昵称",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "mobile",
+                    "title":"手机号",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "mobile_verified_at",
+                    "title":"手机号认证时间",
                     "orderable": true, //是否参与排序 Boolean
                     "search_type": "datetimerange", //搜索类型 datetimerange
-                    "width": "110px",
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
@@ -95,18 +83,43 @@
                     }
                 },
                 {
-                    "data": "run_status",
-                    "title":"最近运行状态",
+                    "data": "email",
+                    "title":"邮箱号",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "id_card",
+                    "title":"身份证号",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "created_at",
+                    "title":"创建时间",
+                    "orderable": true, //是否参与排序 Boolean
+                    "search_type": "datetimerange", //搜索类型 datetimerange
+                    "render" : function ( data, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'text':data,
+                                'type':'datetime',
+                            },
+                        ]);
+                    }
+                },
+                {
+                    "data": "gender",
+                    "title":"性别",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "select", //搜索类型 下拉
-                    "width": "80px",
-                    "search_options": {"0":'未运行',"1":'成功',"2":'失败'}, //下拉搜索筛选项
+                    "search_options": {"1":'男',"0":'未设置',"2":'女'}, //下拉搜索筛选项
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
                                 'type':'status',
-                                'options':'{"0":{"text":"未运行","class":"warning"},"1":{"text":"成功","class":"info"},"2":{"text":"失败","class":"danger"}}',
-                                'field':'run_status',
+                                'options':'{"0":{"text":"未设置","class":"danger"},"1":{"text":"男","class":"info"},"2":{"text":"女","class":"warning"}}',
+                                'field':'gender',
                                 'data':row,
                             }
                         ]);
@@ -117,13 +130,12 @@
                     "title":"状态",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "select", //搜索类型 下拉
-                    "search_options": {"1":'正常',"2":'停用'}, //下拉搜索筛选项
-                    "width": "40px",
+                    "search_options": {"1":'正常',"0":'未激活',"2":'冻结'}, //下拉搜索筛选项
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
                                 'type':'status',
-                                'options':'{"1":{"text":"正常","class":"info"},"2":{"text":"停用","class":"danger"}}',
+                                'options':'{"0":{"text":"未激活","class":"muted"},"1":{"text":"正常","class":"info"},"2":{"text":"冻结","class":"danger"}}',
                                 'field':'status',
                                 'data':row,
                             }
@@ -131,33 +143,17 @@
                     }
                 },
                 {
-                    "data": "created_at",
-                    "title":"创建时间",
-                    "orderable": true, //是否参与排序 Boolean
-                    "search_type": "datetimerange", //搜索类型 datetimerange
-                    "width": "110px",
-                    "render" : function ( data, type, row, meta ) {
-                        return TableTools.createButtonList([
-                            {
-                                'text':data,
-                                'type':'datetime',
-                            },
-                        ]);
-                    }
-                },
-                {
                     "title":"操作",
                     "orderable": false, //是否参与排序 Boolean
-                    "width": "100px", //列宽 String ..px..x%,..em
                     "render" : function ( data, type, row, meta )
                     {
                         // console.log(data, type, row, meta);
                         return TableTools.createButtonList([
                             {
                                 'text':'编辑',
-                                "title":"编辑["+row.name+']',
+                                "title":"编辑["+row.nickname+']',
                                 'type':'btn',
-                                "icon": "fa fa-pencil", // fa 按钮小图标 ,例如 fa fa-pencil
+                                "icon": "ti ti-pencil", // fa 按钮小图标 ,例如 ti ti-pencil
                                 'event_type':'layer_open',
                                 'class_type':'info',
                                 'url_name':'edit_url',
@@ -167,8 +163,9 @@
                                 'data':row,
                             },{
                                 'text':'删除',
-                                "title":"确认删除["+row.name+']吗？',
+                                "title":"确认删除["+row.nickname+']吗？',
                                 'type':'btn',
+                                "icon": "ti ti-trash",
                                 'event_type':'confirm_open',
                                 'class_type':'danger',
                                 'url_name':'del_url',
@@ -179,25 +176,7 @@
 
                     }
                 }
-            ],{
-                // 固定列
-                fixedColumns:   {
-                    leftColumns: 0,      // 固定左侧的列数
-                    rightColumns: 1      // 固定右侧的列数（如果需要）
-                },
-                addTableHeaderBtn:[
-                    {
-                        'text':'cron 配置帮助',
-                        'type':'btn',
-                        'event_type':'callback',
-                        'class_type':'outline btn-primary',
-                        'icon':'fa fa-info',
-                        'data':'null',
-                        'callback':function (data) {
-                            Modal.iframe('cron 配置帮助', '/admin/task/cron/cron_help', '80%', '80%');
-                        }
-                    }
-                ]},'#table1');
+            ],{},'#table1');
 
             Table.onClick = function (data,row) {
                 // console.log('onClick 单击',data,row);

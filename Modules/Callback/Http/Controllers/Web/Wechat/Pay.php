@@ -27,7 +27,7 @@ class Pay extends CallbackController
             });
         } catch (\Exception $e) {
             Test::write('微信支付 Err:'.$e->getMessage(), [
-                'file' => $e->getFile(),
+                'file' => str_replace(base_path(), '', $e->getFile()),
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
                 // 'trace' => $e->getTraceAsString(),
@@ -53,7 +53,7 @@ class Pay extends CallbackController
             });
         } catch (\Exception $e) {
             Test::write('微信退款 Err:'.$e->getMessage(), [
-                'file' => $e->getFile(),
+                'file' => str_replace(base_path(), '', $e->getFile()),
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
                 // 'trace' => $e->getTraceAsString(),

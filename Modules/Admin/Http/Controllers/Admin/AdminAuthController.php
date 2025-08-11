@@ -4,6 +4,7 @@ namespace Modules\Admin\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Modules\Admin\Http\Controllers\AdminBaseController;
+use Modules\Admin\Services\AdminAuthServices;
 
 class AdminAuthController extends AdminBaseController
 {
@@ -102,5 +103,48 @@ class AdminAuthController extends AdminBaseController
         }
 
         return to_route('admin.auth.forget_password', [], 302);
+    }
+
+
+    // ======================= 第三方登录 =======================
+
+    public function qqLogin()
+    {
+        // 判断来源url
+        $refererLocal = source_local_website('url');
+        $url = url('admin/auth/callback?source_url='.urlencode($refererLocal ?: route('docs.home')));
+
+        return to_route('callback.tencent.login', ['callback_url' => urlencode($url)], 302);
+    }
+
+    public function weiboLogin()
+    {
+        $url = url('admin/auth/callback');
+
+        return to_route('callback.weibo.login', ['callback_url' => urlencode($url)], 302);
+    }
+
+    public function wechatLogin()
+    {
+        return $this->backWithError('暂未开放');
+    }
+
+    // 登录回调
+    public function callback(Request $request)
+    {
+        $user = collect($request->input())->toArray();
+        $remember = false; // 是否记住密码
+        // 进行session 登录
+        AdminAuthServices::instance()->auth('admin')->use(AdminAuthServices::LOGIN_TYPE_CUSTOM)->setCustomField('user_id')->needRemember($remember)->login($user['id']);
+        if (auth('admin')->guest()) {
+            return to_route('admin.auth.login');
+        }
+
+        $jump_url = request()->input('source_url', '');
+        $to = $jump_url ? urldecode($jump_url) : route('admin.home');
+
+        // return redirect()->away($to); // 可跳转外部地址
+        // return to_route('docs.home', [], 302);
+        return redirect($to);
     }
 }

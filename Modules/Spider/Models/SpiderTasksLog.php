@@ -109,7 +109,7 @@ class SpiderTasksLog extends Model
         self::writeLog($task, '', [
             '异常信息' => $err->getMessage(), // 返回用户自定义的异常信息
             '异常代码' => $err->getCode(),   // 返回用户自定义的异常代码
-            '异常文件' => $err->getFile(),   // 返回发生异常的PHP程序文件名
+            '异常文件' => str_replace(base_path(), '', $err->getFile()),   // 返回发生异常的PHP程序文件名
             '异常行号' => $err->getLine(),   // 返回发生异常的代码所在行的行号
         ], '', SpiderTasksLog::STATUS_FAIL);
     }

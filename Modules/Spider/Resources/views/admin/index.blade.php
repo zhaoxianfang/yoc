@@ -226,7 +226,7 @@
                         'icon':'fa fa-asterisk',
                         'data':'null',
                         'callback':function (data) {
-                            my.layer.open('/admin/spider/list/rule_test', '爬虫规则测试', {});
+                            Modal.iframe('爬虫规则测试', '/admin/spider/list/rule_test', '80%', '80%');
                         }
                     },{
                         'text':'cron 配置帮助',
@@ -236,7 +236,7 @@
                         'icon':'fa fa-info',
                         'data':'null',
                         'callback':function (data) {
-                            my.layer.open('/admin/task/cron/cron_help', 'cron 配置帮助', {});
+                            Modal.iframe('cron 配置帮助', '/admin/task/cron/cron_help', '80%', '80%');
                         }
                     }
                 ]},'#table1');

@@ -38,6 +38,7 @@ class Modal {
             onIframeLoad: null,
             onIframeError: null,
             opacity: 1,
+            offset: null, // 新增offset参数 eg: offset: [100, 200] // [top, left]
             ...options
         };
 
@@ -691,6 +692,17 @@ class Modal {
 
         this.modal.style.position = 'fixed';
         this.modal.style.transform = 'none';
+
+        // 如果有offset参数，优先使用offset定位
+        if (this.options.offset && Array.isArray(this.options.offset)) {
+            const [top, left] = this.options.offset;
+            this.modal.style.top = typeof top === 'number' ? `${top}px` : top;
+            this.modal.style.left = typeof left === 'number' ? `${left}px` : left;
+            this.modal.style.right = 'auto';
+            this.modal.style.bottom = 'auto';
+            this.modal.style.transform = 'none';
+            return;
+        }
 
         switch (position) {
             case 'top-left':

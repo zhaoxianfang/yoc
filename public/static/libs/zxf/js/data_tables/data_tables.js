@@ -1045,26 +1045,30 @@
                         top = left = undefined;
                     }
 
-                    layer.confirm(title, {
-                        icon: 3,
-                        title: "温馨提示",
-                        skin: "layui-layer-lan", //样式类名 深蓝
+                    new Modal({
+                        title: '温馨提示',
+                        content: title,
+                        theme: 'primary',
+                        buttons: [
+                            { text: '取消', type: 'secondary' },
+                            { text: '确定', type: 'primary', click: function(e, modal) {
+                                    myTools.http.post(url, {}).then(function (res) {
+                                        myTools.msg(res.message || "已请求操作");
+                                        res.wait = res.wait ? res.wait : 3;
+                                        if (typeof (res.url) != "undefined") {
+                                            setTimeout(function () {
+                                                //跳转
+                                                window.location.href = res.url;
+                                            }, res.wait * 1000);
+                                        }
+                                    }).catch(function (err) {
+                                    });
+                            }}
+                        ],
                         offset: [top, left],
-                        shadeClose: true
-                    }, function (index) {
-                        myTools.http.post(url, {}).then(function (res) {
-                            myTools.msg(res.message || "已请求操作");
-                            res.wait = res.wait ? res.wait : 3;
-                            if (typeof (res.url) != "undefined") {
-                                setTimeout(function () {
-                                    //跳转
-                                    window.location.href = res.url;
-                                }, res.wait * 1000);
-                            }
-                        }).catch(function (err) {
-                        });
-                        layer.close(index);
-                    });
+                        buttonsAlign: 'right',
+                        showActionIcons:false
+                    }).open();
                 });
                 $(".date-table-tips-btn").on("click", function (e) {
                     e.preventDefault();
@@ -1077,9 +1081,11 @@
                     if ($(window).width() < 480) {
                         top = left = undefined;
                     }
-                    layer.tips(title, this, {
+                    new Modal({
+                        title: '',
+                        content: title,
                         offset: [top, left]
-                    });
+                    }).open();
                 });
             }
         }

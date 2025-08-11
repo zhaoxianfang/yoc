@@ -53,7 +53,7 @@ class SpiderTasksService
                                 $content = [
                                     'message:' => $err->getMessage(),   // 返回用户自定义的异常信息
                                     'code:' => $err->getCode(),      // 返回用户自定义的异常代码
-                                    'file:' => $err->getFile(),      // 返回发生异常的PHP程序文件名
+                                    'file:' => str_replace(base_path(), '', $err->getFile()),      // 返回发生异常的PHP程序文件名
                                     'line:' => $err->getLine(),        // 返回发生异常的代码所在行的行号
                                     // "trace:"     => $err->getTrace(),      //返回发生异常的传递路线
                                     // "传递路线String" => $err->getTraceAsString(),//返回发生异常的传递路线
