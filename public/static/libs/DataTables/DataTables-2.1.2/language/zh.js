@@ -202,7 +202,7 @@
     "loadingRecords": "正在加载...",
     "processing": "正在处理...",
     "decimal": ".",
-    "emptyTable": "表中没有数据",
+    "emptyTable": "暂无数据~",
     "select": {
         "cells": {
             "1": "已选择 1 个单元格",

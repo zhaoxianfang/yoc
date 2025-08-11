@@ -1099,7 +1099,7 @@
             var searchFormHtml = "<form class='form-inline unbind-form row custom-datatable-search " + show_custom_search_form_str + "' autocomplete=\"off\">" +
                 "<div class='col-lg-12'>" +
                 "<div class='ibox'>" +
-                "<div class='ibox-content'>" +
+                "<div class='ibox-content pb-4'>" +
                 "<div class='row'>" +
                 this.commonSearchFormHtml +
                 "</div>" +
@@ -1270,7 +1270,7 @@
             let defVal = decodeURIComponent(myTools.func.urlQuery(item.data) || '') || '';
             return "<div class='form-group col-xs-12 col-sm-6 col-md-4 col-lg-3'>" +
                 "<label class='col-md-4 col-form-label p-0'>" + item.title + "</label>" +
-                "<div class='col-md-8 p-0'>" +
+                "<div class='col-md-12 p-0'>" +
                 "<input type='text' class='form-control w-100' name='" + item.data + "' value='"+ defVal +"' placeholder='" + item.title + "'>" +
                 "</div>" +
                 "</div>";
@@ -1281,7 +1281,7 @@
             if (item.search_options) {
                 html = "<div class='form-group col-xs-12 col-sm-6 col-md-4 col-lg-3'>" +
                     "<label class='col-md-4 col-form-label p-0'>" + item.title + "</label>" +
-                    "<div class='col-md-8 p-0'>" +
+                    "<div class='col-md-12 p-0'>" +
                     "<select class='form-control w-100' name='" + item.data + "'>" +
                     "<option value=''>请选择</option>";
 
@@ -1295,7 +1295,7 @@
         datatime: function (item, type = "datetime") {
             return "<div class='form-group col-xs-12 col-sm-6 col-md-4 col-lg-3'>" +
                 "<label class='col-md-4 col-form-label p-0'>" + item.title + "</label>" +
-                "<div class='col-md-8 p-0'>" +
+                "<div class='col-md-12 p-0'>" +
                 "<input type='text' class='form-control w-100 " + type + "' name='" + item.data + "' placeholder='" + item.title + "'>" +
                 "</div>" +
                 "</div>";
@@ -1303,7 +1303,7 @@
         between: function (item) {
             return "<div class='form-group col-xs-12 col-sm-6 col-md-4 col-lg-3'>" +
                 "<label class='col-md-4 col-form-label p-0'>" + item.title + "</label>" +
-                "<div class='col-md-8 p-0'>" +
+                "<div class='col-md-12 p-0'>" +
                 "<div class='row row-between'>" +
                 "<div class='col-sm-6 pr-1'>" +
                 "<input type='text' class='form-control w-100' name='" + item.data + "[]' value='' placeholder='" + item.title + "' id='" + item.data + "-min'>" +
@@ -1317,7 +1317,8 @@
         },
         submitBtn: function () {
             return "<div class='form-group col-xs-12 col-sm-6 col-md-4 col-lg-3'>" +
-                "<div class='col-md-8 col-12 p-0 offset-4'>" +
+                "<label class='col-md-4 col-form-label p-0'></label>" +
+                "<div class='col-md-8 col-12 p-0'>" +
                 "<button type='submit' class='btn btn-sm btn-success mr-2'>搜索</button>" +
                 "<button type='reset' class='btn btn-sm btn-default'>重置</button>" +
                 "</div>" +
