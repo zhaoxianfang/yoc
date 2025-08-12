@@ -3,8 +3,8 @@
 namespace Modules\System\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use Modules\Admin\Models\AdminMenu;
 use Modules\Admin\Http\Controllers\AdminBaseController;
+use Modules\Admin\Models\AdminMenu;
 
 class AdminMenuController extends AdminBaseController
 {

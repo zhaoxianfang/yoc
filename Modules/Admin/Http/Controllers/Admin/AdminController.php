@@ -5,9 +5,9 @@ namespace Modules\Admin\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Modules\Admin\Http\Controllers\AdminBaseController;
 use Modules\Admin\Models\Admin;
 use Modules\Admin\Models\AdminGroup;
-use Modules\Admin\Http\Controllers\AdminBaseController;
 
 class AdminController extends AdminBaseController
 {

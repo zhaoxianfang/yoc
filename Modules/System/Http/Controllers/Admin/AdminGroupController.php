@@ -4,9 +4,9 @@ namespace Modules\System\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\Admin\Http\Controllers\AdminBaseController;
 use Modules\Admin\Models\AdminGroup;
 use Modules\Admin\Models\AdminMenu;
-use Modules\Admin\Http\Controllers\AdminBaseController;
 
 class AdminGroupController extends AdminBaseController
 {

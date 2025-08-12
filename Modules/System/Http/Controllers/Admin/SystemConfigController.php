@@ -5,8 +5,8 @@ namespace Modules\System\Http\Controllers\Admin;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Modules\Admin\Models\AdminMenu;
 use Modules\Admin\Http\Controllers\AdminBaseController;
+use Modules\Admin\Models\AdminMenu;
 use Modules\System\Models\SystemConfig;
 
 class SystemConfigController extends AdminBaseController
@@ -44,7 +44,6 @@ class SystemConfigController extends AdminBaseController
         $email = []; // 邮箱配置 host:val, port:val,mail:val,password:val
         $tabs = []; // Tabs配置 key:name
         $add_field = $config['add_field'] ?? []; // 新增字段
-
 
         // 有新增字段
         if (! empty($add_field['name']) && ! empty($add_field['title'])) {

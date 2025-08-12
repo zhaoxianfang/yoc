@@ -4,9 +4,9 @@ namespace Modules\Article\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Modules\Admin\Http\Controllers\AdminBaseController;
+use Modules\Article\Http\Resources\ArticleResource;
 use Modules\Article\Models\Article;
 use Modules\Article\Models\ArticleClassifies;
-use Modules\Article\Http\Resources\ArticleResource;
 
 class ArticlesController extends AdminBaseController
 {

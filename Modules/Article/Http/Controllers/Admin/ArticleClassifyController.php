@@ -4,8 +4,8 @@ namespace Modules\Article\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Modules\Admin\Http\Controllers\AdminBaseController;
-use Modules\Article\Models\ArticleClassifies;
 use Modules\Article\Http\Resources\ArticleClassifyResource;
+use Modules\Article\Models\ArticleClassifies;
 
 class ArticleClassifyController extends AdminBaseController
 {

@@ -3,10 +3,8 @@
 namespace Modules\Logs\Models;
 
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Core\Constants\ExceptParams;
 use Modules\Users\Models\User;
 
 class SystemLog extends Model

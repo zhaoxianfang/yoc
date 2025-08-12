@@ -105,7 +105,6 @@ class AdminAuthController extends AdminBaseController
         return to_route('admin.auth.forget_password', [], 302);
     }
 
-
     // ======================= 第三方登录 =======================
 
     public function qqLogin()
