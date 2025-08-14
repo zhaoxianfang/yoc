@@ -1,2 +1,67 @@
+# ======= 允许以下主流搜索引擎爬取 =======
+
+# 百度
+User-agent: Baiduspider
+Allow: /
+
+# 百度移动
+User-agent: Baiduspider-mobile
+Allow: /
+
+# 谷歌
+User-agent: Googlebot
+Allow: /
+
+# 谷歌移动
+User-agent: Googlebot-Mobile
+Allow: /
+
+# 360搜索
+User-agent: 360Spider
+Allow: /
+
+# 搜狗网页
+User-agent: Sogou Spider
+Allow: /
+
+# 搜狗图片
+User-agent: Sogou Pic Spider
+Allow: /
+
+# 搜狗新闻
+User-agent: Sogou News Spider
+Allow: /
+
+# 神马搜索（阿里）
+User-agent: YisouSpider
+Allow: /
+
+# 今日头条（抖音旗下）
+User-agent: Bytespider
+Allow: /
+
+# 必应（微软）
+User-agent: Bingbot
+Allow: /
+
+# 微信内容抓取
+User-agent: Wechatspider
+Allow: /
+
+# UC浏览器爬虫
+User-agent: UCWEB
+Allow: /
+
+# Quark 浏览器爬虫
+User-agent: Quarkbot
+Allow: /
+
+# ======= 拒绝其他所有未知/不受信任爬虫 =======
+
 User-agent: *
-Disallow:
+Disallow: /
+
+# ======= 可选：Sitemap 提供给允许的搜索引擎 =======
+
+# 提交 Sitemap
+# Sitemap: https://yoc.cn/sitemap.xml

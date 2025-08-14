@@ -9,7 +9,7 @@
                     <h4 class="card-title">系统配置</h4>
                 </div>
             </div>
-            <form method="post" class="bg-white">
+            <form method="post" class="bg-white-X">
                 @csrf
                 <div class="card-body">
                 <p class="text-muted">
