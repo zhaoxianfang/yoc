@@ -23,8 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
         // [高级用法]安全拦截配置[配置中的每一项都是可选的]
         $securityConfig = [
-            'blacklist_handle' => [SecurityServices::class, 'blacklistIp'], // 黑名单处理类 ; 要求返回结构 [bool(是否拦截),'拦截信息']
+            'whitelist_path_of_not_verify_body' => SecurityServices::$whitelistPathOfNotVerifyBody, // 不需要验证请求body的请求uri 列表（仅path）
+            'blacklist_handle' => [SecurityServices::class, 'blacklistIp'], // 黑名单ip处理类 ; 要求返回结构 [bool(是否拦截),'拦截信息']
             'send_security_alarm_handle' => [SecurityServices::class, 'sendSecurityAlarm'], // 发送安全告警
+            'allow_methods' => SecurityServices::$allowMethods, // 允许的请求方式
             'reg_exp_body' => SecurityServices::$banRegExpBody, // 自定义正则匹配拦截请求body
             'reg_exp_url' => SecurityServices::$banRegExpUrl, // 自定义正则匹配拦截请求 URL
             'forbid_upload_file_ext' => SecurityServices::$forbidUploadFileExt, // 禁止上传的文件后缀

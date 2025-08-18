@@ -70,6 +70,22 @@ class SecurityServices
     ];
 
     /**
+     * 允许的请求方法; 空表示允许所有的请求方法
+     * @var array
+     */
+    public static array $allowMethods = [
+        // 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'
+    ];
+
+    /**
+     * 不需要验证请求body的请求uri 列表（仅path）; 空表示所有请求方法都验证
+     * @var array
+     */
+    public static array $whitelistPathOfNotVerifyBody = [
+        // 'api/test'
+    ];
+
+    /**
      * API 请求拦截时的返回参数格式
      *
      * 返回说明：
@@ -94,7 +110,7 @@ class SecurityServices
     ];
 
     /**
-     * 黑名单处理
+     * 黑名单IP处理
      *
      * @param  string  $ip  判断是否需要拦截的 ip
      * @return array [bool(是否拦截),'拦截信息']
