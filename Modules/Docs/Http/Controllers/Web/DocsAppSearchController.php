@@ -21,7 +21,7 @@ class DocsAppSearchController extends DocsBaseController
         if (empty($keyword)) {
             return response()->json(['list' => []]);
         }
-        $res = DocsDoc::search(urldecode($keyword), $docsApp);
+        $res = DocsDoc::search(urldecode($keyword), $docsApp, 100);
 
         return response()->json(['list' => $res->toArray()]);
     }
