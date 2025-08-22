@@ -15,10 +15,6 @@ class Handler
         $code = Handle::$code;
         $message = Handle::$message;
 
-        if ($code == 401) {
-            return to_route('login');
-        }
-
         if ($request->ajax() || $request->expectsJson()) {
             // 404 错误获取不到登录信息
             if (auth('admin')->guest()) {
