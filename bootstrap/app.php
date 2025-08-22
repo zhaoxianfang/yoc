@@ -62,7 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 接入异常处理类
-        \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions, function ($code, $message) {
+        \zxf\Laravel\Trace\CustomExceptionHandler::handle($exceptions, function ($code, $message) {
             if ($code == 401) {
                 return to_route('login');
             }

@@ -46,6 +46,9 @@ class DatabaseLogHandler extends AbstractProcessingHandler
      */
     protected int $bufferSize = 0;
 
+    // 已经记录过的日志信息
+    protected static array $writeHashList = [];
+
     /**
      * 构造函数
      */
@@ -128,6 +131,11 @@ class DatabaseLogHandler extends AbstractProcessingHandler
             'created_at' => $record['datetime']->format('Y-m-d H:i:s'),
             'updated_at' => $record['datetime']->format('Y-m-d H:i:s'),
         ];
+
+        // 对记录的日志进行去重
+        if ($this->hasWrite($data, $record)) {
+            return [];
+        }
 
         unset(
             $extra['file'],
@@ -234,6 +242,7 @@ class DatabaseLogHandler extends AbstractProcessingHandler
         // 重置缓冲
         $this->buffer = [];
         $this->bufferSize = 0;
+        $this->cleanupOldHashData(); // 清理 self::$writeHashList 的旧数据
     }
 
     /**
@@ -262,6 +271,41 @@ class DatabaseLogHandler extends AbstractProcessingHandler
             // "trace:"     => $err->getTrace(),      //返回发生异常的传递路线
             // "传递路线String" => $err->getTraceAsString(),//返回发生异常的传递路线
         ]);
+    }
+
+    // 检查数据是否已经写入
+    protected function hasWrite(array $data, \Monolog\LogRecord $record): bool
+    {
+        $pattern = '/^\[[^\]]+\]:/'; // 正则去除 字符串中的的 “[任意字符串]:” 内容
+        $title = preg_replace($pattern, '', $data['title']);
+
+        // 生成一个哈希值
+        $hashString = md5(
+            $data['url'].
+            $data['created_at'].
+            $data['module_name'].
+            $data['level'].
+            $title
+        );
+        if (isset(self::$writeHashList[$hashString])) {
+            // 记录已经写入的日志
+            return true;
+        }
+        self::$writeHashList[$hashString] = strtotime($record['datetime']->format('Y-m-d H:i:s'));
+
+        return false;
+    }
+
+    // 清理3分钟前的数据
+    protected function cleanupOldHashData(): void
+    {
+        $twoMinutesAgo = time() - 120; // 120秒 = 2分钟
+
+        foreach (self::$writeHashList as $hash => $entry) {
+            if ($entry < $twoMinutesAgo) {
+                unset(self::$writeHashList[$hash]);
+            }
+        }
     }
 
     /**
