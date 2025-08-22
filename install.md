@@ -164,8 +164,12 @@ php artisan module:make System
     $middleware->append(\zxf\Laravel\Modules\Middleware\SecurityMiddleware::class);
 })
 ->withExceptions(function (Exceptions $exceptions): void {
-    // 定义异常处理类
-    \zxf\Laravel\Trace\LaravelCommonException::initLaravelException($exceptions);
+    // 接入异常处理类
+    \zxf\Laravel\Trace\CustomExceptionHandler::handle($exceptions, function ($code, $message) {
+        if ($code == 401) {
+            return to_route('login');
+        }
+    }, [401]);
 })
 ```
 
