@@ -3,7 +3,7 @@
 namespace Modules\Admin\Exceptions;
 
 use Throwable;
-use zxf\Laravel\Trace\LaravelCommonException;
+use zxf\Laravel\Trace\Handle;
 
 class Handler
 {
@@ -12,8 +12,12 @@ class Handler
      */
     public function render($request, Throwable $e)
     {
-        $code = LaravelCommonException::$code;
-        $message = LaravelCommonException::$message;
+        $code = Handle::$code;
+        $message = Handle::$message;
+
+        if ($code == 401) {
+            return to_route('login');
+        }
 
         if ($request->ajax() || $request->expectsJson()) {
             // 404 错误获取不到登录信息

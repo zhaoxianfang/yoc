@@ -62,12 +62,12 @@
             </div>
         </div>
 
-        <div class="col-12">
+        <div class="col-xxl-10">
             <ul class="text-sm-center justify-content-center">
                 @if(is_mobile())
                     {{ $articles->appends(['keyword'=>request()->input('keyword','')])->links('pagination::simple-bootstrap-5') }}
                 @else
-                    {{ $articles->appends(['keyword'=>request()->input('keyword','')])->onEachSide(4)->links('pagination::bootstrap-5') }}
+                    {{ $articles->appends(['keyword'=>request()->input('keyword','')])->onEachSide(2)->links('pagination::bootstrap-5') }}
                 @endif
             </ul>
         </div>
