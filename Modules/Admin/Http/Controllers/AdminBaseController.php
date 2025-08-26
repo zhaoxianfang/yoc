@@ -13,9 +13,11 @@ class AdminBaseController extends BaseController
         if (auth('admin')->guest()) {
             return;
         }
-        view_share([
-            'admin_menu_html' => $adminMenuService->getLeftMenu(),
-            'admin' => auth('admin')->user(),
-        ]);
+        if ($request->isMethod('get')) {
+            view_share([
+                'admin_menu_html' => $adminMenuService->getLeftMenu(),
+                'admin' => auth('admin')->user(),
+            ]);
+        }
     }
 }

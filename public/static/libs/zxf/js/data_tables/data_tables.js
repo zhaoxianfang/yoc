@@ -701,12 +701,12 @@
 
             // 添加刷新按钮
             if ((this.options.showRefreshBtn === undefined || this.options.showRefreshBtn) && this.urls.index_url && this.urls.index_url.length > 0) {
-                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs date-table-tools-refresh-btn\"><i class=\"fa fa-refresh ti ti-refresh\"></i> 刷新</button>";
+                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs date-table-tools-refresh-btn\"><i class=\"fa fa-refresh ti ti-refresh fs-14\"></i> 刷新</button>";
                 btnBoxArea.append(refreshBtn);
             }
             // 添加创建按钮
             if (this.urls.add_url && this.urls.add_url.length > 0) {
-                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs date-table-tools-plus-btn\"><i class=\"fa fa-plus ti ti-plus\"></i> 添加</button>";
+                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs date-table-tools-plus-btn\"><i class=\"fa fa-plus ti ti-plus fs-14\"></i> 添加</button>";
                 btnBoxArea.append(addBtn);
             }
             // 附加表头按钮
@@ -716,7 +716,7 @@
             }
             // 添加自定义搜索按钮
             if (this.options.show_custom_search) {
-                var searchBtn = "<button type=\"button\"  class=\"btn btn-primary m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search\"></i> 搜索</button>";
+                var searchBtn = "<button type=\"button\"  class=\"btn btn-primary m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search fs-14\"></i> 搜索</button>";
                 btnBoxArea.append(searchBtn);
             }
 
@@ -778,7 +778,7 @@
                     color = colorArr[value % colorArr.length] || "primary";
                     color = (config.options[value] && config.options[value].class) ? config.options[value].class : color;
                 }
-                return "<span class=\"text-" + color + "\"><i class=\"fa fa-circle ti ti-circle-filled\"></i>" + text + "</span>";
+                return "<span class=\"text-" + color + "\"><i class=\"fa fa-circle ti ti-circle-filled fs-14\"></i>" + text + "</span>";
             },
             // plain,primary,success,info,warning,danger
             label: function (opts = {}) {
@@ -859,10 +859,10 @@
                     "text": "链接",
                     "type": "url",
                 }, opts);
-                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\"><i class=\"fa fa-link ti ti-link\"></i></a></span></div>";
+                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\"><i class=\"fa fa-link ti ti-link fs-16\"></i></a></span></div>";
             },
             ip: function (opts = {}) {
-                return "<a class=\"btn btn-xs btn-ip bg-success\"><i class=\"fa fa-map-marker ti ti-map-pin\"></i> " + opts.text + "</a>";
+                return "<a class=\"btn btn-xs btn-ip bg-success\"><i class=\"fa fa-map-marker ti ti-map-pin fs-14\"></i> " + opts.text + "</a>";
             },
             // type: default,primary,success,info,warning,danger,link
             btn: function (opts = {}) {

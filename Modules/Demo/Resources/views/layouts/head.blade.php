@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 
 @hasSection('title')
-    <title> @yield('title','') | {{ config('app.name','威四方') }}管理后台</title>
+    <title> @yield('title','') | {{ config('app.name','威四方') }}演示平台</title>
 @endif
 @sectionMissing('title')
     <title>{{ config('app.name','威四方') }}</title>
@@ -37,7 +37,7 @@
     <!-- 时间 -->
     <link rel="stylesheet" href="{{ asset('static/libs/daterangepicker/daterangepicker.min.css') }}" />
     <!-- datatables-table -->
-    <link rel="stylesheet" href="{{ asset('static/libs/DataTables/DataTables-2.1.2/datatables.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('static/libs/DataTables/DataTables-2.3.3/datatables.min.css') }}" />
 @endif
 
 @section('head_css')

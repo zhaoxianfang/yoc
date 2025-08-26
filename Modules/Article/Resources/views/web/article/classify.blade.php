@@ -34,15 +34,15 @@
                             </div>
                             <div class="card-footer p-3 pt-2 pb-2">
                                 <p class="d-flex flex-wrap gap-3 text-muted mb-0 align-items-center justify-content-between fs-sm">
-                                    <span class="d-flex align-items-center gap-2">
-                                        <span>
-                                            <span class="link-dark fw-semibold lh-sm d-block">管理员</span>
-                                            <span class="text-muted small">1 hour ago</span>
-                                        </span>
-                                    </span>
+{{--                                    <span class="d-flex align-items-center gap-2">--}}
+{{--                                        <span>--}}
+{{--                                            <span class="link-dark fw-semibold lh-sm d-block">管理员</span>--}}
+{{--                                            <span class="text-muted small">1 hour ago</span>--}}
+{{--                                        </span>--}}
+{{--                                    </span>--}}
                                     <span><i class="ti ti-message-reply"></i> 点赞: 45</span>
-                                    <span><i class="ti ti-clock"></i> 时间: {{$article->publish_time ?? $article->created_at}}</span>
                                     <span><i class="ti ti-users"></i> 浏览: {{$article->read ?? '-'}}</span>
+                                    <span><i class="ti ti-clock"></i> 时间: {{$article->publish_time ?? $article->created_at}}</span>
                                 </p>
                             </div>
                         </a>

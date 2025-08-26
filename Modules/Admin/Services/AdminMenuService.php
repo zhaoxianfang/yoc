@@ -14,7 +14,7 @@ class AdminMenuService
     {
         $menus = $this->getData();
 
-        return $this->menuToHtml($menus);
+        return array_to_admin_menu($menus);
     }
 
     /**
@@ -68,38 +68,6 @@ class AdminMenuService
                 return ['is_active' => true];
             })
             ->toTree();
-    }
-
-    private function menuToHtml(array $menus, int $level = 0): string
-    {
-        $html = '';
-        foreach ($menus as $menu) {
-            $hasChild = ! empty($menu['children']);
-            $menuIdStr = "sidebar_{$menu['id']}";
-
-            $hrefAttr = $hasChild ? "data-bs-toggle='collapse' aria-expanded='false' aria-controls='{$menuIdStr}'" : '';
-            $href = $hasChild ? "#{$menuIdStr}" : url($menu['name']);
-            $active = isset($menu['is_active']) && $menu['is_active'] ? 'active' : '';
-
-            $html .= "<li class='side-nav-item {$active}'>";
-            $html .= "<a href='{$href}' class='side-nav-link gap-1' {$hrefAttr}>";
-            // icon {$menu['icon']}
-            $html .= "<span class='menu-icon'><i class='{$menu['icon']}'></i></span>";
-            // $html .= "<span class='menu-text' data-lang='{$menu['title']}'>{$menu['title']}</span>";
-            $html .= "<span class='menu-text'>{$menu['title']}</span>";
-            $html .= ! empty($menu['badge_text']) ? "<span class='badge {$menu['badge_text_style']}'>{$menu['badge_text']}</span>" : '';
-            $html .= $hasChild ? '<span class="menu-arrow"></span>' : '';
-            $html .= '</a>';
-            if ($hasChild) {
-                $show = isset($menu['is_active']) && $menu['is_active'] ? 'show' : '';
-                $html .= "<div class='collapse {$show}' id='{$menuIdStr}'><ul class='sub-menu'>";
-                $html .= $this->menuToHtml($menu['children'], $level + 1);
-                $html .= '</ul></div>';
-            }
-            $html .= '</li>';
-        }
-
-        return $html;
     }
 
     // 获取面包屑 导航

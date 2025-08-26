@@ -14,13 +14,13 @@
                     <li class="list-group-item px-0 border-light">
                         <a href="{{ url("/article/{$article->id}") }}" style="color: unset;">
                         <div class="d-flex gap-2">
-                            <div class="flex-grow-1 text-muted">
-                                <h2 class="text-body mb-1 fs-base d-flex justify-content-between">
+                            <div class="flex-grow-1 text-mutedX">
+                                <h2 class="text-body mb-1 fs-lg d-flex justify-content-between">
                                     {{$article->title ?? '文章标题'}}
                                 </h2>
                                 <p class="mb-1">{{ truncate($article->content ?? '',0,70)}}</p>
-                                <small class="badge fs-xs text-body-secondary">{{$article->publish_time ?? $article->created_at}}</small>
-                                <a href="javascript:;" class="badge badge-soft-primary p-1 float-end">来源:{{ $article->author ?? ($article->classify->parent->name .'/'. $article->classify->name) }}</a>
+                                <small class="fs-xs text-body-secondary">{{$article->publish_time ?? $article->created_at}}</small>
+                                <a href="javascript:;" class="text-body-secondary p-0 fs-xs float-end ">来源:{{ $article->author ?? ($article->classify->parent->name .'/'. $article->classify->name) }}</a>
                             </div>
                         </div>
                         </a>
@@ -47,13 +47,13 @@
                             <li class="list-group-item px-0 border-light">
                                 <a href="{{ url("/article/{$article->id}") }}" style="color: unset;">
                                 <div class="d-flex gap-2">
-                                    <div class="flex-grow-1 text-muted">
-                                        <h2 class="text-body mb-1 fs-base d-flex justify-content-between">
+                                    <div class="flex-grow-1 text-mutedX">
+                                        <h2 class="text-body mb-1 fs-lg d-flex justify-content-between">
                                             {{$article->title ?? '文章标题'}}
                                         </h2>
                                         <p class="mb-1">{{ truncate($article->content ?? '',0,70) }}</p>
-                                        <small class="badge fs-xs text-body-secondary">{{$article->publish_time ?? $article->created_at}}</small>
-                                        <a href="javascript:;" class="badge badge-soft-primary p-1 float-end">来源:{{ $article->author ?? ($article->classify->parent->name .'/'. $article->classify->name) }}</a>
+                                        <small class="fs-xs text-body-secondary">{{$article->publish_time ?? $article->created_at}}</small>
+                                        <a href="javascript:;" class="text-body-secondary fs-xs p-0 float-end">来源:{{ $article->author ?? ($article->classify->parent->name .'/'. $article->classify->name) }}</a>
                                     </div>
                                 </div>
                                 </a>

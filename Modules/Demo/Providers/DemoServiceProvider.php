@@ -1,0 +1,76 @@
+<?php
+
+namespace Modules\Demo\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use zxf\Laravel\Modules\Traits\PathNamespace;
+
+class DemoServiceProvider extends ServiceProvider
+{
+    use PathNamespace;
+
+    protected string $name = 'Demo';
+
+    protected string $nameLower = 'demo';
+
+    /**
+     * 启动应用程序事件
+     */
+    public function boot(): void
+    {
+        // 加载观察者
+        $this->bootObservers();
+
+        $this->registerCommands();
+        $this->registerCommandSchedules();
+    }
+
+    /**
+     * 注册服务提供
+     */
+    public function register(): void
+    {
+        // 事件注册
+        $this->app->register(EventServiceProvider::class);
+    }
+
+    /**
+     * 以以下格式注册命令 Command::class
+     * 主要是针对 不是 config('modules.paths.generator.command.path') 的一级目录的 Command
+     */
+    protected function registerCommands(): void
+    {
+        // $this->commands([]);
+    }
+
+    /**
+     * 注册定时命令计划
+     */
+    protected function registerCommandSchedules(): void
+    {
+        // $this->app->booted(function () {
+        //     $schedule = $this->app->make(Schedule::class);
+        //     // 每周一和周四早上5点0分执行 command:test 任务调度
+        //     $schedule->command('custom:command')->cron('0 5 * * 1,4');
+        //     // 每周在周一的下午 1 点运行一次...
+        //     $schedule->call(function () {
+        //         // ...
+        //     })->weekly()->mondays()->at('13:00');
+        // });
+    }
+
+    /**
+     * 获取提供商提供的服务.
+     */
+    public function provides(): array
+    {
+        return [];
+    }
+
+    // 加载观察者
+    protected function bootObservers()
+    {
+        //
+    }
+}
