@@ -1166,6 +1166,13 @@
          * @param {HTMLSelectElement} select - 原生select元素
          */
         createCustomUI: function(select) {
+            // 判断 select 的class 是否包含 .has-custom-create-select
+            if (select.classList.contains('has-custom-create-select')) {
+                // 已经实例化过了
+                return ;
+            }
+            // 在select的class 上新增一个 .has-custom-create-select 的 class
+            select.classList.add('has-custom-create-select');
             // 创建包装容器
             const wrapper = document.createElement('div');
             wrapper.className = 'custom-select-wrapper ' + (select.className || '');

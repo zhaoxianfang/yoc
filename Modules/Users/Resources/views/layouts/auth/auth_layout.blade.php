@@ -129,7 +129,7 @@
 
 <!-- App js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
-<script src="{{ asset('static/libs/zxf/js/tools.js') }}" type='text/javascript'></script>
+<script src="{{ asset('static/libs/zxf/js/tools.min.js') }}" type='text/javascript'></script>
 
 @hasSection('use_TnCode')
     <script src="/tn_code/assets/tn_code.min.js"></script>

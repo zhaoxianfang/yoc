@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iframe内容</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 100%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    p {
+      line-height: 1.6;
+    }
+    .btn {
+      display: inline-block;
+      padding: 6px 12px;
+      margin-bottom: 0;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.42857143;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-image: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #fff;
+      background-color: #337ab7;
+      border-color: #2e6da4;
+    }
+    .btn:hover {
+      background-color: #286090;
+      border-color: #204d74;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>iframe内容示例</h1>
+    <p>这是一个嵌入在弹窗中的iframe内容。</p>
+      <p>你可以在这里放置任何HTML内容，包括表单、图表、表格等。</p>
+
+      <h2>设置操作按钮区示例：</h2>
+      <p class="section-description">在<code>Iframe</code>弹窗网页内设置<code>.layer-bottom-btns</code> 可让其内部的按钮展示在弹窗底部的操作按钮区。例如：</p>
+      <pre>
+&lt;div class="layer-bottom-btns"&gt;
+  &lt;button class="btn" onclick="parent.postMessage({type: 'close'}, '*')"&gt;关闭弹窗&lt;/button&gt;
+  &lt;button class="btn" onclick="sendCallback()"&gt;发送回调&lt;/button&gt;
+&lt;/div&gt;
+      </pre>
+      <br/><br/><br/>
+      <h2>弹窗父子页面通讯示例：</h2>
+      <p class="section-description">在<code>Iframe</code>弹窗网页内调用<code>父页面的方法</code> 。例如：</p>
+      <pre>
+// Iframe调用父页面的test方法
+parent.test();
+
+// 父页面调用Iframe的test方法
+let testModal = Modal.iframe('Iframe弹窗', '/demo/modal/iframe-content', 600, 400);
+// iframe 完全加载后回调调用
+testModal.onIframeComplete((_modal) => {
+    console.log('complete',_modal);
+    // 父页面调用Iframe网页中的test方法并传参
+    _modal.callIframeFunction('test', '参数1','参数2',...)
+})
+      </pre>
+
+  </div>
+  <div class="layer-bottom-btns">
+    <button class="btn" onclick="parent.postMessage({type: 'close'}, '*')">关闭弹窗</button>
+    <button class="btn" onclick="sendCallback()">发送回调</button>
+  </div>
+
+  <script>
+    function sendCallback() {
+      console.log('sendCallback 发送回调');
+      parent.test();
+      // OR
+      // parent.postMessage({
+      //   type: 'callback',
+      //   data: {
+      //     message: '来自iframe的回调数据',
+      //     time: new Date().toLocaleString()
+      //   }
+      // }, '*');
+    }
+    function test(arg1,arg2) {
+        console.log('this is iframe test func.',arg1,arg2);
+    }
+  </script>
+</body>
+</html>

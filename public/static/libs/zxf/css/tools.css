@@ -516,6 +516,12 @@ select.custom-select {
 .custom-select-placeholder {
     color: #999;
 }
+/*让实例化后的select元素隐藏*/
+select.custom-select.has-custom-create-select{
+    width: 0;
+    height: 0;
+    display: none!important;
+}
 /**
  * =======================================================
  *          SELECT 下拉样式  结束

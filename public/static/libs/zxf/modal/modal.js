@@ -1676,6 +1676,8 @@ class Modal {
                         select.size = Math.min(options?.length || 5, 10);
                     }
                     if (parentDisabled || disabled) select.disabled = true;
+                    // 设置class属性
+                    select.className = 'form-control custom-select';
 
                     // 添加占位选项
                     if (placeholder && !multiple) {
@@ -1830,6 +1832,8 @@ class Modal {
         // 设置表单内容
         modal.setFormContent(fields, labelAlign, labelWidth, darkTheme, disabled);
 
+        // 初始化表单
+        myTools && myTools.init();
         return modal;
     }
 }

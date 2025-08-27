@@ -23,4 +23,17 @@ Route::prefix('demo')->name('demo.')->group(function () {
         Route::get('data_tables', [Web\Table\DataTables::class, 'index'])->name('data_tables');
         Route::get('data', [Web\Table\DataTables::class, 'data'])->name('data');
     });
+
+    // 组件
+    Route::prefix('components')->name('components.')->group(function () {
+        // modal 弹出层、模态框
+        Route::get('modal', [Web\Components\ModalController::class, 'index']);
+        Route::get('iframe-content', [Web\Components\ModalController::class, 'iframeContent']);
+
+        // 鼠标右键菜单
+        Route::get('right-menu', [Web\Components\RightMenuController::class, 'index']);
+
+        // 自定义 tools 组件
+        Route::get('tools', [Web\Components\ToolsController::class, 'index']);
+    });
 });

@@ -29,7 +29,7 @@
 <!-- App css -->
 <link href="{{ asset('static/inspinia/v4.0/assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
 
-<link href="{{ asset('static/libs/zxf/css/tools.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ asset('static/libs/zxf/css/tools.min.css') }}" rel="stylesheet" type="text/css">
 <!-- modal 弹出层 -->
 <link href="{{ asset('static/libs/zxf/modal/modal.min.css') }}" rel="stylesheet" type="text/css">
 
