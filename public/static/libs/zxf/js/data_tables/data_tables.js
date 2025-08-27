@@ -474,7 +474,7 @@
         // ----------------
         // https://cdn.datatables.net/plug-ins/2.1.2/i18n/
         language: {
-            "url": "/static/libs/DataTables/DataTables-2.1.2/language/zh.json",
+            "url": "/static/libs/DataTables/DataTables-2.3.3/language/zh.json",
             // 不显示 已选择n行、m列 的提示信息
             select: {
                 rows: '',  // 隐藏选择行的信息
@@ -842,12 +842,13 @@
                 return "<a href='javascript:;' data-toggle='tooltip' class='btn-change' ><i class='ti " + (toggle_status == "on" ? "ti-toggle-right-filled " : "ti-toggle-left-filled ") + (toggle_status == "on" ? "text-success" : "text-danger") + " fs-28'></i></a>";
             },
             image: function (opts = {}) {
-                var config = $.extend(true, {}, {
+                const config = $.extend(true, {}, {
                     "type": "image",
                     // "value": "图片字段的值",
                     "class": "img-sm img-center",// 自定义的样式
                 }, opts);
-                var imgUrl = "data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAjACADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/K5HXfjx4R8N3jW91rlr5yHDLCrz7T6EoGAPtXXV89+MP2WP7PtNV1rUvEllYJvkuNpgLJySVUuWBycgcKTk8A1MpW9ClG/qe2eEviBovjqFpNJ1G3vfL5dUOHQepU4YfUitivlH9l61vLj4wWDWu8RwpI1yR0Ee0jn6sV/HFfV1aSikk0Zxlq0FeJ/tb20erXWkWs2vaZpsMSvIbe4MzNIxOA+2ON+AAQCcd8d69srzj4x/s7W3xY1qDUF1KTTbqOIQyHyfOSRQSRxuXBGTzn8KzkrtGkXa5s/BXwbpPhHwJZ/2WbWf7XEsk93C28XL45O7AOAcgDAx6A5rrqx/APgy3+H3hKz0i1kkmhtFPzyfecsxYn8yeK2K0m7ydjOOi1CiiipKCiiigD//2Q==";
+                // 加载失败的默认图片
+                let imgUrl = "/static/images/system/load_error.jpg";
 
                 if (config.value && !myTools.func.isEmpty(config.value)) {
                     imgUrl = config.value;

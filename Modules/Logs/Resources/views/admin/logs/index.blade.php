@@ -46,6 +46,7 @@
                 {
                     "data": "user.nickname",
                     "title":"操作人",
+                    "width":"80px",
                     "orderable": false, //是否参与排序 Boolean
                     // "search_type": "text", //搜索类型 String
                 },
@@ -87,6 +88,7 @@
                     "title":"操作时间",
                     "orderable": true, //是否参与排序 Boolean
                     "search_type": "datetimerange", //搜索类型 datetimerange
+                    "width":"140px",
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
@@ -99,6 +101,7 @@
                 {
                     "data": "user_agent",
                     "title":"UserAgent",
+                    "width":"140px",
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
@@ -158,7 +161,14 @@
 
                     }
                 }
-            ],{order:[[0,'desc']]},'#table1');
+            ],{
+                order:[[0,'desc']],
+                // 固定列
+                fixedColumns:   {
+                    leftColumns: 0,      // 固定左侧的列数
+                    rightColumns: 1      // 固定右侧的列数（如果需要）
+                },
+            },'#table1');
 
             Table.onClick = function (data,row) {
                 // console.log('onClick 单击',data,row);

@@ -132,6 +132,7 @@
                 {
                     "title":"操作",
                     "orderable": false, //是否参与排序 Boolean
+                    "width": "60px", //列宽 String ..px..x%,..em
                     "render" : function ( data, type, row, meta )
                     {
                         // console.log(data, type, row, meta);
@@ -140,7 +141,7 @@
                                 'text':'查看',
                                 "title":"打开新窗口提示",
                                 'type':'btn',
-                                "icon": "fa fa-info", // fa 按钮小图标 ,例如 fa fa-pencil
+                                "icon": "ti ti-brand-telegram fs-16", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'jump_url',
                                 'class_type':'link',
                                 'url_name':'detail_url',
@@ -150,7 +151,13 @@
 
                     }
                 }
-            ],{},'#table1');
+            ],{
+                // 固定列
+                fixedColumns:   {
+                    leftColumns: 0,      // 固定左侧的列数
+                    rightColumns: 1      // 固定右侧的列数（如果需要）
+                }
+            },'#table1');
 
             Table.onClick = function (data,row) {
                 // console.log('onClick 单击',data,row);

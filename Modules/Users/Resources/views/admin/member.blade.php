@@ -171,7 +171,7 @@
                         return TableTools.createButtonList([
                             {
                                 'text':'编辑',
-                                "title":"编辑"+row.id,
+                                "title":"编辑:"+row.nickname,
                                 'type':'btn',
                                 "icon": "ti ti-pencil",
                                 'event_type':'layer_open',
