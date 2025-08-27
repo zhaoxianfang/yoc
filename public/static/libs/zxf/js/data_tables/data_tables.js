@@ -49,7 +49,7 @@
             //     "title": "标题",
             //     "class_type": "primary",
             //     "type": "btn",
-            //     "icon": "", // fa 按钮小图标 ,例如 fa fa-pencil
+            //     "icon": "", // ti 按钮小图标 ,例如 ti ti-pencil
             //     "event_type": "layer_open", //callback:自定义回调操作, layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
             //     "url_name": "",// index_url,add_url,edit_url,del_url,detail_url 等在urls里面定义的url名称
             //     "url_params": "{}", // 替换url的参数
@@ -701,12 +701,12 @@
 
             // 添加刷新按钮
             if ((this.options.showRefreshBtn === undefined || this.options.showRefreshBtn) && this.urls.index_url && this.urls.index_url.length > 0) {
-                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs date-table-tools-refresh-btn\"><i class=\"fa fa-refresh ti ti-refresh fs-14\"></i> 刷新</button>";
+                var refreshBtn = "<button type=\"button\"  class=\"btn btn-info m-1 btn-xs date-table-tools-refresh-btn\"><i class=\"ti ti-refresh fs-14\"></i>&nbsp;刷新</button>";
                 btnBoxArea.append(refreshBtn);
             }
             // 添加创建按钮
             if (this.urls.add_url && this.urls.add_url.length > 0) {
-                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs date-table-tools-plus-btn\"><i class=\"fa fa-plus ti ti-plus fs-14\"></i> 添加</button>";
+                var addBtn = "<button type=\"button\" data-url=\"" + this.urls.add_url + "\"  data-title=\"添加\" class=\"btn btn-success m-1 btn-xs date-table-tools-plus-btn\"><i class=\"ti ti-plus fs-14\"></i>&nbsp;添加</button>";
                 btnBoxArea.append(addBtn);
             }
             // 附加表头按钮
@@ -716,7 +716,7 @@
             }
             // 添加自定义搜索按钮
             if (this.options.show_custom_search) {
-                var searchBtn = "<button type=\"button\"  class=\"btn btn-primary m-1 btn-xs date-table-tools-search-btn float-right\"><i class=\"fa fa-search ti ti-search fs-14\"></i> 搜索</button>";
+                var searchBtn = "<button type=\"button\"  class=\"btn btn-primary m-1 border-0 btn-xs date-table-tools-search-btn float-right\"><i class=\"ti ti-search fs-14\"></i>&nbsp;搜索</button>";
                 btnBoxArea.append(searchBtn);
             }
 
@@ -763,7 +763,8 @@
                     // 'field':'status',
                     // 'data':obj,
                 }, opts);
-                var colorArr = ["info", "warning", "danger", "success", "primary", "muted", "white", "secondary", "light", "dark"];
+                // text-* 的样式，例如 text-primary
+                var colorArr = ["primary", "secondary", "success", "info", "danger", "warning", "purple", "dark", "light", "body","body-secondary","white"];
                 // 根据 opts.options 中的值来取模获取colorArr中的颜色值
                 var color = "success";
 
@@ -778,9 +779,12 @@
                     color = colorArr[value % colorArr.length] || "primary";
                     color = (config.options[value] && config.options[value].class) ? config.options[value].class : color;
                 }
-                return "<span class=\"text-" + color + "\"><i class=\"fa fa-circle ti ti-circle-filled fs-14\"></i>" + text + "</span>";
+                return "<span class=\"text-" + color + "\"><i class=\"ti ti-circle-filled fs-14\"></i>&nbsp;" + text + "</span>";
             },
-            // plain,primary,success,info,warning,danger
+            // badge 显示标签，badge-*可用类型：eg:(badge badge-outline-success)
+            // default,
+            // outline-(dark,light,purple,danger,warning,info,success,secondary,primary)
+            // soft-dark,soft-light,soft-purple,soft-danger,soft-warning,soft-info,soft-success,soft-secondary,soft-primary
             label: function (opts = {}) {
                 var config = $.extend(true, {}, {
                     "text": "label",
@@ -790,10 +794,13 @@
                 return "<span class=\"badge badge-" + config.class_type + "\">" + (config.text ? config.text : "none") + "</span>";
             },
             icon: function (opts = {}) {
-                if ( !opts.text) return "";
-                opts.text = opts.text.indexOf(" ") > - 1 ? opts.text : ("fa fa-" + opts.text + " ti ti-" + opts.text);
-                //渲染fontawesome图标
-                return "<i class=\"" + opts.text + "\"></i> " + opts.text;
+                var config = $.extend(true, {}, {
+                    "type": "icon",
+                    "text": "", // 「可选」opts配置需要显示的文字
+                    "class_type": "planet",// ti 的字体图标
+                }, opts);
+                //渲染 tabler.io 图标
+                return "<i class=\"ti ti-" + config.class_type + "\"></i>&nbsp;" + config.text;
             },
             sub_str: function (opts = {}) {
                 var config = $.extend(true, {}, {
@@ -803,7 +810,7 @@
                     "length": 20, // 截取长度
                 }, opts);
                 var value = config.text || "";
-                return "<span data-tips title=\"" + value.substring(config.start, config.length) + "\">" + value.substring(config.start, config.length) + "</span>";
+                return "<span data-tips title=\"" + value + "\">" + value.substring(config.start, config.length) + "</span>";
             },
             datetime: function (opts = {}) {
                 var config = $.extend(true, {}, {
@@ -829,22 +836,23 @@
                     toggle_status = (config.data[config.field] == config.open_value) ? "on" : "off";
                 }
 
-                // ti
-                return '<div class="form-check form-check-'+(toggle_status == "on" ?'success':'secondary')+' form-switch mb-2"><input type="checkbox" disabled class="form-check-input" '+(toggle_status == "on"?'checked': '')+'></div>';
-                // fa
-                return "<a href='javascript:;' data-toggle='tooltip' class='btn-change' ><i class='fa " + (toggle_status == "on" ? "fa-toggle-on " : "fa-toggle-off ") + (toggle_status == "on" ? "text-success" : "fa-flip-horizontal text-gray") + " fa-2x'></i></a>";
+                // ti 方式一
+                // return '<div class="form-check form-check-'+(toggle_status == "on" ?'success':'secondary')+' form-switch mb-2"><input type="checkbox" disabled class="form-check-input" '+(toggle_status == "on"?'checked': '')+'></div>';
+                // ti 方式二
+                return "<a href='javascript:;' data-toggle='tooltip' class='btn-change' ><i class='ti " + (toggle_status == "on" ? "ti-toggle-right-filled " : "ti-toggle-left-filled ") + (toggle_status == "on" ? "text-success" : "text-danger") + " fs-28'></i></a>";
             },
             image: function (opts = {}) {
                 var config = $.extend(true, {}, {
                     "type": "image",
-                    // "value": "字段的值",
+                    // "value": "图片字段的值",
+                    "class": "img-sm img-center",// 自定义的样式
                 }, opts);
                 var imgUrl = "data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAjACADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/K5HXfjx4R8N3jW91rlr5yHDLCrz7T6EoGAPtXXV89+MP2WP7PtNV1rUvEllYJvkuNpgLJySVUuWBycgcKTk8A1MpW9ClG/qe2eEviBovjqFpNJ1G3vfL5dUOHQepU4YfUitivlH9l61vLj4wWDWu8RwpI1yR0Ee0jn6sV/HFfV1aSikk0Zxlq0FeJ/tb20erXWkWs2vaZpsMSvIbe4MzNIxOA+2ON+AAQCcd8d69srzj4x/s7W3xY1qDUF1KTTbqOIQyHyfOSRQSRxuXBGTzn8KzkrtGkXa5s/BXwbpPhHwJZ/2WbWf7XEsk93C28XL45O7AOAcgDAx6A5rrqx/APgy3+H3hKz0i1kkmhtFPzyfecsxYn8yeK2K0m7ydjOOi1CiiipKCiiigD//2Q==";
 
                 if (config.value && !myTools.func.isEmpty(config.value)) {
                     imgUrl = config.value;
                 }
-                return "<a href=\"" + imgUrl + "\" target=\"_blank\"><img class=\"img-sm img-center\" src=\"" + imgUrl + "\" /></a>";
+                return "<a href=\"" + imgUrl + "\" target=\"_blank\"><img class=\"" + config.class + "\" src=\"" + imgUrl + "\" /></a>";
             },
             input: function (opts = {}) {
                 var config = $.extend(true, {}, {
@@ -859,22 +867,22 @@
                     "text": "链接",
                     "type": "url",
                 }, opts);
-                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\"><i class=\"fa fa-link ti ti-link fs-16\"></i></a></span></div>";
+                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\" style='height: 32px;border-radius: 0;'><i class=\"ti ti-link fs-16\"></i></a></span></div>";
             },
             ip: function (opts = {}) {
-                return "<a class=\"btn btn-xs btn-ip bg-success\"><i class=\"fa fa-map-marker ti ti-map-pin fs-14\"></i> " + opts.text + "</a>";
+                return "<a class=\"btn btn-xs btn-ip badge badge-outline-primary\"><i class=\"ti ti-map-pin fs-14\"></i>&nbsp;" + opts.text + "</a>";
             },
             // type: default,primary,success,info,warning,danger,link
             btn: function (opts = {}) {
                 var config = $.extend(true, {}, {
-                    "text": "操作",
-                    "title": "标题",
-                    "class_type": "primary",// bootstrap 按钮的样式类型，不需要带 btn-前缀
+                    "text": "操作", // 按钮文字
+                    "title": "标题", // 操作标题
+                    "class_type": "primary",// bootstrap 按钮的样式类型，不需要带 btn-前缀，eg:btn-primary
                     "type": "btn",
-                    "icon": "", // fa 按钮小图标 ,例如 fa fa-pencil
-                    "event_type": "layer_open", //callback:自定义回调操作, layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
+                    "icon": "", // ti 按钮小图标 ,例如 ti ti-pencil
+                    "event_type": "layer_open", //callback:自定义回调操作, multi_select:选中表单行/多行后激活按钮,layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
                     "url_name": "",// index_url,add_url,edit_url,del_url,detail_url 等在urls里面定义的url名称
-                    "url_params": "{}", // 替换url的参数
+                    "url_params": "{}", // 替换url的字符串参数
                     "options": "{\"maxmin\":false}",
                 }, opts);
 
@@ -884,7 +892,7 @@
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, null);
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" disabled class=\"btn btn-xs m-1 disabled btn-" + config.class_type + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" disabled class=\"btn btn-xs m-1 disabled btn-" + config.class_type + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 if (config.event_type == "callback" && typeof config.callback == "function") {
@@ -892,7 +900,7 @@
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, config.data);
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" class=\"btn btn-xs m-1 btn-" + config.class_type + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" class=\"btn btn-xs m-1 btn-" + config.class_type + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 var ext_class = "";
@@ -923,7 +931,7 @@
                 }
                 var url = !myTools.func.isEmpty(config.url_name) ? myTools.func.replaceString(TableTools.getObj().urls[config.url_name], config.url_params) : "javascript:;";
                 return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.class_type +
-                    " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i> " : "") + (config.text ? config.text : "BTN") + "</button>";
+                    " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
             },
         },
         // 创建按钮列表
@@ -1084,6 +1092,7 @@
                     new Modal({
                         title: '',
                         content: title,
+                        theme: 'dark',
                         offset: [top, left]
                     }).open();
                 });

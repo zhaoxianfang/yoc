@@ -7,20 +7,17 @@
 @section('head_css')
     <style>
         /* DataTables 里面配置 width 无效，需要手动设置 th和td 的列宽 */
-        .dt-container thead th:nth-child(14),.dt-container tbody td:nth-child(14){
-            width: 215px!important;
-            /*必须设置 min-width*/
-            min-width: 215px!important;
-        }
-        .dt-container tbody td:nth-child(14){
-            overflow: hidden;
-            height: 100%;
-            vertical-align: middle;
-        }
+        /*.dt-container thead th:nth-child(14),.dt-container tbody td:nth-child(14){*/
+        /*    width: 215px!important;*/
+        /*    !*必须设置 min-width*!*/
+        /*    min-width: 215px!important;*/
+        /*}*/
+        /*.dt-container tbody td:nth-child(14){*/
+        /*    overflow: hidden;*/
+        /*    height: 100%;*/
+        /*    vertical-align: middle;*/
+        /*}*/
 
-        .img-sm{
-            width: 30px;
-        }
     </style>
     <style>
         /*自定义展开子表样式*/
@@ -66,16 +63,10 @@
             <div> 如果出现 <code>DataTables</code> 里面配置 <code>width</code> 实在是无效，则需要手动设置列宽</div>
             <div>
                 <pre>
-/* DataTables 里面配置 width 无效，需要手动设置 th和td 的列宽 */
-.dt-container thead th:nth-child(14),.dt-container tbody td:nth-child(14){
-    width: 280px!important;
-    /*必须设置 min-width*/
-    min-width: 280px!important;
-}
-.dt-container tbody td:nth-child(14){
-    overflow: hidden;
-    height: 100%;
-    vertical-align: middle;
+// 【重要】如果 css 文件中配置了类似下面的 display: none 会影响到 thead 和 tbody 的列对齐 样式，需要注释掉【重要】
+div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
+    /*20250827 zxf 修改，此行会影响表格head 和body 对齐*/
+    /*display: none!important*/
 }
                 </pre>
             </div>
@@ -99,8 +90,8 @@
                 'text':'table 选中单行/多行后激活按钮',
                 'type':'btn',
                 'event_type':'multi_select', // multi_select: table 选中单行/多行后激活按钮
-                'class_type':'primary',
-                'icon':'ti ti-square-check fs-14',
+                'class_type':'success',
+                'icon':'ti ti-check fs-14',
                 // 有回调函数callback的时候才会返回data参数
                 'callback':function (rows) {
                     console.log(rows)
@@ -121,7 +112,7 @@
                 // 有回调函数callback的时候才会返回data参数
                 'callback':function (data) {
                     console.log('callback',data)
-                    Modal.iframe('弹窗','/docs');
+                    Modal.iframe('弹窗','/docs', '80%', '80%');
                 }
             },{
                 'text':'附加：新页面',
@@ -193,20 +184,82 @@
                 },
                 {
                     "data": "user.cover",
-                    "title":"头像",
+                    "title":"Image",
+                    "width": "35px",
                     "orderable": false, //是否参与排序 Boolean
                     "render" : function ( value, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
                                 'type':'image',
                                 "value": value,
+                                "class": 'img-sm',
+                            },
+                        ]);
+                    }
+                },
+                {
+                    "data": "label",
+                    "title":"badge(label)",
+                    "width": "35px",
+                    "orderable": false, //是否参与排序 Boolean
+                    "render" : function ( value, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'type':'label',
+                                "text": value,
+                                "class_type": value,
+                            },
+                        ]);
+                    }
+                },
+                {
+                    "data": "icon",
+                    "title":"Icon",
+                    "width": "35px",
+                    "orderable": false, //是否参与排序 Boolean
+                    "render" : function ( value, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'type':'icon',
+                                // "text": value,
+                                "class_type": value + ' fs-18',
+                            },
+                        ]);
+                    }
+                },
+                {
+                    "data": "user_agent",
+                    "title":"sub_str",
+                    "render" : function ( data, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'text':data,
+                                'type':'sub_str',
+                                "start": 0, // 开始位置
+                                "length": 20, // 截取长度
+                            },
+                        ]);
+                    }
+                },
+                {
+                    "data": "input",
+                    "title":"Input",
+                    "orderable": false, //是否参与排序 Boolean
+                    // "search_type": "text", //搜索类型 String
+                    "width": "180px",
+                    "render" : function ( data, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'text':data,
+                                'type':'input',
+                                "event_type": "text", // text, number, password, email 等 input 的 type 类型值
                             },
                         ]);
                     }
                 },
                 {
                     "data": "user.cover",
-                    "title":"展示url",
+                    "title":"Url",
                     "orderable": false, //是否参与排序 Boolean
                     // "search_type": "text", //搜索类型 String
                     "render" : function ( data, type, row, meta ) {
@@ -219,20 +272,23 @@
                     }
                 },
                 {
-                    "data": "nickname",
-                    "title":"昵称",
+                    "data": "ip",
+                    "title":"IP",
                     "orderable": false, //是否参与排序 Boolean
-                    "search_type": "text", //搜索类型 String
-                },
-                {
-                    "data": "mobile",
-                    "title":"手机号",
-                    "orderable": false, //是否参与排序 Boolean
-                    "search_type": "text", //搜索类型 String
+                    // "search_type": "text", //搜索类型 String
+                    "render" : function ( data, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'text':data,
+                                'type':'ip',
+                            },
+                        ]);
+                    }
                 },
                 {
                     "data": "mobile_verified_at",
-                    "title":"手机号认证时间",
+                    "title":"Datetime",
+                    "width":"140px",
                     "orderable": true, //是否参与排序 Boolean
                     "search_type": "datetimerange", //搜索类型 datetimerange
                     "render" : function ( data, type, row, meta ) {
@@ -240,13 +296,30 @@
                             {
                                 'text':data,
                                 'type':'datetime',
+                                "format": "YYYY-MM-DD HH:mm", //YYYY-MM-DD HH:mm:ss
                             },
                         ]);
                     }
                 },
                 {
+                    "data": "nickname",
+                    "title":"String",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "mobile",
+                    "title":"自定义",
+                    "orderable": false, //是否参与排序 Boolean
+                    "search_type": "text", //搜索类型 String
+                    "render" : function ( value, type, row, meta ) {
+                        return '<i class="ti ti-confetti">'+value+'</i>';
+                    }
+                },
+                {
                     "data": "email",
                     "title":"邮箱号",
+                    "width":"140px",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "text", //搜索类型 String
                     "render" : function ( data, type, row, meta ) {
@@ -260,14 +333,9 @@
                     }
                 },
                 {
-                    "data": "id_card",
-                    "title":"身份证号",
-                    "orderable": false, //是否参与排序 Boolean
-                    "search_type": "text", //搜索类型 String
-                },
-                {
                     "data": "created_at",
                     "title":"创建时间",
+                    "width":"140px",
                     "orderable": true, //是否参与排序 Boolean
                     "search_type": "datetimerange", //搜索类型 datetimerange
                     "render" : function ( data, type, row, meta ) {
@@ -282,7 +350,7 @@
                 {
                     "data": "gender",
                     "title":"性别",
-                    // "width":"30px",
+                    "width":"40px",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "select", //搜索类型 下拉
                     "search_options": {"1":'男',"0":'未设置',"2":'女'}, //下拉搜索筛选项
@@ -299,15 +367,16 @@
                 },
                 {
                     "data": "status",
-                    "title":"状态",
+                    "title":"Status",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "select", //搜索类型 下拉
                     "search_options": {"1":'正常',"0":'未激活',"2":'冻结'}, //下拉搜索筛选项
+                    "width":"60px",
                     "render" : function ( data, type, row, meta ) {
                         return TableTools.createButtonList([
                             {
                                 'type':'status',
-                                'options':'{"0":{"text":"未激活","class":"danger"},"1":{"text":"正常","class":"plain"},"2":{"text":"冻结","class":"danger"}}',
+                                'options':'{"0":{"text":"未激活","class":"info"},"1":{"text":"正常","class":"success"},"2":{"text":"冻结","class":"danger"}}',
                                 'field':'status',
                                 'data':row,
                             }
@@ -316,17 +385,17 @@
                 },
                 {
                     "data": "sub_tasks",
-                    "title":"toggle 开关",
+                    "title":"Toggle",
                     "search_type": "select", //搜索类型 下拉
                     "search_options": {"1":'是',"0":'否'}, //下拉搜索筛选项
                     "orderable": false, //是否参与排序 Boolean
-                    "width":"580px",
+                    "width":"80px",
                     "render" : function ( value, type, row, meta ) {
                         // 创建一个 toggle类型的开关
                         return TableTools.createButtonList([
                             {
                                 'type':'toggle',
-                                'open_value':1,
+                                'open_value':1, // 表示开启的值 string|int
                                 'field':'sub_tasks',
                                 'data':row,
                             }
@@ -336,7 +405,7 @@
                 {
                     "title":"操作",
                     "orderable": false, //是否参与排序 Boolean
-                    "width": "300px", //列宽 String ..px..x%,..em
+                    "width": "215px", //列宽 String ..px..x%,..em
                     "render" : function ( data, type, row, meta )
                     {
                         // console.log(data, type, row, meta);
@@ -363,7 +432,7 @@
                                 'url_params':"{id:"+row.id+"}",
                             },{
                                 'text':'提示',
-                                "title":"提示内容是：此行昵称为["+row.nickname+']',
+                                "title":"提示内容是：此行ID为["+row.id+']',
                                 'type':'btn',
                                 "icon": "ti ti-info-circle fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'tips',

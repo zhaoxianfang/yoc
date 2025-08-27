@@ -42,7 +42,7 @@
     --ins-warning-rgb: 248,172,89;
     --ins-danger-rgb: 237,85,101;
     --ins-purple-rgb: 123,112,239;
-    --ins-light-rgb: 238,242,247;
+    --ins-light-rgb: 232,232,232; /*238,242,247 => */
     --ins-dark-rgb: 49,58,70;
     --ins-primary-text-emphasis: #16987e;
     --ins-secondary-text-emphasis: #1870a8;
@@ -3534,6 +3534,13 @@ textarea.form-control-lg {
     transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,-webkit-box-shadow .15s ease-in-out;
     transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
     transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out,-webkit-box-shadow .15s ease-in-out
+}
+
+/* zxf 2050827 关键CSS：选择同时拥有.btn和.date-table-开头的class的元素 */
+[class*="date-table-"].btn,
+.btn[class*="date-table-"] {
+    border: 0;
+    border-radius: 2px;
 }
 
 @media (prefers-reduced-motion:reduce) {
@@ -22329,7 +22336,7 @@ div.dt-container div.dt-layout-full {
 }
 
 .dt-info {
-    padding-top: calc(var(--ins-card-spacer-y) - .625rem)
+    /*padding-top: calc(var(--ins-card-spacer-y) - .625rem)*/
 }
 
 table.dataTable>tbody>tr .child span.dtr-title {
@@ -22339,26 +22346,6 @@ table.dataTable>tbody>tr .child span.dtr-title {
 table.dataTable thead th {
     position: relative;
     cursor: pointer
-}
-
-table.dataTable thead th:after {
-    content: "\eaa5";
-    position: absolute;
-    right: .6rem;
-    bottom: 5px;
-    color: var(--ins-secondary-color);
-    font-size: 16px;
-    font-weight: 400;
-    font-family: tabler-icons!important;
-    display: none
-}
-
-table.dataTable thead th[aria-sort=ascending]:after {
-    content: "\eb26"
-}
-
-table.dataTable thead th[aria-sort=descending]:after {
-    content: "\eb27"
 }
 
 table.dataTable thead th.dt-ordering-asc::after,table.dataTable thead th.dt-ordering-desc::after,table.dataTable thead th:hover::after {
@@ -22413,11 +22400,14 @@ div.dt-button-info .h2,div.dt-button-info h2 {
 
 div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
     height: 0!important;
-    display: none!important
+    /*20250827 zxf 修改，此行会影响表格head 和body 对齐*/
+    /*display: none!important*/
 }
 
 .dt-column-header {
-    padding-right: 30px
+    padding: 0;
+    /*20250827 zxf 修改，设置30是头大没事干？直接设置成上行的0*/
+    /*padding-right: 30px*/
 }
 
 .dt-column-title {
@@ -24500,5 +24490,9 @@ html[data-layout=topnav] .flex-horizontal-topnav .menu-arrow{
     html[data-layout=topnav] .flex-horizontal-topnav .dropdown .dropdown-menu {
         width: 100%!important;
     }
+}
+
+.img-sm{
+    width: 30px;
 }
 /* zxf:20250709:修复horizontal布局中可能存在的bug 结束*/

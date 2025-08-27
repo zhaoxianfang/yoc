@@ -92,7 +92,7 @@
 <script src="{{ asset('static/libs/zxf/modal/modal.js') }}" charset="utf-8"></script>
 
 @hasSection('use_datatables')
-    <script src="{{ asset('static/libs/DataTables/DataTables-2.1.2/datatables.min.js') }}"></script>
+    <script src="{{ asset('static/libs/DataTables/DataTables-2.3.3/datatables.min.js') }}"></script>
 
     <!-- 时间 -->
     <script src="{{ asset('static/libs/daterangepicker/moment.min.js') }}"></script>

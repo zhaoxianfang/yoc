@@ -11,7 +11,7 @@
  */
 
 :root {
-  --dt-row-selected: 13, 110, 253;
+  --dt-row-selected: 26,179,148; /* 选中行的rgb颜色 13, 110, 253=>26,179,148*/
   --dt-row-selected-text: 255, 255, 255;
   --dt-row-selected-link: 228, 228, 228;
   --dt-row-stripe: 0, 0, 0;
@@ -280,11 +280,12 @@ table.dataTable th,
 table.dataTable td {
   box-sizing: border-box;
 }
-table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date,
-table.dataTable td.dt-type-numeric,
-table.dataTable td.dt-type-date {
-  text-align: right;
-}
+/*zxf 20250827 注释*/
+/*table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date,*/
+/*table.dataTable td.dt-type-numeric,*/
+/*table.dataTable td.dt-type-date {*/
+/*  text-align: right;*/
+/*}*/
 table.dataTable th.dt-type-numeric div.dt-column-header,
 table.dataTable th.dt-type-numeric div.dt-column-footer, table.dataTable th.dt-type-date div.dt-column-header,
 table.dataTable th.dt-type-date div.dt-column-footer,
@@ -292,7 +293,9 @@ table.dataTable td.dt-type-numeric div.dt-column-header,
 table.dataTable td.dt-type-numeric div.dt-column-footer,
 table.dataTable td.dt-type-date div.dt-column-header,
 table.dataTable td.dt-type-date div.dt-column-footer {
-  flex-direction: row-reverse;
+    /*zxf 20250827 修改*/
+  /*flex-direction: row-reverse;*/
+  flex-direction: row;
 }
 table.dataTable th.dt-left,
 table.dataTable td.dt-left {
@@ -474,11 +477,20 @@ table.dataTable > tbody > tr:first-child > * {
 table.dataTable > tbody > tr:last-child > * {
   border-bottom: none;
 }
+/*zxf 20250829 新增*/
+table.dataTable > tbody  .input-group-btn {
+    z-index: 1;
+}
+
+/*设置背景色*/
 table.dataTable > tbody > tr.selected > * {
-  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.9);
-  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.9);
-  color: rgb(255, 255, 255);
-  color: rgb(var(--dt-row-selected-text));
+    /*box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.9);*/ /*zxf 20250829 注释*/
+    box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.9);
+}
+/*设置文字色*/
+table.dataTable > tbody > tr.selected *:not(.form-control) {
+    /*color: rgb(255, 255, 255);*/ /*zxf 20250829 注释*/
+    color: rgb(var(--dt-row-selected-text));
 }
 table.dataTable > tbody > tr.selected a {
   color: rgb(228, 228, 228);
