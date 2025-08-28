@@ -14,9 +14,9 @@
             </div>
 
             <div class="card-body">
-                <div class="row g-4 align-items-center">
+                <div class="row g-4">
                     <div class="col-sm-6 border-end border-dashed">
-                        <div class="p-4">
+                        <div class="p-2">
                         {{-- <h4 class="mb-1 fw-bold text-uppercase">身份证号码在线生成器</h4> --}}
                         {{-- <p class="text-muted mb-4">填写基础信息进行生成</p> --}}
 
