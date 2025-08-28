@@ -33,15 +33,5 @@
 <!-- modal 弹出层 -->
 <link href="{{ asset('static/libs/zxf/modal/modal.min.css') }}" rel="stylesheet" type="text/css">
 
-@hasSection('use_datatables')
-    <!-- 时间 -->
-    <link rel="stylesheet" href="{{ asset('static/libs/daterangepicker/daterangepicker.min.css') }}" />
-    <!-- datatables-table -->
-    <link rel="stylesheet" href="{{ asset('static/libs/DataTables/DataTables-2.3.3/datatables.min.css') }}" />
-@endif
+@include('system::layouts.css_custom_plugins')
 
-@section('head_css')
-    @hasSection('head_css')
-        <!-- 页面中引入page css -->
-    @endif
-@show

@@ -35,7 +35,7 @@
             </button>
 
             <!-- Mega Menu Dropdown -->
-            <div class="topbar-item d-none d-sm-flex">
+            <div class="topbar-item d-sm-flex">
                 {!! empty($mega_menu)?'':$mega_menu !!}
             </div>
 
@@ -53,7 +53,7 @@
             </header>
 
             <!-- Search -->
-            <div class="app-search d-xl-flex flex-horizontal-top-search">
+            <div class="app-search d-xl-flex flex-horizontal-top-search z-9999">
                 <input type="search" class="form-control topbar-search" name="search" placeholder="搜索...">
                 <i data-lucide="search" class="app-search-icon text-muted"></i>
             </div>

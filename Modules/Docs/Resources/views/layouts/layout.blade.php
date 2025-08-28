@@ -3,11 +3,6 @@
 <head>
 @include('docs::layouts.head')
 
-@section('head_css')
-    @hasSection('head_css')
-    @endif
-@show
-
 </head>
 <body>
 <div class="app-container">
@@ -94,10 +89,7 @@
 
 <script src="{{ asset('static/docs/js/docs_v2.min.js') }}" charset="utf-8"></script>
 
-@section('page_js')
-    @hasSection('page_js')
-    @endif
-@show
+@include('system::layouts.js_custom_plugins')
 
 @hasSection('page_has_menu')
 <script>

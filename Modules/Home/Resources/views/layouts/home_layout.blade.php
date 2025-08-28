@@ -53,11 +53,7 @@
 <!-- App js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
 
-@section('page_js')
-    @hasSection('page_js')
-        <!-- 页面中引入page js -->
-    @endif
-@show
+@include('system::layouts.js_custom_plugins')
 
 </body>
 </html>

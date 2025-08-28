@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Modules\Home\Http\Controllers\Web;
 
 /*
@@ -16,6 +17,68 @@ use Modules\Home\Http\Controllers\Web;
 
 Route::prefix('')->group(function () {
     Route::get('', [Web\HomeController::class, 'index'])->name('home');
+
+    // 获取字符串的复数形式
+    Route::get('/str/{string}', function (string $string) {
+        return '字符串「'.$string.'」的各种形式：<br><br>'
+               .'复数(Plural) : '.Str::plural($string).'<br>'
+               .'单数(Singular) : '.Str::singular($string).'<br>'
+               .'小写(Lower) : '.Str::lower($string).'<br>'
+               .'大写(Upper) : '.Str::upper($string).'<br>'
+               .'驼峰小写(Snake) : '.Str::snake($string).'<br>'
+               .'驼峰大写(Studly) : '.Str::studly($string).'<br>'
+               .'标题格式(Title) : '.Str::title($string).'<br>'
+               .'长度(Length) : '.Str::length($string).'<br>';
+    });
 });
-// 资源路由
-// Route::resource('home', Web\HomeController::class)->names('home');
+
+// 在线工具
+Route::prefix('tools')->name('tools.')->group(function () {
+    // 生成器
+    Route::prefix('generate')->name('generate.')->group(function () {
+        // 身份证生成
+        Route::prefix('id_card')->name('id_card.')->group(function () {
+            // 身份证生成
+            Route::get('', [Web\Tools\Generate\IDCard::class, 'index'])->name('id_card');
+            Route::post('', [Web\Tools\Generate\IDCard::class, 'generate'])->name('generate');
+        });
+    });
+    // 字符处理
+    Route::prefix('string')->name('string.')->group(function () {
+        // css | js 代码压缩
+        Route::any('code_minify', [Web\Tools\Code\CodeMinify::class, 'index'])->name('code_minify');
+
+        // unicode 转码
+        Route::any('unicode', [Web\tools\Generate\Unicode::class, 'index'])->name('unicode');
+        // json 格式化
+        Route::any('json', [Web\tools\Generate\JsonTools::class, 'index'])->name('json');
+        // serialize 序列话和反序列化
+        Route::any('serialize', [Web\tools\Generate\Serialize::class, 'index'])->name('serialize');
+        // RSA 加密解密
+        Route::any('rsa', [Web\tools\Generate\Encryption::class, 'rsa'])->name('rsa');
+        Route::any('aes', [Web\tools\Generate\Encryption::class, 'aes'])->name('aes');
+    });
+
+    Route::prefix('images')->name('images.')->group(function () {
+        // 图片压缩裁剪
+        Route::any('compressor', [Web\tools\images\Compressor::class, 'index'])->name('img_compressor');
+        // 条形码 || 二维码
+        Route::any('qrcode', [Web\tools\images\Qrcode::class, 'index'])->name('create_qrcode');
+        // 字符串生成图片
+        Route::any('create', [Web\tools\images\StrToImg::class, 'index'])->name('str2img');
+        // 图片转ico
+        Route::any('ico', [Web\tools\images\ImgToIco::class, 'index'])->name('img2ico');
+        // 图片处理工具 imagick
+        Route::any('magic', [Web\tools\images\ImagickController::class, 'index'])->name('magic');
+        // 下载文件
+        Route::get('download', [Web\tools\images\ImagickController::class, 'download'])->name('download');
+    });
+
+    // 其他路由
+
+    // demo : /tools/text2png/ApiDoc2.0上线啦/1000/100/FFFFFF/7B00FF/0/qiuhong.html
+    Route::get('/text2png/{text}/{width?}/{height?}/{color?}/{bgcolor?}/{rotate?}/{font?}', [Web\tools\images\StrToImg::class, 'create'])->where('text', '.*');
+    // mysql 数据字典生成
+    Route::any('mysql/dictionary', [Web\tools\mysql\Dictionary::class, 'index'])->name('mysql.dictionary');
+});
+

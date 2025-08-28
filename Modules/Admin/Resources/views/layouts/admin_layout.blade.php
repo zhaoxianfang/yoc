@@ -87,25 +87,11 @@
 <!-- App js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
 
-<script src="{{ asset('static/libs/zxf/js/tools.min.js') }}" type='text/javascript'></script>
 <!-- modal 弹出层 -->
 <script src="{{ asset('static/libs/zxf/modal/modal.js') }}" charset="utf-8"></script>
+<script src="{{ asset('static/libs/zxf/js/tools.min.js') }}" type='text/javascript'></script>
 
-@hasSection('use_datatables')
-    <script src="{{ asset('static/libs/DataTables/DataTables-2.3.3/datatables.min.js') }}"></script>
-
-    <!-- 时间 -->
-    <script src="{{ asset('static/libs/daterangepicker/moment.min.js') }}"></script>
-    <script src="{{ asset('static/libs/daterangepicker/daterangepicker.min.js') }}"></script>
-
-    <script src="{{ asset('static/libs/zxf/js/data_tables/data_tables.min.js') }}"></script>
-@endif
-
-@section('page_js')
-    @hasSection('page_js')
-        <!-- 页面中引入page js -->
-    @endif
-@show
+@include('system::layouts.js_custom_plugins')
 
 </body>
 </html>

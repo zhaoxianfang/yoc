@@ -71,7 +71,6 @@ class SecurityServices
 
     /**
      * 允许的请求方法; 空表示允许所有的请求方法
-     * @var array
      */
     public static array $allowMethods = [
         // 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'
@@ -79,10 +78,10 @@ class SecurityServices
 
     /**
      * 不需要验证请求body的请求uri 列表（仅path）; 空表示所有请求方法都验证
-     * @var array
      */
     public static array $whitelistPathOfNotVerifyBody = [
         // 'api/test'
+        'tools/string/code_minify', // 代码压缩工具
     ];
 
     /**

@@ -29,8 +29,4 @@
 <!-- App css -->
 <link href="{{ asset('static/inspinia/v4.0/assets/css/app.min.css') }}" rel="stylesheet" type="text/css">
 
-@section('head_css')
-    @hasSection('head_css')
-        <!-- 页面中引入page css -->
-    @endif
-@show
+@include('system::layouts.css_custom_plugins')

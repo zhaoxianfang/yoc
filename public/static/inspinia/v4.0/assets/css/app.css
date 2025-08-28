@@ -24496,3 +24496,21 @@ html[data-layout=topnav] .flex-horizontal-topnav .menu-arrow{
     width: 30px;
 }
 /* zxf:20250709:修复horizontal布局中可能存在的bug 结束*/
+
+/* zxf:20250828: 新增 z-index 值 */
+.z-999 {
+    z-index: 999!important;
+}
+.z-9998{
+    z-index: 9998!important;
+}
+.z-9999 {
+    z-index: 9999!important;
+}
+.z-99998 {
+    z-index: 99998!important;
+}
+.z-99999 {
+    z-index: 99999!important;
+}
+/* zxf:20250828: 新增 z-index 值 end */

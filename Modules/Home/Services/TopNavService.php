@@ -32,6 +32,9 @@ class TopNavService
                     ], [
                         'title' => 'RSA加密解密',
                         'url' => '/tools/string/rsa',
+                    ], [
+                        'title' => '身份证号码生成/验证',
+                        'url' => '/tools/generate/id_card',
                     ],
                 ],
             ], [
@@ -120,7 +123,7 @@ class TopNavService
     public function megaMenu(): string
     {
         // TODO: 临时关闭
-        return '';
+        // return '';
 
         if (empty($this->navBoardList)) {
             return '';
@@ -141,8 +144,8 @@ class TopNavService
         $colum = count($this->navBoardList['list']);
         $columClass = $colum > 1 ? floor(12 / $colum) : 12;
         foreach ($this->navBoardList['list'] as $board) {
-            $html .= '<div class="col-md-'.$columClass.'"><div class="p-3">';
-            $html .= "<h5 class='mb-2 fw-semibold fs-sm dropdown-header'>{$board['title']}</h5>";
+            $html .= '<div class="col-md-'.$columClass.'"><div class="p-1">';
+            $html .= "<h5 class='mb-0 fw-semibold fs-sm dropdown-header'>{$board['title']}</h5>";
             $html .= '<ul class="list-unstyled megamenu-list">';
             foreach ($board['list'] as $item) {
                 $html .= "<li><a class='dropdown-item' href='{$item['url']}'>{$item['title']}</a></li>";

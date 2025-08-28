@@ -22,6 +22,8 @@
 <link href="{{ asset('static/docs/css/docs_v2.min.css') }}" rel="stylesheet" type="text/css">
 <link href="{{ asset('static/libs/zxf/modal/modal.min.css') }}" rel="stylesheet" type="text/css">
 
+@include('system::layouts.css_custom_plugins')
+
 @hasSection('page_has_menu')
 {{-- 管理操作组件 --}}
 <link href="{{ asset('static/libs/zxf/right_menu/right_menu.min.css') }}" rel="stylesheet" type="text/css">

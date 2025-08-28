@@ -39,11 +39,7 @@
         <link href="/tn_code/assets/tn_code.min.css" rel="stylesheet">
     @endif
 
-    @section('head_css')
-        @hasSection('head_css')
-            <!-- 页面中引入page css -->
-        @endif
-    @show
+    @include('system::layouts.css_custom_plugins')
 
 </head>
 
@@ -131,6 +127,8 @@
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
 <script src="{{ asset('static/libs/zxf/js/tools.min.js') }}" type='text/javascript'></script>
 
+@include('system::layouts.js_custom_plugins')
+
 @hasSection('use_TnCode')
     <script src="/tn_code/assets/tn_code.min.js"></script>
     <script type="text/javascript">
@@ -173,12 +171,6 @@
         myTools.msg('暂未开放!');
     });
 </script>
-
-@section('page_js')
-    @hasSection('page_js')
-        <!-- 页面中引入page js -->
-    @endif
-@show
 
 </body>
 </html>

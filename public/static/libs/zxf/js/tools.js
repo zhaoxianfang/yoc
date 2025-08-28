@@ -532,6 +532,9 @@
          * @return {Promise<boolean>} 是否验证通过
          */
         validateField: async function(field,form =  null) {
+            if(this.isElementHidden(field)){
+                return true;
+            }
             const rules = field.getAttribute('data-rule')?.split('|').filter(rule => rule.trim() !== '') || [];
 
             // 如果是nullable且值为空，跳过验证
@@ -693,13 +696,21 @@
                 if (findShowErrorEle) {
                     return findShowErrorEle;
                 } else {
+                    // 如果 field的直接父元素包含.input-group 类，则追加到父元素之后
+                    let insertToParent = field.parentElement.classList.contains('input-group');
+
                     if(field.classList.contains('custom-select')){
                         field.parentElement.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
                         return field.parentElement.nextElementSibling;
                     }else{
                         // 在 field 元素之后添加一个错误消息元素 span.error-message
-                        field.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
-                        return field.nextElementSibling;
+                        if(insertToParent){
+                            field.parentElement.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
+                            return field.parentElement.nextElementSibling;
+                        }else{
+                            field.insertAdjacentHTML("afterend", `<span class="${this.config.errorMessageClass}"></span>`);
+                            return field.nextElementSibling;
+                        }
                     }
                 }
             }
@@ -737,6 +748,8 @@
          * @param formObj - 表单对象
          */
         handleFormSubmit: async function(event,formObj = null) {
+            event.preventDefault();
+
             const form = formObj ||event.target.closest('form');
             if (!form) return;
 
@@ -869,6 +882,16 @@
                 }, {});
         },
 
+        // 检查元素或其任意父元素是否被隐藏
+        isElementHidden:function (element) {
+            while (element && element !== document.body) {
+                if (window.getComputedStyle(element).display === 'none') {
+                    return true;
+                }
+                element = element.parentElement;
+            }
+            return false;
+        },
         /**
          * 表单数据收集器/获取表单数据
          * @param {HTMLFormElement|string} form - 表单元素或选择器
@@ -923,6 +946,8 @@
                         (tagName === 'INPUT' && (type === 'button' || type === 'submit' || type === 'reset'))
                     )) ||
                     (filter && !filter(element))
+                    // 新增：检查元素或其祖先元素是否被隐藏（不获取 display: none;的表单数据）
+                    || this.isElementHidden(element)
                 ) {
                     return;
                 }
@@ -1019,6 +1044,10 @@
                 error => {
                     //表单提交后的操作
                     if (typeof (form_after) === "function") {
+                        Modal && Modal.error('错误:'+error.message, {
+                            position: 'top-right',
+                            timeout: 5000
+                        });
                         form_after(error);
                     }else{
                         console.log('可以定义一个form_after(resp)方法接管处理AJAX数据',error);
@@ -1038,6 +1067,10 @@
             const fields = form.querySelectorAll('[data-rule]');
 
             for (const field of fields) {
+                // 排除隐藏字段
+                if(this.isElementHidden(field)){
+                    continue;
+                }
                 const fieldValid = await this.validateField(field,form);
                 if (!fieldValid) {
                     isValid = false;

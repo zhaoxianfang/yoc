@@ -50,7 +50,7 @@ trait ControllerTrait
         return response()->json(compact('code', 'message', 'data'), $status);
     }
 
-    public function success(string|array $resp = '', string $jumpUrl = '')
+    public function success(string|array $resp = '', string $jumpUrl = ''): JsonResponse|RedirectResponse
     {
         $data = ['code' => 200, 'message' => '操作成功'];
         if (is_string($resp)) {
