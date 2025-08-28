@@ -1289,6 +1289,21 @@
                 optionElement.textContent = option.text;
                 optionElement.dataset.value = option.value;
 
+                // 通过 data-icon 属性 设置 小图标前缀
+                if(typeof option.dataset.icon === 'string'){
+                    const icon = document.createElement('i');
+                    icon.className = option.dataset.icon;
+                    optionElement.prepend(icon);
+                }
+
+                // 通过 data-img 属性 设置 图片前缀
+                if(typeof option.dataset.img === 'string'){
+                    const img = document.createElement('img');
+                    img.src = option.dataset.img;
+                    img.className = option.dataset.class || '';
+                    optionElement.prepend(img);
+                }
+
                 // 设置初始选中状态
                 if (option.selected) {
                     optionElement.classList.add('selected');

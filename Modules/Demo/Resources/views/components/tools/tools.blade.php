@@ -278,6 +278,20 @@ function form_after(resp) {
     </div>
 
     <div class="form-container">
+        <h1 class="form-title">自定义下拉选择 select 处理</h1>
+        <blockquote>能有效解决<code>select</code> 多选表单<code>multiple</code>样式难看、有效支持小图标等的问题</blockquote>
+        <p>在 <code>select</code> 原生表单中 添加 <code>class="custom-select"</code> 样式，就会得到不一样的单选和多选选择框样式!</p>
+        <p>在 <code>select</code> 的 <code>option</code> 属性中支持设置<code>data-icon</code>属性，用于设置小图标，通过 <code>data-img</code>属性来设置图片图标</p>
+        <pre>
+
+&lt;select class="form-control custom-select" name="type" id="handle_type"&gt;
+    &lt;option value="值1" data-icon="ti ti-file-type-js fs-18">添加icon 前缀小图标 选项</option>
+    &lt;option value="值2" data-img="your/img/path" data-class="控制图片的class样式">添加 img 图片 前缀小图标 选项</option>
+&lt;/select&gt;
+        </pre>
+    </div>
+
+    <div class="form-container">
         <h1 class="form-title">Http请求</h1>
 
         <h3>1. 基本配置</h3>

@@ -54,7 +54,7 @@
 
             <!-- Search -->
             <div class="app-search d-xl-flex flex-horizontal-top-search z-9999">
-                <input type="search" class="form-control topbar-search" name="search" placeholder="搜索...">
+                <input type="search" class="form-control topbar-search mt-1" name="search" placeholder="搜索...">
                 <i data-lucide="search" class="app-search-icon text-muted"></i>
             </div>
         </div>

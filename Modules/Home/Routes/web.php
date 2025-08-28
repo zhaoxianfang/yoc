@@ -51,7 +51,7 @@ Route::prefix('tools')->name('tools.')->group(function () {
         // unicode 转码
         Route::any('unicode', [Web\tools\Generate\Unicode::class, 'index'])->name('unicode');
         // json 格式化
-        Route::any('json', [Web\tools\Generate\JsonTools::class, 'index'])->name('json');
+        Route::any('json', [Web\Tools\Code\JsonTools::class, 'index'])->name('json');
         // serialize 序列话和反序列化
         Route::any('serialize', [Web\tools\Generate\Serialize::class, 'index'])->name('serialize');
         // RSA 加密解密

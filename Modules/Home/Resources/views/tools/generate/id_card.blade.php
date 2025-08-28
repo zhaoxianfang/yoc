@@ -1,4 +1,6 @@
 @extends('home::layouts.home_layout')
+@section('title', "身份证号码在线生成/验证器")
+
 @section('use_datepicker', "true")
 @section('use_form', "true")
 
@@ -23,9 +25,9 @@
                                 <div class="mb-3">
                                     <label for="type" class="form-label">处理类型 <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <select class="form-control form-select" name="type" id="handle_type">
-                                            <option value="generate" >生成器</option>
-                                            <option value="validate" >验证器</option>
+                                        <select class="form-control custom-select" name="type" id="handle_type">
+                                            <option value="generate" data-icon="ti ti-bulb text-purple fs-18">&nbsp;生成器</option>
+                                            <option value="validate" data-icon="ti ti-bell-check text-success fs-18" >&nbsp;验证器</option>
                                         </select>
                                     </div>
                                 </div>

@@ -406,7 +406,7 @@ select.custom-select {
     display: flex;
     align-items: center;
     /*padding: 0.35rem 2rem 0.35rem 1rem;*/
-    padding: 2px;
+    padding: 2px 0 0 8px;
     font-size: 0.875rem;
     line-height: 1.5;
     color: #333;

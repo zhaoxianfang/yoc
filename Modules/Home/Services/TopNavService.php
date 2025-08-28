@@ -20,12 +20,14 @@ class TopNavService
                     [
                         'title' => 'JS、CSS压缩',
                         'url' => '/tools/string/code_minify',
+                        'icon' => 'ti ti-file-type-zip',
                     ], [
                         'title' => 'Unicode转换',
                         'url' => '/tools/string/unicode',
                     ], [
                         'title' => 'json格式化',
                         'url' => '/tools/string/json',
+                        'icon' => 'ti ti-json',
                     ], [
                         'title' => '系列化和反系列化',
                         'url' => '/tools/string/serialize',
@@ -35,6 +37,7 @@ class TopNavService
                     ], [
                         'title' => '身份证号码生成/验证',
                         'url' => '/tools/generate/id_card',
+                        'icon' => 'ti ti-user-hexagon',
                     ],
                 ],
             ], [
@@ -148,7 +151,9 @@ class TopNavService
             $html .= "<h5 class='mb-0 fw-semibold fs-sm dropdown-header'>{$board['title']}</h5>";
             $html .= '<ul class="list-unstyled megamenu-list">';
             foreach ($board['list'] as $item) {
-                $html .= "<li><a class='dropdown-item' href='{$item['url']}'>{$item['title']}</a></li>";
+                $html .= "<li><a class='dropdown-item' href='{$item['url']}'>";
+                $html .= ! empty($item['icon']) ? "<i class='{$item['icon']} text-purple fs-16'></i>&nbsp;" : '';
+                $html .= "{$item['title']}</a></li>";
             }
             $html .= '</ul></div></div>';
         }

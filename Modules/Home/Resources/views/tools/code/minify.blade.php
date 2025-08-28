@@ -1,5 +1,6 @@
 @extends('home::layouts.home_layout')
-@section('use_datepicker', "true")
+@section('title', "JS、CSS代码压缩 Code Minify")
+
 @section('use_form', "true")
 
 @section('content')
@@ -23,9 +24,9 @@
                                 <div class="mb-3">
                                     <label for="type" class="form-label">代码类型 <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <select class="form-control form-select" name="type" id="handle_type">
-                                            <option value="js" >JS 代码</option>
-                                            <option value="css" >CSS 代码</option>
+                                        <select class="form-control custom-select" name="type" id="handle_type">
+                                            <option value="js" data-icon="ti ti-file-type-js text-purple fs-18">JS 代码</option>
+                                            <option value="css" data-icon="ti ti-file-type-css text-purple fs-18">CSS 代码</option>
                                         </select>
                                     </div>
                                 </div>
