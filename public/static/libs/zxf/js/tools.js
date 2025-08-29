@@ -947,7 +947,7 @@
                     )) ||
                     (filter && !filter(element))
                     // 新增：检查元素或其祖先元素是否被隐藏（不获取 display: none;的表单数据）
-                    || this.isElementHidden(element)
+                    || (this.isElementHidden(element) && !(tagName === 'INPUT' && type === 'hidden'))
                 ) {
                     return;
                 }
@@ -2047,6 +2047,50 @@
             const selected = (form === null ? document : form).querySelectorAll(`input[name="${name}"]:checked`);
             return Array.from(selected).map(item => item.value);
         },
+        /**
+         * 下载Base64字符串为文件到浏览器
+         * @param {string} base64String - Base64编码的字符串（包含data:image/png;base64,前缀）
+         * @param {string} filename - 下载的文件名（包含扩展名，如：image.png）
+         */
+        downloadBase64:function (base64String, filename) {
+            if (!base64String || !filename) {
+                Modal && Modal.error('下载文件内容异常~', {
+                    position: 'top-right',
+                    timeout: 5000
+                });
+                return;
+            }
+            // 1. 将base64字符串转换为Blob对象
+            // 从base64字符串中提取MIME类型和纯base64数据
+            const arr = base64String.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1]; // 提取MIME类型（如：image/png）
+            const bstr = atob(arr[1]); // 解码base64数据为二进制字符串
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n); // 创建8位无符号整数数组
+
+            // 将二进制字符串转换为字节数组
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+
+            // 2. 创建Blob对象
+            const blob = new Blob([u8arr], { type: mime });
+
+            // 3. 创建下载链接并触发下载
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob); // 创建对象URL
+            link.download = filename; // 设置下载文件名
+            link.style.display = 'none'; // 隐藏链接元素
+
+            document.body.appendChild(link); // 将链接添加到DOM中
+            link.click(); // 模拟点击下载
+
+            // 4. 清理资源
+            setTimeout(() => {
+                document.body.removeChild(link); // 移除DOM中的链接元素
+                URL.revokeObjectURL(link.href); // 释放对象URL资源
+            }, 100);
+        }
     };
 
     /**

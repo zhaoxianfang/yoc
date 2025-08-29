@@ -48,10 +48,12 @@ class TopNavService
                         'url' => '/tools/images/compressor',
                     ], [
                         'title' => '二维码生成',
-                        'url' => '/tools/images/qrcode#tab=1',
+                        'url' => '/tools/images/qrcode#tab=qrcode',
+                        'icon' => 'ti ti-qrcode',
                     ], [
                         'title' => '条形码生成',
-                        'url' => '/tools/images/qrcode#tab=2',
+                        'url' => '/tools/images/qrcode#tab=barcode',
+                        'icon' => 'ti ti-barcode',
                     ], [
                         'title' => '字符串生成图片',
                         'url' => '/tools/images/create',

@@ -63,7 +63,8 @@ Route::prefix('tools')->name('tools.')->group(function () {
         // 图片压缩裁剪
         Route::any('compressor', [Web\tools\images\Compressor::class, 'index'])->name('img_compressor');
         // 条形码 || 二维码
-        Route::any('qrcode', [Web\tools\images\Qrcode::class, 'index'])->name('create_qrcode');
+        Route::any('qrcode', [Web\Tools\Generate\Qrcode::class, 'index'])->name('create_qrcode');
+
         // 字符串生成图片
         Route::any('create', [Web\tools\images\StrToImg::class, 'index'])->name('str2img');
         // 图片转ico
