@@ -63,7 +63,7 @@ class Qrcode extends HomeBaseController
     public function barcodeGenerate(Request $request)
     {
         $codeType = $request->post('bar_type', 'C128'); // 条形码类型
-        $content = $request->post('content', ''); // 条码内容
+        $content = $request->post('content', url()->full()); // 条码内容
         $label = $request->post('label', ''); // 条码下方文字
         $fontSize = $request->post('font_size', '12'); // 文字大小
         $thickness = $request->post('thickness', '60'); // 条码厚度/高度

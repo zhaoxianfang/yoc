@@ -79,9 +79,9 @@
                                         <label for="font" class="form-label">文字字体</label>
                                         <div class="input-group">
                                             <select class="form-control custom-select" name="font">
-                                                <option value="pmzdxx">庞门正道细线体</option>
+                                                <option value="pmzdxx" selected>庞门正道细线体</option>
                                                 <option value="pmzdbt">庞门正道标题体</option>
-                                                <option value="lishu" selected>隶书</option>
+                                                <option value="lishu">隶书</option>
                                                 <option value="yishanbei">峄山碑篆体</option>
                                                 <option value="xingkai">华文行楷</option>
                                             </select>
@@ -186,9 +186,9 @@
                                         <label for="font" class="form-label">文字字体</label>
                                         <div class="input-group">
                                             <select class="form-control custom-select" name="font">
-                                                <option value="pmzdxx">庞门正道细线体</option>
+                                                <option value="pmzdxx" selected>庞门正道细线体</option>
                                                 <option value="pmzdbt">庞门正道标题体</option>
-                                                <option value="lishu" selected>隶书</option>
+                                                <option value="lishu">隶书</option>
                                                 <option value="yishanbei">峄山碑篆体</option>
                                                 <option value="xingkai">华文行楷</option>
                                             </select>
@@ -265,7 +265,7 @@
             $("#font_size").ionRangeSlider({
                 skin: "flat",
                 min: 5,
-                max: 45,
+                max: 110,
                 step: 1,
                 from: 16,
                 postfix: " px",
@@ -274,7 +274,7 @@
             $("#font_size_2").ionRangeSlider({
                 skin: "flat",
                 min: 5,
-                max: 45,
+                max: 110,
                 step: 1,
                 from: 10,
                 postfix: " px",
@@ -283,7 +283,7 @@
             $("#scale").ionRangeSlider({
                 skin: "flat",
                 min: 1,
-                max: 9,
+                max: 20,
                 step: 1,
                 from: 3,
                 postfix: "px",
@@ -292,7 +292,7 @@
             $("#bar_width").ionRangeSlider({
                 skin: "flat",
                 min: 1,
-                max: 9,
+                max: 20,
                 step: 1,
                 from: 1,
                 postfix: "px",
@@ -301,7 +301,7 @@
             $("#thickness").ionRangeSlider({
                 skin: "flat",
                 min: 15,
-                max: 100,
+                max: 245,
                 step: 1,
                 from: 60,
                 postfix: "",
