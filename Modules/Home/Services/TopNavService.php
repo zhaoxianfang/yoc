@@ -24,6 +24,7 @@ class TopNavService
                     ], [
                         'title' => 'Unicode转换',
                         'url' => '/tools/string/unicode',
+                        'icon' => 'ti ti-replace',
                     ], [
                         'title' => 'json格式化',
                         'url' => '/tools/string/json',
@@ -31,9 +32,11 @@ class TopNavService
                     ], [
                         'title' => '系列化和反系列化',
                         'url' => '/tools/string/serialize',
+                        'icon' => 'ti ti-replace',
                     ], [
                         'title' => 'RSA加密解密',
                         'url' => '/tools/string/rsa',
+                        'icon' => 'ti ti-shield-check',
                     ], [
                         'title' => '身份证号码生成/验证',
                         'url' => '/tools/generate/id_card',
@@ -46,6 +49,7 @@ class TopNavService
                     [
                         'title' => '图片压缩与裁剪',
                         'url' => '/tools/images/compressor',
+                        'icon' => 'ti ti-crop',
                     ], [
                         'title' => '二维码生成',
                         'url' => '/tools/images/qrcode#tab=qrcode',
@@ -57,12 +61,15 @@ class TopNavService
                     ], [
                         'title' => '字符串生成图片',
                         'url' => '/tools/images/create',
+                        'icon' => 'ti ti-photo',
                     ], [
                         'title' => '图片转ico',
                         'url' => '/tools/images/ico',
+                        'icon' => 'ti ti-favicon',
                     ], [
                         'title' => '图片转换工具 imagick',
                         'url' => '/tools/images/magic',
+                        'icon' => 'ti ti-wand',
                     ],
                 ],
             ], [
@@ -71,6 +78,7 @@ class TopNavService
                     [
                         'title' => 'Excel导入导出.',
                         'url' => '/tools/file/excel',
+                        'icon' => 'ti ti-package-import',
                     ],
                 ],
             ],
