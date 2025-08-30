@@ -41,5 +41,12 @@ Route::prefix('demo')->name('demo.')->group(function () {
     Route::prefix('editor')->name('editor.')->group(function () {
         // cherry
         Route::get('cherry', [Web\Editor\Cherry::class, 'index'])->name('cherry');
+        Route::get('summernote', [Web\Editor\Summernote::class, 'index'])->name('summernote');
+        Route::get('ckeditor', [Web\Editor\Ckeditor::class, 'index'])->name('ckeditor');
+    });
+
+    // 未归类
+    Route::prefix('other')->name('other.')->group(function () {
+        Route::get('region', [Web\Editor\Cherry::class, 'index'])->name('region');
     });
 });
