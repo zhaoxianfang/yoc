@@ -532,7 +532,7 @@
          * @return {Promise<boolean>} 是否验证通过
          */
         validateField: async function(field,form =  null) {
-            if(this.isElementHidden(field)){
+            if(this.isElementHidden(field) || !field.hasAttribute('name')){
                 return true;
             }
             const rules = field.getAttribute('data-rule')?.split('|').filter(rule => rule.trim() !== '') || [];
@@ -1068,8 +1068,8 @@
             const fields = form.querySelectorAll('[data-rule]');
 
             for (const field of fields) {
-                // 排除隐藏字段
-                if(this.isElementHidden(field)){
+                // 排除隐藏字段 和没有 name 属性字段
+                if(this.isElementHidden(field) || !field.hasAttribute('name') ){
                     continue;
                 }
                 const fieldValid = await this.validateField(field,form);
