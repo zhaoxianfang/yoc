@@ -940,6 +940,7 @@
 
                 // 跳过条件判断
                 if (!name ||
+                    !element.hasAttribute('name') || // 判断element 表单是否有name属性； eg: input[name="age"]
                     (!includeDisabled && disabled) ||
                     (!includeButtons && (
                         tagName === 'BUTTON' ||
@@ -947,7 +948,7 @@
                     )) ||
                     (filter && !filter(element))
                     // 新增：检查元素或其祖先元素是否被隐藏（不获取 display: none;的表单数据）
-                    || (this.isElementHidden(element) && !(tagName === 'INPUT' && type === 'hidden'))
+                    || (this.isElementHidden(element) && !(['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName) && ['hidden', 'textarea', 'select'].includes(type)))
                 ) {
                     return;
                 }

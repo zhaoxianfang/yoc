@@ -18,7 +18,7 @@
         @include('system::layouts.loading')
     </div>
 
-    <textarea id="markdown_content" data-name="{{ empty($editor_name)?'content':$editor_name }}" style="display:none;">{{empty($content_value)?"":$content_value}}</textarea>
+    <textarea id="markdown_content" name="{{ empty($editor_name)?'content':$editor_name }}" style="display:none;">{{empty($content_value)?"":$content_value}}</textarea>
     <textarea id="markdown_content_html" name="{{ empty($editor_name)?'content_html':($editor_name.'_html') }}" style="display:none;"></textarea>
 </div>
 

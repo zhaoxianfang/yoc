@@ -47,7 +47,7 @@
 @endsection
 
 @section('content')
-    <h1>Datatables V2.1.2 使用示例</h1>
+    <h1>Datatables V2.3.3 使用示例</h1>
 
     <div class="">
         <div class="">

@@ -36,4 +36,10 @@ Route::prefix('demo')->name('demo.')->group(function () {
         // 自定义 tools 组件
         Route::get('tools', [Web\Components\ToolsController::class, 'index']);
     });
+
+    // 编辑器
+    Route::prefix('editor')->name('editor.')->group(function () {
+        // cherry
+        Route::get('cherry', [Web\Editor\Cherry::class, 'index'])->name('cherry');
+    });
 });

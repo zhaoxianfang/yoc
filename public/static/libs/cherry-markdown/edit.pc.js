@@ -9,7 +9,7 @@ var customMenuTable = Cherry.createMenuHook('图表',  {
     ]
 });
 
-const pcConfig = {
+const cherryPcConfig = {
     id: 'markdown',
     // 第三方包
     externals: {
@@ -487,6 +487,19 @@ const pcConfig = {
          *    string: 直接粘贴的内容
          */
         // onPaste: callbacks.onPaste,
+        // afterChange: callbacks.afterChange,
+        // afterInit: callbacks.afterInit,
+        afterInit: ({ text, html }) => {
+            console.log('afterInit 0',text, html);
+            remove_loading();
+        },
+        // beforeImageMounted: callbacks.beforeImageMounted,
+        // // 预览区域点击事件，previewer.enablePreviewerBubble = true 时生效
+        // onClickPreview: callbacks.onClickPreview,
+        // // 复制代码块代码时的回调
+        // onCopyCode: callbacks.onCopyCode,
+        // // 把中文变成拼音的回调，当然也可以把中文变成英文、英文变成中文
+        // changeString2Pinyin: callbacks.changeString2Pinyin,
     },
     event: {
         // 当编辑区内容有实际变化时触发
@@ -495,8 +508,8 @@ const pcConfig = {
             console.log('afterChange');
         },
         // afterInit: callbacks.afterInit,
-        afterInit: (text, html) => {
-            console.log('afterInit',text, html);
+        afterInit: ({ text, html }) => {
+            console.log('afterInit 1',text, html);
             remove_loading();
         },
         focus: ({ e, cherry }) => {},
@@ -640,10 +653,12 @@ function remove_loading() {
 
 if(is_mobile_browser()){
     // 移动端
-    pcConfig.toolbars.toolbar.unshift('switchModel');
-    pcConfig.editor.defaultModel='editOnly';
-    pcConfig.toolbars.toolbarRight=[];
+    cherryPcConfig.toolbars.toolbar.unshift('switchModel');
+    cherryPcConfig.editor.defaultModel='editOnly';
+    cherryPcConfig.toolbars.toolbarRight=[];
 }
 
-var config = Object.assign({}, pcConfig, { value: document.getElementById("markdown_content").value });
-window.cherry = new Cherry(config);
+const cherryConfig = Object.assign({}, cherryPcConfig, {value: document.getElementById("markdown_content").value});
+window.cherry = new Cherry(cherryConfig);
+
+setTimeout(() => { remove_loading(); }, 6000);
