@@ -45,11 +45,13 @@
                         <ul class="nav nav-tabs nav-bordered mb-3" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a href="#qrcode" data-bs-toggle="tab" id="qrcode_tab" aria-expanded="false" class="nav-link active" aria-selected="true" role="tab">
+                                    <i class="ti ti-qrcode"></i>
                                     二维码生成器
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <a href="#barcode" data-bs-toggle="tab" id="barcode_tab" aria-expanded="true" class="nav-link" aria-selected="false" role="tab">
+                                    <i class="ti ti-barcode"></i>
                                     条形码生成器
                                 </a>
                             </li>

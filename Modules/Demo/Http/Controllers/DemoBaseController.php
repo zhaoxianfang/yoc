@@ -158,7 +158,7 @@ class DemoBaseController extends BaseController
             'pid' => 40,
             'title' => 'Tools 组件',
             'name' => '/demo/components/tools',
-            'icon' => 'ti ti-components',
+            'icon' => 'ti ti-swords',
             'badge_text' => '',
         ],
     ];

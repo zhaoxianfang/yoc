@@ -47,16 +47,14 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::prefix('string')->name('string.')->group(function () {
         // css | js 代码压缩
         Route::any('code_minify', [Web\Tools\Code\CodeMinify::class, 'index'])->name('code_minify');
-
         // unicode 转码
-        Route::any('unicode', [Web\tools\Generate\Unicode::class, 'index'])->name('unicode');
+        Route::get('unicode', [Web\Tools\Code\Unicode::class, 'index'])->name('unicode');
         // json 格式化
-        Route::any('json', [Web\Tools\Code\JsonTools::class, 'index'])->name('json');
+        Route::get('json', [Web\Tools\Code\JsonTools::class, 'index'])->name('json');
         // serialize 序列话和反序列化
-        Route::any('serialize', [Web\tools\Generate\Serialize::class, 'index'])->name('serialize');
+        Route::get('serialize', [Web\Tools\Code\Serialize::class, 'index'])->name('serialize');
         // RSA 加密解密
-        Route::any('rsa', [Web\tools\Generate\Encryption::class, 'rsa'])->name('rsa');
-        Route::any('aes', [Web\tools\Generate\Encryption::class, 'aes'])->name('aes');
+        Route::any('rsa', [Web\Tools\Generate\RsaEncryption::class, 'index'])->name('rsa');
     });
 
     Route::prefix('images')->name('images.')->group(function () {
