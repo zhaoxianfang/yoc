@@ -66,20 +66,21 @@ class TopNavService
                         'title' => '图片转ico',
                         'url' => '/tools/images/ico',
                         'icon' => 'ti ti-favicon',
-                    ], [
-                        'title' => '图片转换工具 imagick',
-                        'url' => '/tools/images/magic',
-                        'icon' => 'ti ti-wand',
                     ],
+                    // [
+                    //     'title' => '图片转换工具 imagick',
+                    //     'url' => '/tools/images/magic',
+                    //     'icon' => 'ti ti-wand',
+                    // ],
                 ],
             ], [
                 'title' => '文件处理',
                 'list' => [
-                    [
-                        'title' => 'Excel导入导出.',
-                        'url' => '/tools/file/excel',
-                        'icon' => 'ti ti-package-import',
-                    ],
+                    // [
+                    //     'title' => 'Excel导入导出.',
+                    //     'url' => '/tools/file/excel',
+                    //     'icon' => 'ti ti-package-import',
+                    // ],
                 ],
             ],
         ],

@@ -59,25 +59,24 @@ Route::prefix('tools')->name('tools.')->group(function () {
 
     Route::prefix('images')->name('images.')->group(function () {
         // 图片压缩裁剪
-        Route::any('compressor', [Web\tools\images\Compressor::class, 'index'])->name('img_compressor');
+        Route::any('compressor', [Web\Tools\Images\Compressor::class, 'index'])->name('img_compressor');
         // 条形码 || 二维码
         Route::any('qrcode', [Web\Tools\Generate\Qrcode::class, 'index'])->name('create_qrcode');
 
         // 字符串生成图片
-        Route::any('create', [Web\tools\images\StrToImg::class, 'index'])->name('str2img');
+        Route::any('create', [Web\Tools\Images\StrToImg::class, 'index'])->name('str2img');
         // 图片转ico
-        Route::any('ico', [Web\tools\images\ImgToIco::class, 'index'])->name('img2ico');
+        Route::any('ico', [Web\Tools\Images\ImgToIco::class, 'index'])->name('img2ico');
         // 图片处理工具 imagick
-        Route::any('magic', [Web\tools\images\ImagickController::class, 'index'])->name('magic');
+        // Route::any('magic', [Web\Tools\Images\ImagickController::class, 'index'])->name('magic');
         // 下载文件
-        Route::get('download', [Web\tools\images\ImagickController::class, 'download'])->name('download');
+        // Route::get('download', [Web\Tools\Images\ImagickController::class, 'download'])->name('download');
     });
 
     // 其他路由
 
     // demo : /tools/text2png/ApiDoc2.0上线啦/1000/100/FFFFFF/7B00FF/0/qiuhong.html
-    Route::get('/text2png/{text}/{width?}/{height?}/{color?}/{bgcolor?}/{rotate?}/{font?}', [Web\tools\images\StrToImg::class, 'create'])->where('text', '.*');
-    // mysql 数据字典生成
-    Route::any('mysql/dictionary', [Web\tools\mysql\Dictionary::class, 'index'])->name('mysql.dictionary');
+    Route::get('/text2png/{text}/{width?}/{height?}/{color?}/{bgcolor?}/{rotate?}/{font?}', [Web\Tools\Images\StrToImg::class, 'create']); // ->where('text', '.*');
+
 });
 
