@@ -1174,15 +1174,38 @@
     };
 
     /**
+     * --------------------
+     * Select操作处理对象
+     * 封装所有Select相关的操作和方法
+     */
+    /**
      * Select操作处理对象
      * 封装所有Select相关的操作和方法
      */
     var SelectHandle = {
+        // 配置参数
+        config: {
+            searchEnabled: true,          // 是否启用搜索功能
+            searchThreshold: 10,          // 选项数量阈值，超过此数量才显示搜索框
+            minSearchLength: 1,           // 最小搜索字符长度
+            searchDebounceTime: 300,      // 搜索防抖时间(毫秒)
+            noResultsText: '无匹配结果',   // 无结果提示文本
+            searchPlaceholder: '搜索...', // 搜索框占位符
+            showSelectAll: true,          // 是否显示全选选项(多选时)
+            selectAllText: '全选',        // 全选选项文本
+            maxHeight: '200px',           // 下拉菜单最大高度
+            zIndex: 9999                  // 下拉菜单z-index
+        },
+
         /**
          * 初始化所有自定义Select组件
          * @param {string} [selector='select.custom-select'] - 要初始化的select选择器
+         * @param {Object} [options] - 配置选项
          */
-        init: function(selector = 'select.custom-select') {
+        init: function(selector = 'select.custom-select', options = {}) {
+            // 合并配置
+            Object.assign(this.config, options);
+
             // 获取所有需要自定义的select元素
             const selects = document.querySelectorAll(selector);
 
@@ -1193,6 +1216,9 @@
 
             // 添加全局点击事件监听
             this.addGlobalClickHandler();
+
+            // 添加全局键盘事件监听
+            this.addGlobalKeydownHandler();
         },
 
         /**
@@ -1200,17 +1226,15 @@
          * @param {HTMLSelectElement} select - 原生select元素
          */
         createCustomUI: function(select) {
-            // 判断 select 的class 是否包含 .has-custom-create-select
             if (select.classList.contains('has-custom-create-select')) {
-                // 已经实例化过了
-                return ;
+                return;
             }
-            // 在select的class 上新增一个 .has-custom-create-select 的 class
+
             select.classList.add('has-custom-create-select');
+
             // 创建包装容器
             const wrapper = document.createElement('div');
             wrapper.className = 'custom-select-wrapper ' + (select.className || '');
-            // 移除 wrapper.className 里面的form-control
             wrapper.className = wrapper.className.replace('form-control', '');
 
             // 将select放入包装容器
@@ -1255,10 +1279,11 @@
         createDisplayElement: function(select) {
             const display = document.createElement('div');
             display.className = 'custom-select-display ' + (select.className || '');
-            // 移除 display.className 里面的form-control
             display.className = display.className.replace('form-control', '');
-
             display.tabIndex = select.disabled ? -1 : 0;
+            display.setAttribute('role', 'combobox');
+            display.setAttribute('aria-haspopup', 'listbox');
+            display.setAttribute('aria-expanded', 'false');
 
             // 如果是多选，添加标签容器
             if (select.multiple) {
@@ -1269,6 +1294,7 @@
 
             // 添加文本显示区域
             const content = document.createElement('div');
+            content.className = 'custom-select-selected-text';
             display.appendChild(content);
 
             return display;
@@ -1282,43 +1308,277 @@
         createDropdownMenu: function(select) {
             const dropdown = document.createElement('div');
             dropdown.className = 'custom-select-dropdown';
+            dropdown.style.zIndex = this.config.zIndex;
+            dropdown.style.maxHeight = this.config.maxHeight;
+
+            // 创建搜索容器（如果需要）
+            const shouldShowSearch = this.config.searchEnabled &&
+                select.options.length >= this.config.searchThreshold;
+
+            if (shouldShowSearch) {
+                const searchContainer = this.createSearchContainer();
+                dropdown.appendChild(searchContainer);
+            }
+
+            // 创建选项容器
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'custom-select-options-container';
+            optionsContainer.setAttribute('role', 'listbox');
+            optionsContainer.setAttribute('aria-multiselectable', select.multiple);
+
+            // 添加全选选项（多选时）
+            if (select.multiple && this.config.showSelectAll) {
+                const selectAllOption = this.createSelectAllOption(select);
+                optionsContainer.appendChild(selectAllOption);
+            }
 
             // 添加选项
             Array.from(select.options).forEach(option => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'custom-select-option';
-                optionElement.textContent = option.text;
-                optionElement.dataset.value = option.value;
-
-                // 通过 data-icon 属性 设置 小图标前缀
-                if(typeof option.dataset.icon === 'string'){
-                    const icon = document.createElement('i');
-                    icon.className = option.dataset.icon;
-                    optionElement.prepend(icon);
-                }
-
-                // 通过 data-img 属性 设置 图片前缀
-                if(typeof option.dataset.img === 'string'){
-                    const img = document.createElement('img');
-                    img.src = option.dataset.img;
-                    img.className = option.dataset.class || '';
-                    optionElement.prepend(img);
-                }
-
-                // 设置初始选中状态
-                if (option.selected) {
-                    optionElement.classList.add('selected');
-                }
-
-                // 处理禁用状态
-                if (option.disabled) {
-                    optionElement.classList.add('disabled');
-                }
-
-                dropdown.appendChild(optionElement);
+                const optionElement = this.createOptionElement(option, select);
+                optionsContainer.appendChild(optionElement);
             });
 
+            dropdown.appendChild(optionsContainer);
+
+            // 绑定搜索事件（如果需要）
+            if (shouldShowSearch) {
+                this.bindSearchEvents(select, dropdown);
+            }
+
             return dropdown;
+        },
+
+        /**
+         * 创建搜索容器
+         * @return {HTMLElement} 搜索容器元素
+         */
+        createSearchContainer: function() {
+            const searchContainer = document.createElement('div');
+            searchContainer.className = 'custom-select-search-container';
+
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'custom-select-search-input';
+            searchInput.placeholder = this.config.searchPlaceholder;
+            searchInput.setAttribute('aria-label', '搜索选项');
+
+            searchContainer.appendChild(searchInput);
+            return searchContainer;
+        },
+
+        /**
+         * 创建全选选项
+         * @param {HTMLSelectElement} select - 原生select元素
+         * @return {HTMLElement} 全选选项元素
+         */
+        createSelectAllOption: function(select) {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'custom-select-option select-all-option';
+            optionElement.dataset.value = '__select_all__';
+            optionElement.textContent = this.config.selectAllText;
+            optionElement.setAttribute('role', 'option');
+
+            // 检查是否所有选项都已选中
+            const allSelected = Array.from(select.options).every(opt => opt.selected || opt.disabled);
+            if (allSelected) {
+                optionElement.classList.add('selected');
+            }
+
+            return optionElement;
+        },
+
+        /**
+         * 创建单个选项元素
+         * @param {HTMLOptionElement} option - 原生option元素
+         * @param {HTMLSelectElement} select - 父级select元素
+         * @return {HTMLElement} 选项元素
+         */
+        createOptionElement: function(option, select) {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'custom-select-option';
+            optionElement.textContent = option.text;
+            optionElement.dataset.value = option.value;
+            optionElement.setAttribute('role', 'option');
+
+            if (option.title) {
+                optionElement.title = option.title;
+            }
+
+            // 通过 data-icon 属性设置小图标
+            if (option.dataset.icon) {
+                const icon = document.createElement('i');
+                icon.className = option.dataset.icon;
+                optionElement.prepend(icon);
+            }
+
+            // 通过 data-img 属性设置图片
+            if (option.dataset.img) {
+                const img = document.createElement('img');
+                img.src = option.dataset.img;
+                img.className = option.dataset.class || '';
+                img.alt = option.text;
+                optionElement.prepend(img);
+            }
+
+            // 设置初始选中状态
+            if (option.selected) {
+                optionElement.classList.add('selected');
+                optionElement.setAttribute('aria-selected', 'true');
+            }
+
+            // 处理禁用状态
+            if (option.disabled) {
+                optionElement.classList.add('disabled');
+                optionElement.setAttribute('aria-disabled', 'true');
+            }
+
+            return optionElement;
+        },
+
+        /**
+         * 绑定搜索事件
+         * @param {HTMLSelectElement} select - 原生select元素
+         * @param {HTMLElement} dropdown - 下拉菜单元素
+         */
+        bindSearchEvents: function(select, dropdown) {
+            const searchInput = dropdown.querySelector('.custom-select-search-input');
+            const optionsContainer = dropdown.querySelector('.custom-select-options-container');
+
+            if (!searchInput) return;
+
+            // 防抖搜索函数
+            const debouncedSearch = this.debounce((searchTerm) => {
+                this.filterOptions(searchTerm, optionsContainer, select);
+            }, this.config.searchDebounceTime);
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.trim().toLowerCase();
+                if (searchTerm.length >= this.config.minSearchLength || searchTerm === '') {
+                    debouncedSearch(searchTerm);
+                }
+            });
+
+            // 阻止搜索框点击事件冒泡
+            searchInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // 键盘导航支持
+            searchInput.addEventListener('keydown', (e) => {
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.focusFirstVisibleOption(optionsContainer);
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        this.clearSearch(searchInput, optionsContainer, select);
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        this.selectFirstVisibleOption(optionsContainer, select);
+                        break;
+                }
+            });
+        },
+
+        /**
+         * 过滤选项
+         * @param {string} searchTerm - 搜索关键词
+         * @param {HTMLElement} optionsContainer - 选项容器
+         * @param {HTMLSelectElement} select - 原生select元素
+         */
+        filterOptions: function(searchTerm, optionsContainer, select) {
+            const options = optionsContainer.querySelectorAll('.custom-select-option:not(.select-all-option)');
+            let hasVisibleOptions = false;
+            let exactMatch = false;
+
+            options.forEach(option => {
+                const optionText = option.textContent.toLowerCase();
+                const optionValue = option.dataset.value.toLowerCase();
+                const isMatch = searchTerm === '' ||
+                    optionText.includes(searchTerm) ||
+                    optionValue.includes(searchTerm);
+
+                if (isMatch) {
+                    option.classList.remove('hidden');
+                    option.classList.add('visible');
+                    hasVisibleOptions = true;
+
+                    // 检查是否完全匹配
+                    if (optionText === searchTerm || optionValue === searchTerm) {
+                        exactMatch = true;
+                    }
+                } else {
+                    option.classList.add('hidden');
+                    option.classList.remove('visible');
+                }
+            });
+
+            // 显示/隐藏无结果提示
+            this.toggleNoResultsMessage(optionsContainer, hasVisibleOptions, searchTerm);
+
+            // 自动选择完全匹配的选项
+            if (exactMatch && !select.multiple) {
+                const exactOption = optionsContainer.querySelector('.custom-select-option.visible:not(.disabled)');
+                if (exactOption) {
+                    this.selectOption(exactOption, select);
+                }
+            }
+        },
+
+        /**
+         * 显示/隐藏无结果提示
+         * @param {HTMLElement} optionsContainer - 选项容器
+         * @param {boolean} hasVisibleOptions - 是否有可见选项
+         * @param {string} searchTerm - 搜索关键词
+         */
+        toggleNoResultsMessage: function(optionsContainer, hasVisibleOptions, searchTerm) {
+            let noResults = optionsContainer.querySelector('.custom-select-no-results');
+
+            if (!hasVisibleOptions && searchTerm && !noResults) {
+                noResults = document.createElement('div');
+                noResults.className = 'custom-select-no-results';
+                noResults.textContent = this.config.noResultsText;
+                optionsContainer.appendChild(noResults);
+            } else if ((hasVisibleOptions || !searchTerm) && noResults) {
+                noResults.remove();
+            }
+        },
+
+        /**
+         * 清除搜索
+         * @param {HTMLElement} searchInput - 搜索输入框
+         * @param {HTMLElement} optionsContainer - 选项容器
+         * @param {HTMLSelectElement} select - 原生select元素
+         */
+        clearSearch: function(searchInput, optionsContainer, select) {
+            searchInput.value = '';
+            this.filterOptions('', optionsContainer, select);
+            searchInput.focus();
+        },
+
+        /**
+         * 聚焦第一个可见选项
+         * @param {HTMLElement} optionsContainer - 选项容器
+         */
+        focusFirstVisibleOption: function(optionsContainer) {
+            const firstVisibleOption = optionsContainer.querySelector('.custom-select-option.visible:not(.disabled)');
+            if (firstVisibleOption) {
+                firstVisibleOption.focus();
+            }
+        },
+
+        /**
+         * 选择第一个可见选项
+         * @param {HTMLElement} optionsContainer - 选项容器
+         * @param {HTMLSelectElement} select - 原生select元素
+         */
+        selectFirstVisibleOption: function(optionsContainer, select) {
+            const firstVisibleOption = optionsContainer.querySelector('.custom-select-option.visible:not(.disabled)');
+            if (firstVisibleOption) {
+                this.selectOption(firstVisibleOption, select);
+            }
         },
 
         /**
@@ -1328,40 +1588,37 @@
          */
         updateDisplayState: function(select, display) {
             const isMultiple = select.multiple;
-            const content = display.lastChild;
+            const content = display.querySelector('.custom-select-selected-text');
+            const tagsContainer = display.querySelector('.custom-select-tags');
 
-            if (isMultiple) {
-                // 多选模式
-                const tagsContainer = display.querySelector('.custom-select-tags');
+            if (isMultiple && tagsContainer) {
                 tagsContainer.innerHTML = '';
-
                 const selectedOptions = Array.from(select.selectedOptions);
 
                 if (selectedOptions.length > 0) {
-                    // 创建选中标签
                     selectedOptions.forEach(option => {
                         const tag = document.createElement('span');
                         tag.className = 'custom-select-tag';
                         tag.innerHTML = `
-                                ${option.text}
-                                <span class="custom-select-tag-remove" data-value="${option.value}">×</span>
-                            `;
+                        ${option.text}
+                        <span class="custom-select-tag-remove" data-value="${option.value}">×</span>
+                    `;
                         tagsContainer.appendChild(tag);
                     });
                     content.textContent = '';
                 } else {
-                    // 无选中项显示占位符
                     content.textContent = '请选择...';
-                    content.className = 'custom-select-placeholder';
+                    content.className = 'custom-select-selected-text custom-select-placeholder';
                 }
             } else {
-                // 单选模式
                 const selectedOption = select.options[select.selectedIndex];
-                content.textContent = selectedOption.value ?
-                    selectedOption.text : '请选择...';
-                content.className = selectedOption.value ?
-                    '' : 'custom-select-placeholder';
+                content.textContent = selectedOption && selectedOption.value ? selectedOption.text : '请选择...';
+                content.className = selectedOption && selectedOption.value ?
+                    'custom-select-selected-text' : 'custom-select-selected-text custom-select-placeholder';
             }
+
+            // 更新ARIA属性
+            display.setAttribute('aria-expanded', 'false');
         },
 
         /**
@@ -1376,42 +1633,48 @@
                 if (select.disabled) return;
                 if (e.target.classList.contains('custom-select-tag-remove')) return;
 
+                const isOpening = !dropdown.classList.contains('open');
                 dropdown.classList.toggle('open');
                 display.classList.toggle('open');
+                display.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
+
+                if (isOpening) {
+                    // 当下拉菜单打开时，聚焦搜索框或第一个选项
+                    setTimeout(() => {
+                        const searchInput = dropdown.querySelector('.custom-select-search-input');
+                        if (searchInput) {
+                            searchInput.focus();
+                        } else {
+                            this.focusFirstVisibleOption(dropdown.querySelector('.custom-select-options-container'));
+                        }
+                    }, 100);
+                }
             });
 
             // 点击下拉选项
             dropdown.addEventListener('click', e => {
-                const optionElement = e.target.closest('.custom-select-option');
-                if (!optionElement || optionElement.classList.contains('disabled')) return;
+                const optionElement = e.target.closest('.custom-select-option:not(.hidden):not(.disabled)');
+                if (!optionElement) return;
 
-                const value = optionElement.dataset.value;
-
-                if (select.multiple) {
-                    // 多选逻辑
-                    const option = select.querySelector(`option[value="${value}"]`);
-                    if (option) {
-                        option.selected = !option.selected;
-                        optionElement.classList.toggle('selected');
-                    }
+                // 处理全选选项
+                if (optionElement.classList.contains('select-all-option')) {
+                    this.handleSelectAll(select, optionElement);
                 } else {
-                    // 单选逻辑
-                    select.value = value;
-                    dropdown.querySelectorAll('.custom-select-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    optionElement.classList.add('selected');
-
-                    // 关闭下拉菜单
-                    dropdown.classList.remove('open');
-                    display.classList.remove('open');
+                    this.selectOption(optionElement, select);
                 }
 
                 // 更新显示
                 this.updateDisplayState(select, display);
 
                 // 触发change事件
-                select.dispatchEvent(new Event('change'));
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+
+                // 如果是单选，关闭下拉菜单
+                if (!select.multiple) {
+                    dropdown.classList.remove('open');
+                    display.classList.remove('open');
+                    display.setAttribute('aria-expanded', 'false');
+                }
             });
 
             // 点击标签删除按钮
@@ -1422,11 +1685,13 @@
 
                     if (option) {
                         option.selected = false;
-                        dropdown.querySelector(`.custom-select-option[data-value="${value}"]`)
-                            .classList.remove('selected');
+                        const dropdownOption = dropdown.querySelector(`.custom-select-option[data-value="${value}"]`);
+                        if (dropdownOption) {
+                            dropdownOption.classList.remove('selected');
+                        }
 
                         this.updateDisplayState(select, display);
-                        select.dispatchEvent(new Event('change'));
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
             });
@@ -1434,19 +1699,135 @@
             // 监听原生select的变化
             select.addEventListener('change', () => {
                 this.updateDisplayState(select, display);
+                this.updateDropdownSelection(select, dropdown);
+            });
 
-                // 更新下拉菜单选中状态
-                if (select.multiple) {
-                    const selectedValues = Array.from(select.selectedOptions).map(opt => opt.value);
-                    dropdown.querySelectorAll('.custom-select-option').forEach(opt => {
-                        opt.classList.toggle('selected', selectedValues.includes(opt.dataset.value));
-                    });
-                } else {
-                    dropdown.querySelectorAll('.custom-select-option').forEach(opt => {
-                        opt.classList.toggle('selected', opt.dataset.value === select.value);
-                    });
+            // 键盘导航支持
+            display.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    dropdown.classList.add('open');
+                    display.classList.add('open');
+                    display.setAttribute('aria-expanded', 'true');
+
+                    setTimeout(() => {
+                        const searchInput = dropdown.querySelector('.custom-select-search-input');
+                        if (searchInput) {
+                            searchInput.focus();
+                        } else {
+                            this.focusFirstVisibleOption(dropdown.querySelector('.custom-select-options-container'));
+                        }
+                    }, 100);
                 }
             });
+
+            // 下拉菜单内键盘导航
+            dropdown.addEventListener('keydown', (e) => {
+                const options = dropdown.querySelectorAll('.custom-select-option.visible:not(.disabled)');
+                const currentOption = document.activeElement;
+                let currentIndex = Array.from(options).indexOf(currentOption);
+
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        if (currentIndex < options.length - 1) {
+                            options[currentIndex + 1].focus();
+                        }
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        if (currentIndex > 0) {
+                            options[currentIndex - 1].focus();
+                        } else {
+                            const searchInput = dropdown.querySelector('.custom-select-search-input');
+                            if (searchInput) searchInput.focus();
+                        }
+                        break;
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        if (currentOption.classList.contains('custom-select-option')) {
+                            currentOption.click();
+                        }
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        dropdown.classList.remove('open');
+                        display.classList.remove('open');
+                        display.setAttribute('aria-expanded', 'false');
+                        display.focus();
+                        break;
+                }
+            });
+        },
+
+        /**
+         * 处理全选操作
+         * @param {HTMLSelectElement} select - 原生select元素
+         * @param {HTMLElement} selectAllOption - 全选选项元素
+         */
+        handleSelectAll: function(select, selectAllOption) {
+            const isSelecting = !selectAllOption.classList.contains('selected');
+            const options = select.querySelectorAll('option:not([disabled])');
+
+            options.forEach(option => {
+                option.selected = isSelecting;
+            });
+
+            // 更新全选选项状态
+            selectAllOption.classList.toggle('selected', isSelecting);
+
+            // 更新其他选项状态
+            const dropdownOptions = selectAllOption.parentElement.querySelectorAll('.custom-select-option:not(.select-all-option)');
+            dropdownOptions.forEach(option => {
+                if (!option.classList.contains('disabled')) {
+                    option.classList.toggle('selected', isSelecting);
+                }
+            });
+        },
+
+        /**
+         * 选择选项
+         * @param {HTMLElement} optionElement - 选项元素
+         * @param {HTMLSelectElement} select - 原生select元素
+         */
+        selectOption: function(optionElement, select) {
+            const value = optionElement.dataset.value;
+            const option = select.querySelector(`option[value="${value}"]`);
+
+            if (!option) return;
+
+            if (select.multiple) {
+                option.selected = !option.selected;
+                optionElement.classList.toggle('selected');
+            } else {
+                select.value = value;
+                select.querySelectorAll('.custom-select-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                optionElement.classList.add('selected');
+            }
+        },
+
+        /**
+         * 更新下拉菜单选中状态
+         * @param {HTMLSelectElement} select - 原生select元素
+         * @param {HTMLElement} dropdown - 下拉菜单元素
+         */
+        updateDropdownSelection: function(select, dropdown) {
+            const selectedValues = Array.from(select.selectedOptions).map(opt => opt.value);
+            dropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+                const isSelected = selectedValues.includes(opt.dataset.value);
+                opt.classList.toggle('selected', isSelected);
+                opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            });
+
+            // 更新全选选项状态
+            const selectAllOption = dropdown.querySelector('.select-all-option');
+            if (selectAllOption) {
+                const allSelected = Array.from(select.options).every(opt => opt.selected || opt.disabled);
+                selectAllOption.classList.toggle('selected', allSelected);
+            }
         },
 
         /**
@@ -1454,18 +1835,61 @@
          */
         addGlobalClickHandler: function() {
             document.addEventListener('click', e => {
-                // 查找所有打开的下拉菜单
                 const openDropdowns = document.querySelectorAll('.custom-select-dropdown.open');
 
                 openDropdowns.forEach(dropdown => {
-                    // 如果点击的不是自定义select相关的元素
                     const wrapper = dropdown.closest('.custom-select-wrapper');
                     if (!wrapper.contains(e.target)) {
                         dropdown.classList.remove('open');
-                        wrapper.querySelector('.custom-select-display').classList.remove('open');
+                        const display = wrapper.querySelector('.custom-select-display');
+                        display.classList.remove('open');
+                        display.setAttribute('aria-expanded', 'false');
+
+                        // 清除搜索
+                        const searchInput = dropdown.querySelector('.custom-select-search-input');
+                        const optionsContainer = dropdown.querySelector('.custom-select-options-container');
+                        if (searchInput && optionsContainer) {
+                            searchInput.value = '';
+                            this.filterOptions('', optionsContainer, wrapper.querySelector('select'));
+                        }
                     }
                 });
             });
+        },
+
+        /**
+         * 添加全局键盘事件处理
+         */
+        addGlobalKeydownHandler: function() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const openDropdowns = document.querySelectorAll('.custom-select-dropdown.open');
+                    openDropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('open');
+                        const display = dropdown.closest('.custom-select-wrapper').querySelector('.custom-select-display');
+                        display.classList.remove('open');
+                        display.setAttribute('aria-expanded', 'false');
+                    });
+                }
+            });
+        },
+
+        /**
+         * 防抖函数
+         * @param {Function} func - 要防抖的函数
+         * @param {number} wait - 等待时间
+         * @return {Function} 防抖后的函数
+         */
+        debounce: function(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         },
 
         /**
@@ -1475,24 +1899,44 @@
         destroy: function(selector = 'select.custom-select') {
             // 移除全局事件监听
             document.removeEventListener('click', this.handleGlobalClick);
+            document.removeEventListener('keydown', this.handleGlobalKeydown);
 
             // 恢复原生select并移除自定义UI
             document.querySelectorAll(selector).forEach(select => {
                 const wrapper = select.parentElement;
+                if (wrapper && wrapper.classList.contains('custom-select-wrapper')) {
+                    // 恢复原生select
+                    select.classList.remove('custom-select', 'has-custom-create-select');
+                    select.style.position = '';
+                    select.style.opacity = '';
+                    select.style.height = '';
+                    select.style.width = '';
+                    select.style.display = '';
 
-                // 恢复原生select
-                select.classList.remove('custom-select');
-                select.style.position = '';
-                select.style.opacity = '';
-                select.style.height = '';
-                select.style.width = '';
+                    // 将select移回原位置
+                    wrapper.parentNode.insertBefore(select, wrapper);
 
-                // 将select移回原位置
-                wrapper.parentNode.insertBefore(select, wrapper);
-
-                // 移除包装容器
-                wrapper.remove();
+                    // 移除包装容器
+                    wrapper.remove();
+                }
             });
+        },
+
+        /**
+         * 更新配置
+         * @param {Object} config - 新的配置对象
+         */
+        setConfig: function(config) {
+            Object.assign(this.config, config);
+        },
+
+        /**
+         * 重新初始化（用于动态内容更新后）
+         * @param {string} [selector='select.custom-select'] - 选择器
+         */
+        refresh: function(selector = 'select.custom-select') {
+            this.destroy(selector);
+            this.init(selector);
         }
     };
 

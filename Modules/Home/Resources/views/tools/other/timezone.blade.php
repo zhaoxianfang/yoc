@@ -173,6 +173,13 @@
                 var from_time_zone_date_time = $('#from_time_zone_date_time').val();
                 var to_time_zone = $('#to_time_zone').val();
 
+                if (!from_time_zone_date_time || from_time_zone_date_time.length < 1) {
+                    Modal && Modal.error('请输入时间', {
+                        position: 'top-right',
+                        timeout: 5000
+                    });
+                    return false;
+                }
                 myTools.http.request('POST','/tools/string/timezone',{
                     form_time_zone:form_time_zone,
                     from_time_zone_date_time:from_time_zone_date_time,
