@@ -15,7 +15,7 @@ class Handler
         $code = Handle::$code;
         $message = Handle::$message;
 
-        if ($request->ajax() || $request->expectsJson()) {
+        if (is_ajax()) {
             // 404 错误获取不到登录信息
             if (auth('admin')->guest()) {
                 return app('trace')->respJson($message, $code)->send();

@@ -15,7 +15,7 @@ class ArticlesController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('article::admin/articles/index');
         }
         $req = $request->input();

@@ -74,7 +74,7 @@ class AdminAuthController extends AdminBaseController
         auth('admin')->logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json([
                 'code' => 200,
                 'message' => '退出成功',
@@ -94,7 +94,7 @@ class AdminAuthController extends AdminBaseController
     // 重置密码
     public function retrievePassword(Request $request)
     {
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json([
                 'code' => 200,
                 'message' => '此功能正在开发中...',

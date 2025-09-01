@@ -71,7 +71,7 @@ class DocsDocController extends DocsBaseController
     {
         $this->gate::authorize('show', $docsDoc);
 
-        if (! $request->pjax() || ! $request->ajax()) {
+        if (! is_ajax()) {
             abort(424, '不合理的请求');
         }
         $this->updateViewCount($docsDoc);

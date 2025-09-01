@@ -15,7 +15,7 @@ class SystemLogsController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('logs::admin/logs/index');
         }
         $req = $request->input();

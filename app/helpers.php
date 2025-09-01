@@ -407,3 +407,15 @@ if (! function_exists('array_to_admin_menu')) {
         return $html;
     }
 }
+
+if (! function_exists('is_ajax')) {
+    /**
+     * 判断是否是ajax请求
+     */
+    function is_ajax(): bool
+    {
+        $request = app('request');
+
+        return $request->ajax() || $request->pjax() || $request->is('api/*') || $request->expectsJson();
+    }
+}

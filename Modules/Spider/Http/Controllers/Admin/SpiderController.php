@@ -16,7 +16,7 @@ class SpiderController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('spider::admin/index');
         }
         $req = $request->input();
@@ -185,7 +185,7 @@ class SpiderController extends AdminBaseController
     // 爬虫规则测试
     public function ruleTest(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             // $tasks = SpiderTask::query()->where('status', SpiderTask::STATUS_NORMAL)->get();
             $tasks = SpiderTask::query()->get();
 

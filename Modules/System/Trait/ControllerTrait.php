@@ -62,7 +62,7 @@ trait ControllerTrait
                 $data = array_merge($data, $resp);
             }
         }
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json($data, 200, $jumpUrl);
         }
 
@@ -81,7 +81,7 @@ trait ControllerTrait
                 $data = array_merge($data, $resp);
             }
         }
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json($data, 500, $jumpUrl);
         }
 
@@ -113,7 +113,7 @@ trait ControllerTrait
         }
 
         $data = ! is_string($resp) ? $resp : [];
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json(compact('code', 'message', 'url', 'wait', 'data', 'close'), $code);
         }
         $module = get_module_name(true); // 使用小写下划线模块名称
@@ -157,7 +157,7 @@ trait ControllerTrait
         // throw new Exception($message, $code);
         // return response()->json(compact('code', 'message', 'url', 'wait'), 200)->send();
         // return die(response()->json(compact('code', 'message', 'url', 'wait'), 200)->send());
-        if (request()->ajax()) {
+        if (is_ajax()) {
             return $this->json(compact('code', 'message', 'url', 'wait'), 200);
         }
 

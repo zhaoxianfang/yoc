@@ -41,6 +41,10 @@ class TopNavService
                         'title' => '身份证号码生成/验证',
                         'url' => '/tools/generate/id_card',
                         'icon' => 'ti ti-user-hexagon',
+                    ], [
+                        'title' => '时区/时间转换',
+                        'url' => '/tools/string/timezone',
+                        'icon' => 'ti ti-timezone',
                     ],
                 ],
             ], [

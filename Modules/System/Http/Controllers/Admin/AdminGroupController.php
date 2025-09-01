@@ -17,7 +17,7 @@ class AdminGroupController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('system::admin/admin_groups/index');
         }
         $req = $request->input();
@@ -55,7 +55,7 @@ class AdminGroupController extends AdminBaseController
 
     public function store(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             $groups = AdminGroup::where('status', 1)->get()->toArray();
             // 菜单转换为视图
             $group_tree = \zxf\Extend\Menu::instance()->init($groups)->setWeigh()->getTree();
@@ -79,7 +79,7 @@ class AdminGroupController extends AdminBaseController
 
     public function update(AdminGroup $group, Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             $groups = AdminGroup::where('status', 1)->get()->toArray();
             // 菜单转换为视图
             $group_tree = \zxf\Extend\Menu::instance()->init($groups)->setWeigh()->getTree();

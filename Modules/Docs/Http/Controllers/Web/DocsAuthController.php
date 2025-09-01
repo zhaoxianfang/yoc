@@ -82,7 +82,7 @@ class DocsAuthController extends DocsBaseController
         auth('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        if ($request->ajax()) {
+        if (is_ajax()) {
             return $this->success('退出成功');
         }
 

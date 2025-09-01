@@ -14,7 +14,7 @@ class BlacklistController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('users::admin.blacklist');
         }
         $req = $request->input();
@@ -58,7 +58,7 @@ class BlacklistController extends AdminBaseController
      */
     public function store(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('users::admin.blacklist.add');
         }
         $request->validate([
@@ -96,7 +96,7 @@ class BlacklistController extends AdminBaseController
      */
     public function update(Blacklist $blacklist, Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('users::admin/blacklist/edit', [
                 'info' => $blacklist,
             ]);

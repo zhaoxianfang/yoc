@@ -55,6 +55,8 @@ Route::prefix('tools')->name('tools.')->group(function () {
         Route::get('serialize', [Web\Tools\Code\Serialize::class, 'index'])->name('serialize');
         // RSA 加密解密
         Route::any('rsa', [Web\Tools\Generate\RsaEncryption::class, 'index'])->name('rsa');
+        // 时间/时区转换
+        Route::any('timezone', [Web\Tools\Other\Timezone::class, 'index'])->name('timezone');
     });
 
     Route::prefix('images')->name('images.')->group(function () {

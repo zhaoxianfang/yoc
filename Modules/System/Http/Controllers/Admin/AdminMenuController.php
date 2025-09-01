@@ -15,7 +15,7 @@ class AdminMenuController extends AdminBaseController
      */
     public function index(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             return view('system::admin/admin_menus/index');
         }
         $menu_list = \zxf\Extend\Menu::instance()->init(AdminMenu::all()->toArray())->setUrlPrefix('admin/')->getTree();
@@ -26,7 +26,7 @@ class AdminMenuController extends AdminBaseController
 
     public function store(Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             $menus = AdminMenu::where(['ismenu' => 1, 'status' => 1])->get();
             // 菜单转换为视图
             $menu_list = \zxf\Extend\Menu::instance()->init($menus->toArray())->setUrlPrefix('admin/')->getTree();
@@ -45,7 +45,7 @@ class AdminMenuController extends AdminBaseController
 
     public function update(AdminMenu $menus, Request $request)
     {
-        if (! $request->ajax()) {
+        if (! is_ajax()) {
             $menuList = AdminMenu::where(['ismenu' => 1, 'status' => 1])->get();
             // 菜单转换为视图
             $menuList = \zxf\Extend\Menu::instance()->init($menuList->toArray())->setUrlPrefix('admin/')->getTree();
