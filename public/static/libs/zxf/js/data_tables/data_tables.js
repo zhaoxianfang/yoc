@@ -946,7 +946,7 @@
                 var url = !myTools.func.isEmpty(config.url_name) ? myTools.func.replaceString(TableTools.getObj().urls[config.url_name], config.url_params) : "javascript:;";
 
                 if(config.event_type === "tips") {
-                    return '<button type="button" class="btn btn-xs btn-'+config.btn_class +'" data-bs-toggle="popover" title="'+config.title+'" data-bs-content="'+config.content+'">\n' +
+                    return '<button type="button" class="btn btn-xs btn-'+config.btn_class +'" data-bs-toggle="popover" data-bs-trigger="focus" title="'+config.title+'" data-bs-content="'+config.content+'">\n' +
                         (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") +'</button>';
                 } else {
                     return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.btn_class +
