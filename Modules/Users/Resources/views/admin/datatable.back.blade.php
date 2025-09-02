@@ -103,7 +103,7 @@
                                 'text':'自定义',
                                 'type':'btn',
                                 'event_type':'callback',
-                                'class_type':'info',
+                                'btn_class':'info',
                                 'data':row,
                                 'callback':function (data) {
                                     console.log('自定义操作',data);
@@ -113,7 +113,7 @@
                                 "title":"编辑"+row.id,
                                 'type':'btn',
                                 'event_type':'layer_open',
-                                'class_type':'info',
+                                'btn_class':'info',
                                 'url_name':'edit_url',
                                 'url_params':"{id:"+row.id+"}",
                                 // 'options':'{"area":["1000px","600px"]}',
@@ -124,14 +124,14 @@
                                 "title":"确认删除"+row.id+'吗？',
                                 'type':'btn',
                                 'event_type':'confirm_open',
-                                'class_type':'danger',
+                                'btn_class':'danger',
                                 'url_name':'del_url',
                                 'url_params':"{id:"+row.id+"}",
                                 'data':row,
                             },{
                                 'text':'跳转',
                                 'type':'url',
-                                'class_type':'link',
+                                'btn_class':'link',
                                 'href':'http://www.baidu.com',
                             },{
                                 'text':'http://www.baidu.com',
@@ -140,7 +140,7 @@
                             },{
                                 'text':'LAB',
                                 'type':'label',
-                                'class_type':'info',
+                                'label_class':'info',
                             },{
                                 'type':'status',
                                 'options':'{"0":{"text":"禁用","class":"danger"},"1":{"text":"正常","class":"plain"}}',

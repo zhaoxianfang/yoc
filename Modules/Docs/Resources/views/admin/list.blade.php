@@ -143,7 +143,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-brand-telegram fs-16", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'jump_url',
-                                'class_type':'link',
+                                'btn_class':'link',
                                 'url_name':'detail_url',
                                 'url_params':"{id:"+row.id+"}",
                             }

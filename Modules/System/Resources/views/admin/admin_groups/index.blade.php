@@ -99,7 +99,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-pencil", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'layer_open',
-                                'class_type':'info',
+                                'btn_class':'info',
                                 'url_name':'edit_url',
                                 'url_params':"{id:"+row.id+"}",
                                 // 'options':'{"area":["1000px","600px"]}',
@@ -111,7 +111,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-trash",
                                 'event_type':'confirm_open',
-                                'class_type':'danger',
+                                'btn_class':'danger',
                                 'url_name':'del_url',
                                 'url_params':"{id:"+row.id+"}",
                                 'data':row,

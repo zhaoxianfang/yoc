@@ -90,7 +90,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                 'text':'table 选中单行/多行后激活按钮',
                 'type':'btn',
                 'event_type':'multi_select', // multi_select: table 选中单行/多行后激活按钮
-                'class_type':'success',
+                'btn_class':'success',
                 'icon':'ti ti-check fs-14',
                 // 有回调函数callback的时候才会返回data参数
                 'callback':function (rows) {
@@ -106,7 +106,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                 'text':'附加：弹窗按钮',
                 'type':'btn',
                 'event_type':'callback',
-                'class_type':'info',
+                'btn_class':'info',
                 'icon':'ti ti-layers-subtract fs-14',
                 'data':{info:'hello world'},
                 // 有回调函数callback的时候才会返回data参数
@@ -118,7 +118,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                 'text':'附加：新页面',
                 'type':'btn',
                 'event_type':'callback',
-                'class_type':'outline btn-primary',
+                'btn_class':'outline btn-primary',
                 'icon':'ti ti-link fs-14',
                 'data':'null',
                 'callback':function (data) {
@@ -207,7 +207,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                             {
                                 'type':'label',
                                 "text": value,
-                                "class_type": value,
+                                "label_class": value,
                             },
                         ]);
                     }
@@ -222,7 +222,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                             {
                                 'type':'icon',
                                 // "text": value,
-                                "class_type": value + ' fs-18',
+                                "icon_class": value + ' fs-18',
                             },
                         ]);
                     }
@@ -306,6 +306,26 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                     "title":"String",
                     "orderable": false, //是否参与排序 Boolean
                     "search_type": "text", //搜索类型 String
+                },
+                {
+                    "data": "mobile",
+                    "title":"Progress",
+                    "width":"140px",
+                    "orderable": false, //是否参与排序 Boolean
+                    "render" : function ( value, type, row, meta ) {
+                        const randomNumber = Math.floor(Math.random() * 99) + 1;
+                        // return '<i class="ti ti-confetti">'+value+'</i>';
+                        return TableTools.createButtonList([
+                            {
+                                "text": randomNumber+"%", // 提示文字
+                                "type": "progress",
+                                "max": "100", // 最大百分比
+                                "min": "0", // 最小百分比
+                                "value": randomNumber,// 显示的百分比
+                                "bg_class": randomData(['','bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-dark', 'bg-secondary']), // 背景色（默认空显示紫色）：bg-success、bg-info、bg-warning、bg-danger、bg-dark、bg-secondary
+                            },
+                        ]);
+                    }
                 },
                 {
                     "data": "mobile",
@@ -416,7 +436,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'type':'btn', // btn、status、label、icon、sub_str、datetime、toggle、image、input、url、ip
                                 "icon": "ti ti-pencil fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'layer_open', //callback:自定义回调操作, layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
-                                'class_type':'info', // bootstrap 按钮的样式类型，不需要带 btn-前缀
+                                'btn_class':'info', // bootstrap 按钮的样式类型，不需要带 btn-前缀
                                 'url_name':'edit_url', // index_url,add_url,edit_url,del_url,detail_url 等在urls里面定义的url名称
                                 'url_params':"{id:"+row.id+"}",// 替换url的参数
                                 // 'options':'{"area":["1000px","600px"]}', // 设置弹出层窗口大小
@@ -427,7 +447,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'type':'btn',
                                 "icon": "ti ti-trash fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'confirm_open',
-                                'class_type':'danger',
+                                'btn_class':'danger',
                                 'url_name':'del_url',
                                 'url_params':"{id:"+row.id+"}",
                             },{
@@ -436,7 +456,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'type':'btn',
                                 "icon": "ti ti-info-circle fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'tips',
-                                'class_type':'link'
+                                'btn_class':'link'
                             }
                             // 跳转必须配置url_name、url_params 参数
                             ,{
@@ -445,7 +465,7 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'type':'btn',
                                 "icon": "ti ti-link fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'jump_url',
-                                'class_type':'link',
+                                'btn_class':'link',
                                 'url_name':'docs_url'
                             }
                         ]);
@@ -560,6 +580,9 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
 
         });
 
-
+        // 随机从数组中获取一个数
+        function randomData(array=[]) {
+            return  array[Math.floor(Math.random() * array.length)];
+        }
     </script>
 @endsection

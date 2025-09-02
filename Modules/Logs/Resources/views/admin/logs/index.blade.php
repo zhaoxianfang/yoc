@@ -152,7 +152,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-info-circle", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'layer_open',
-                                'class_type':'info',
+                                'btn_class':'info',
                                 'url_name':'detail_url',
                                 'url_params':"{id:"+row.id+"}",
                                 'data':row,

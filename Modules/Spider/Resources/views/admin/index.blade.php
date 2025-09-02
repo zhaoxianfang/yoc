@@ -190,7 +190,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-pencil", // fa 按钮小图标 ,例如 ti ti-pencil
                                 'event_type':'layer_open',
-                                'class_type':'info',
+                                'btn_class':'info',
                                 'url_name':'edit_url',
                                 'url_params':"{id:"+row.id+"}",
                                 // 'options':'{"area":["1000px","600px"]}',
@@ -202,7 +202,7 @@
                                 'type':'btn',
                                 "icon": "ti ti-trash",
                                 'event_type':'confirm_open',
-                                'class_type':'danger',
+                                'btn_class':'danger',
                                 'url_name':'del_url',
                                 'url_params':"{id:"+row.id+"}",
                                 'data':row,
@@ -222,7 +222,7 @@
                         'text':'爬虫规则测试',
                         'type':'btn',
                         'event_type':'callback',
-                        'class_type':'info',
+                        'btn_class':'info',
                         'icon':'ti ti-asterisk',
                         'data':'null',
                         'callback':function (data) {
@@ -232,7 +232,7 @@
                         'text':'cron 配置帮助',
                         'type':'btn',
                         'event_type':'callback',
-                        'class_type':'outline btn-primary',
+                        'btn_class':'outline btn-primary',
                         'icon':'ti ti-question-mark',
                         'data':'null',
                         'callback':function (data) {

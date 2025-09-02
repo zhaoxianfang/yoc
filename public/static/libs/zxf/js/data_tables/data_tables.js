@@ -47,7 +47,7 @@
             // {
             //     "text": "操作",
             //     "title": "标题",
-            //     "class_type": "primary",
+            //     "btn_class": "primary",
             //     "type": "btn",
             //     "icon": "", // ti 按钮小图标 ,例如 ti ti-pencil
             //     "event_type": "layer_open", //callback:自定义回调操作, layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
@@ -789,18 +789,18 @@
                 var config = $.extend(true, {}, {
                     "text": "label",
                     "type": "label",
-                    "class_type": "plain",// plain,primary,success,info,warning,danger
+                    "label_class": "plain",// plain,primary,success,info,warning,danger
                 }, opts);
-                return "<span class=\"badge badge-" + config.class_type + "\">" + (config.text ? config.text : "none") + "</span>";
+                return "<span class=\"badge badge-" + config.label_class + "\">" + (config.text ? config.text : "none") + "</span>";
             },
             icon: function (opts = {}) {
                 var config = $.extend(true, {}, {
                     "type": "icon",
                     "text": "", // 「可选」opts配置需要显示的文字
-                    "class_type": "planet",// ti 的字体图标
+                    "icon_class": "planet",// ti 的字体图标
                 }, opts);
                 //渲染 tabler.io 图标
-                return "<i class=\"ti ti-" + config.class_type + "\"></i>&nbsp;" + config.text;
+                return "<i class=\"ti ti-" + config.icon_class + "\"></i>&nbsp;" + config.text;
             },
             sub_str: function (opts = {}) {
                 var config = $.extend(true, {}, {
@@ -873,12 +873,24 @@
             ip: function (opts = {}) {
                 return "<a class=\"btn btn-xs btn-ip badge badge-outline-primary\"><i class=\"ti ti-map-pin fs-14\"></i>&nbsp;" + opts.text + "</a>";
             },
+            // 进度条
+            progress:function (opts = {}) {
+                var config = $.extend(true, {}, {
+                    "text": "25%", // 提示文字
+                    "type": "progress",
+                    "max": "100", // 最大百分比
+                    "min": "0", // 最小百分比
+                    "value": "25",// 显示的百分比
+                    "bg_class": "", // 背景色（默认空显示紫色）：bg-success、bg-info、bg-warning、bg-danger、bg-dark、bg-secondary
+                }, opts);
+                return "<div class=\"progress\" role=\"progressbar\" aria-valuenow=\"" + config.value + "\" aria-valuemin=\"" + config.min + "\" aria-valuemax=\"" + config.max + "\" style=\"background-color: #ddd;\"><div class=\"progress-bar overflow-visible " + config.bg_class + "\" style=\"width: " + config.value + "%\">" + config.text + "</div></div>";
+            },
             // type: default,primary,success,info,warning,danger,link
             btn: function (opts = {}) {
                 var config = $.extend(true, {}, {
                     "text": "操作", // 按钮文字
                     "title": "标题", // 操作标题
-                    "class_type": "primary",// bootstrap 按钮的样式类型，不需要带 btn-前缀，eg:btn-primary
+                    "btn_class": "primary",// bootstrap 按钮的样式类型，不需要带 btn-前缀，eg:btn-primary
                     "type": "btn",
                     "icon": "", // ti 按钮小图标 ,例如 ti ti-pencil
                     "event_type": "layer_open", //callback:自定义回调操作, multi_select:选中表单行/多行后激活按钮,layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
@@ -893,15 +905,16 @@
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, null);
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" disabled class=\"btn btn-xs m-1 disabled btn-" + config.class_type + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" disabled class=\"btn btn-xs m-1 disabled btn-" + config.btn_class + " date-table-multi-select-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 if (config.event_type == "callback" && typeof config.callback == "function") {
                     // 点击自定义回调操作
                     var callback_name = "callback_" + Math.random().toString(36).substr(2) + (new Date()).getTime();
                     TableTools.getObj().addCustomFunc(callback_name, config.callback, config.data);
+
                     // 把 callback_name 传递给按钮,点击后调用 TableTools.getObj().tempFunc[callback_name] 方法
-                    return "<button type=\"button\" class=\"btn btn-xs m-1 btn-" + config.class_type + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
+                    return "<button type=\"button\" class=\"btn btn-xs m-1 btn-" + config.btn_class + " date-table-callback-btn \" data-callback=" + callback_name + ">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
 
                 var ext_class = "";
@@ -931,9 +944,10 @@
                     config.url_name = "";
                 }
                 var url = !myTools.func.isEmpty(config.url_name) ? myTools.func.replaceString(TableTools.getObj().urls[config.url_name], config.url_params) : "javascript:;";
-                return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.class_type +
-                    " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
-            },
+
+                return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.btn_class +
+                        " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
+            }
         },
         // 创建按钮列表
         createButtonList: function (buttons = {}) {
