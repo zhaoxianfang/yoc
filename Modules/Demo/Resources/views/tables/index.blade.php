@@ -452,7 +452,8 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'url_params':"{id:"+row.id+"}",
                             },{
                                 'text':'提示',
-                                "title":"提示内容是：此行ID为["+row.id+']',
+                                "title":'提示',
+                                "content":"提示内容是：此行ID为["+row.id+']',
                                 'type':'btn',
                                 "icon": "ti ti-info-circle fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
                                 'event_type':'tips',

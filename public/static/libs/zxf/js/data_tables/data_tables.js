@@ -169,19 +169,6 @@
                 // $(thead).find('th').eq(0).html( 'Displaying '+(end-start)+' records' );
                 (typeof (TableTools.headerCallback) == "function") && TableTools.headerCallback(thead, data, start, end, display);
             },
-            // 初始化完成回调。
-            "initComplete": function (settings, json) {
-                (typeof (TableTools.initComplete) == "function") && TableTools.initComplete(settings, json);
-
-                // 监听表格宽度的变化,判断是否支持ResizeObserver
-                if ("ResizeObserver" in window) {
-                    TableTools.resizeTable(function (width, height) {
-                        // console.log('表格宽度有变化')
-                        // 调整列
-                        DataTable.tables({visible: true, api: true}).columns.adjust();
-                    });
-                }
-            },
             // 表汇总信息显示回调
             "infoCallback": function (settings, start, end, max, total, pre) {
                 if(typeof (TableTools.infoCallback) == "function"){
@@ -194,6 +181,22 @@
             // 预绘制回调。
             "preDrawCallback": function (settings) {
                 (typeof (TableTools.preDrawCallback) == "function") && TableTools.preDrawCallback(settings);
+            },
+            // 初始化完成回调。
+            "initComplete": function (settings, json) {
+                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(e => {
+                    bootstrap && (new bootstrap.Popover(e));
+                });
+                // 监听表格宽度的变化,判断是否支持ResizeObserver
+                if ("ResizeObserver" in window) {
+                    TableTools.resizeTable(function (width, height) {
+                        // console.log('表格宽度有变化')
+                        // 调整列
+                        DataTable.tables({visible: true, api: true}).columns.adjust();
+                    });
+                }
+                (typeof (TableTools.initComplete) == "function") && TableTools.initComplete(settings, json);
+
             },
             // 定义应在何处以及如何加载已保存状态的回调。
             // "stateLoadCallback": function( settings, callback ) {
@@ -928,9 +931,6 @@
                     case "confirm_open":
                         ext_class = "date-table-confirm-btn";
                         break;
-                    case "tips":
-                        ext_class = "date-table-tips-btn";
-                        break;
                 }
 
                 // 如果 config.url_params 为字符串,则转为对象
@@ -945,8 +945,13 @@
                 }
                 var url = !myTools.func.isEmpty(config.url_name) ? myTools.func.replaceString(TableTools.getObj().urls[config.url_name], config.url_params) : "javascript:;";
 
-                return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.btn_class +
+                if(config.event_type === "tips") {
+                    return '<button type="button" class="btn btn-xs btn-'+config.btn_class +'" data-bs-toggle="popover" title="'+config.title+'" data-bs-content="'+config.content+'">\n' +
+                        (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") +'</button>';
+                } else {
+                    return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.btn_class +
                         " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
+                }
             }
         },
         // 创建按钮列表
@@ -992,7 +997,6 @@
                 // 先解绑点击事件
                 $(".date-table-open-iframe-btn").off("click");
                 $(".date-table-confirm-btn").off("click");
-                $(".date-table-tips-btn").off("click");
                 $(".date-table-jump-url-btn").off("click");
                 $(".date-table-multi-select-btn").off("click");
                 $(".date-table-callback-btn").off("click");
@@ -1091,24 +1095,6 @@
                         offset: [top, left],
                         buttonsAlign: 'right',
                         showActionIcons:false
-                    }).open();
-                });
-                $(".date-table-tips-btn").on("click", function (e) {
-                    e.preventDefault();
-                    var title = $(this).data("title") || "提示信息";
-                    var top = $(this).offset().top - $(window).scrollTop();
-                    var left = $(this).offset().left - $(window).scrollLeft() - 260;
-                    if (top + 154 > $(window).height()) {
-                        top = top - 154;
-                    }
-                    if ($(window).width() < 480) {
-                        top = left = undefined;
-                    }
-                    new Modal({
-                        title: '',
-                        content: title,
-                        theme: 'dark',
-                        offset: [top, left]
                     }).open();
                 });
             }
