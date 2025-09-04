@@ -45,71 +45,82 @@
 
 <body>
 
-<div class="auth-box overflow-hidden align-items-center d-flex">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xxl-4 col-md-6 col-sm-8">
+<div class="auth-box p-0 w-100">
+    <div class="row w-100 g-0">
+        <div class="col">
+            <div class="h-100 position-relative card-side-img rounded-0 overflow-hidden">
+                <div class="p-4 card-img-overlay auth-overlay d-flex align-items-end justify-content-center">
 
-                <div class="auth-brand text-center mb-4">
-                    <a href="javascript:;" class="logo-dark">
-                        <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="dark logo" height="32">
-                    </a>
-                    <a href="javascript:;" class="logo-light">
-                        <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="logo" height="32">
-                    </a>
-                    <h4 class="fw-bold mt-3">后台登录 | {{ config('app.name','威四方') }}!</h4>
-                    <p class="text-muted w-lg-75 mx-auto">请输入账号和密码登录系统.</p>
                 </div>
+            </div>
+        </div>
+        <div class="col-md-auto">
+            <!--Auth Box content -->
+            <div class="card auth-box-form border-0 mb-0">
+                <div class="card-body min-vh-100 d-flex flex-column justify-content-center">
+                    <div class="auth-brand mb-0 text-center">
+                        <a href="javascript:;" class="logo-dark">
+                            <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="dark logo" height="32">
+                        </a>
+                        <a href="javascript:;" class="logo-light">
+                            <img src="{{ asset('static/images/logo/logo_long.png') }}" alt="logo" height="32">
+                        </a>
+                    </div>
 
-                <div class="card p-4 rounded-4">
-                    <form action="" method="post">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">用户名 <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="text" name="username" class="form-control" id="username" placeholder="手机号|邮箱号" required>
+                    <div class="mt-auto text-center">
+                        <h4 class="fw-bold">登录 | {{ config('app.name','威四方') }}!</h4>
+                        <p class="text-muted auth-sub-text mx-auto">请输入账号和密码登录系统.</p>
+
+
+                        <form class="mt-4">
+
+                            <div class="mb-3 text-start">
+                                <label for="username" class="form-label">用户名 <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" name="username" class="form-control" id="username" placeholder="手机号|邮箱号" required>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">密码 <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                            <div class="mb-3 text-start">
+                                <label for="password" class="form-label">密码 <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                                </div>
                             </div>
-                        </div>
 
-                        @hasSection('use_TnCode')
-                        <div class="mb-3">
-                            <a class="btn btn-primary block btn-outline full-width w-100 m-b text-black tncode">去验证</a>
-                            <input type="hidden" class="form-control" name="tn_r" value="" id="tn_code_input" autocomplete="off" />
-                        </div>
-                        @endif
+                            @hasSection('use_TnCode')
+                                <div class="mb-3 text-start">
+                                    <a class="btn btn-primary block btn-outline full-width w-100 m-b text-black tncode">去验证</a>
+                                    <input type="hidden" class="form-control" name="tn_r" value="" id="tn_code_input" autocomplete="off" />
+                                </div>
+                            @endif
 
-                        <div class="hr-line-dashed"></div>
+                            <div class="hr-line-dashed"></div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input form-check-input-light fs-14" name="remember" type="checkbox" id="remember">
-                                <label class="form-check-label" for="remember">保持登录</label>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input-light fs-14" name="remember" type="checkbox" id="remember">
+                                    <label class="form-check-label" for="remember">保持登录</label>
+                                </div>
+                                <a href="javascript:;" class="text-decoration-underline link-offset-3 text-muted">忘记密码?</a>
                             </div>
-                            <a href="{{ route('admin.auth.forget_password') }}" class="text-decoration-underline link-offset-3 text-muted">忘记密码?</a>
-                        </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary fw-semibold py-2">登录</button>
-                        </div>
-                    </form>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary fw-semibold py-2">登录</button>
+                            </div>
+                        </form>
+                    </div>
 
                     <p class="text-muted text-center mt-4 mb-0">
-                        没有账号? <a href="javascript:;" id="create_access" class="text-decoration-underline link-offset-3 fw-semibold">创建账号</a>
+                        没有账号? <a href="javascript:;" class="text-decoration-underline link-offset-3 fw-semibold">去注册</a>
+                    </p>
+
+                    <p class="text-center text-muted mt-auto mb-0">
+                        © 2023~<script>document.write(new Date().getFullYear())</script> {{ config('app.name','威四方') }} 版权所有.
                     </p>
                 </div>
-
-                @yield('content')
-
-                <p class="text-center text-muted mt-4 mb-0">
-                    © 2023~<script>document.write(new Date().getFullYear())</script> {{ config('app.name','威四方') }} 版权所有.
-                </p>
             </div>
+            <!-- End Auth Box Content -->
         </div>
     </div>
 </div>
