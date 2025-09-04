@@ -1,6 +1,6 @@
 @extends('errors/base')
 
-@section('code', '200')
+@section('code', !empty($code)?$code:'200')
 
 @section('content')
     <div class="message-box rect error-tips">

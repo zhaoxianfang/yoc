@@ -9,21 +9,14 @@ use Modules\Home\Http\Controllers\HomeBaseController;
 
 class ArticleController extends HomeBaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Renderable
-     */
-    public function index(Request $request)
-    {
-        return view('home::index');
-    }
 
     /**
-     * Show the specified resource.
+     * 显示文章详情
      */
     public function show(Article $article)
     {
+        abort_if(! show_news_module(), 423, '该内容暂不可见');
+
         $article->increment('read'); // 浏览次数+1
         $article->load(['classify.parent', 'user']);
 

@@ -1,7 +1,7 @@
 @extends('home::layouts.home_layout')
 
 @section('content')
-    @if (!empty($show_news_module) || is_crawler())
+    @if (show_news_module())
         @include('home::layouts.home_news')
     @endif
 

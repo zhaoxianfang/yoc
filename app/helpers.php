@@ -419,3 +419,25 @@ if (! function_exists('is_ajax')) {
         return $request->ajax() || $request->pjax() || $request->is('api/*') || $request->expectsJson();
     }
 }
+
+if (! function_exists('show_news_module')) {
+    /**
+     * 是否展示新闻模块
+     */
+    function show_news_module(): bool
+    {
+        // 是否展示新闻模块 【show_news_module 这个配置放在最前面！！！】
+        $showNews = setting('common.show_news_module');
+        $isCrawler = is_crawler(); // 是否是爬虫
+
+        if (is_null($showNews)) {
+            $show = true;
+        } elseif ($isCrawler) {
+            $show = in_array($showNews, [SystemConfig::SHOW_NEW_MODULE_ALL, SystemConfig::SHOW_NEW_MODULE_ONLY_SPIDER]);
+        } else {
+            $show = in_array($showNews, [SystemConfig::SHOW_NEW_MODULE_ALL, SystemConfig::SHOW_NEW_MODULE_ONLY_USER]);
+        }
+
+        return $show;
+    }
+}

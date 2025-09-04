@@ -16,6 +16,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
+        .container {max-width: 100%; width: 100%; margin: 0; padding: 0; background: #fff; }
+        /* 导航栏样式 */
+        .navbar{height:33px;display:flex;align-items:center;padding:0 24px;max-width:1200px;margin:0 auto;}.logo-container{display:flex;align-items:center;gap:6px;margin-right:4px;}.logo{width:32px;height:32px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;}.system-name{font-size:16px;font-weight:500;color:#6c757d;white-space:nowrap;}.nav-menu{display:flex;list-style:none;gap:2px;flex:1;padding: 0;margin: 0;}.nav-item a{color:#6c757d;text-decoration:none;padding:4px 6px;font-weight:500;font-size:14px;transition:all 0.2s ease;display:block;}.user-container{display:flex;align-items:center;gap:6px;}.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:15px;}.username{font-size:15px;color:#6c757d;font-weight:500;}
+    </style>
+    <style>
         /* 提示框样式 */
         .message-box{padding:20px;position:relative;text-align:center;font-size:24px;color:#196aa8;}@keyframes flash{0%{opacity:1;}50%{opacity:0;}100%{opacity:1;}}.rect{background:linear-gradient(to left,#196aa8,#196aa8) left top no-repeat,linear-gradient(to bottom,#196aa8,#196aa8) left top no-repeat,linear-gradient(to left,#196aa8,#196aa8) right top no-repeat,linear-gradient(to bottom,#196aa8,#196aa8) right top no-repeat,linear-gradient(to left,#196aa8,#196aa8) left bottom no-repeat,linear-gradient(to bottom,#196aa8,#196aa8) left bottom no-repeat,linear-gradient(to left,#196aa8,#196AA8) right bottom no-repeat,linear-gradient(to left,#196aa8,#196aa8) right bottom no-repeat;background-size:2px 15px,20px 2px,2px 15px,20px 2px;}#main:has(.error-tips){padding:4px!important;}
     </style>
@@ -26,6 +31,24 @@
 </head>
 
 <body>
+<div class="container">
+    <nav class="navbar">
+        <div class="logo-container">
+            <div class="logo">W</div>
+            <div class="system-name">{{config('app.name')}}</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/">首页</a></li>
+            <li class="nav-item"><a href="/docs">在线文档</a></li>
+        </ul>
+
+        <div class="user-container">
+            <div class="user-avatar">U</div>
+            <div class="username">用户</div>
+        </div>
+    </nav>
+</div>
     <!-- 操作状态提示 -->
     <div class="tip-box">
         <!-- 提示:info、warning、error、success -->

@@ -7,8 +7,12 @@ use Modules\Home\Http\Controllers\HomeBaseController;
 
 class ArticleClassifyController extends HomeBaseController
 {
+    /**
+     * 显示文章分类列表
+     */
     public function show(ArticleClassifies $classify)
     {
+        abort_if(! show_news_module(), 423, '该内容暂不可见');
 
         $articles = $classify->articles()
             ->select(['id', 'user_id', 'classify_id', 'title', 'summary', 'content', 'author', 'publish_time', 'sort', 'type', 'read', 'like', 'spider', 'source_type', 'source_url', 'created_at', 'updated_at', 'status'])

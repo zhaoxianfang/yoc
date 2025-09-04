@@ -8,6 +8,19 @@ class SystemConfig extends Model
 {
     protected $guarded = ['id'];
 
+    // 前台是否展示新闻模块
+    public const SHOW_NEW_MODULE_CLOSE = 'close';
+    public const SHOW_NEW_MODULE_ONLY_SPIDER = 'only_spider';
+    public const SHOW_NEW_MODULE_ONLY_USER = 'only_user';
+    public const SHOW_NEW_MODULE_ALL = 'all';
+
+    public static array $showNewModuleMaps = [
+        self::SHOW_NEW_MODULE_CLOSE => '不展示(关闭)',
+        self::SHOW_NEW_MODULE_ONLY_SPIDER => '仅向爬虫展示(用户不可见)',
+        self::SHOW_NEW_MODULE_ONLY_USER => '仅向访问者展示(爬虫不可见)',
+        self::SHOW_NEW_MODULE_ALL => '全部展示(访问者和爬虫都可见)',
+    ];
+
     /**
      * 类型转换
      *

@@ -1,3 +1,5 @@
+@if (show_news_module())
+
 <div class="row">
     <div class="col-lg-4">
         <div class="card">
@@ -72,3 +74,4 @@
     @endforeach
 
 </div>
+@endif
