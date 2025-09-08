@@ -1032,7 +1032,7 @@
                 config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
 
-            return myTools.http.request(method,action,formData,config).then(
+            return myTools.http.request(action,formData,method,config).then(
                 data => {
                     //表单提交后的操作
                     if (typeof (form_after) === "function") {
@@ -2605,7 +2605,7 @@
          * @param {Object} config 请求配置
          * @returns {Promise} 返回Promise对象
          */
-        request: function(method, url, data, config={}) {
+        request: function(url, data, method='POST', config={}) {
             // 合并配置
             var options = Object.assign({}, this.defaults, config);
 
@@ -2815,7 +2815,7 @@
     // 为HttpRequest添加快捷方法(GET, POST, PUT, DELETE等)
     ['get', 'post', 'put', 'delete', 'patch', 'head'].forEach(function(method) {
         HttpRequest[method] = function(url, data, config) {
-            return this.request(method, url, data, config);
+            return this.request(url, data, method, config);
         }.bind(HttpRequest);
     });
 

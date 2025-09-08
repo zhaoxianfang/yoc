@@ -180,11 +180,11 @@
                     });
                     return false;
                 }
-                myTools.http.request('POST','/tools/string/timezone',{
+                myTools.http.request('/tools/string/timezone',{
                     form_time_zone:form_time_zone,
                     from_time_zone_date_time:from_time_zone_date_time,
                     to_time_zone:to_time_zone
-                }).then(res => {
+                },'POST').then(res => {
                         $('#change_timezone_to_date_time').val(res.data.to_date_time || '');
                     }
                 ).catch(error => {
