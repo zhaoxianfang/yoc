@@ -90,7 +90,7 @@
 
                             @hasSection('use_TnCode')
                                 <div class="mb-3 text-start">
-                                    <a class="btn btn-primary block btn-outline full-width w-100 m-b text-black tncode">去验证</a>
+                                    <a class="btn block btn-outline-primary full-width w-100 m-b text-black tncode">去验证</a>
                                     <input type="hidden" class="form-control" name="tn_r" value="" id="tn_code_input" autocomplete="off" />
                                 </div>
                             @endif
@@ -152,6 +152,7 @@
             // console.log('验证通过')
         }).onFail(function () {
             //验证失败
+            $TN.resetBtn();
             console.log("验证失败");
         });
     </script>
@@ -170,6 +171,7 @@
                 window.location.href = res.url;
             },2000);
         }else{
+            $TN.resetBtn();
             myTools.msg(res.message || '登录失败!');
         }
     }

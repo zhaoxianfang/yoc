@@ -93,7 +93,7 @@ class DocsAuthController extends DocsBaseController
     {
         // 判断来源url
         $refererLocal = source_local_website('url');
-        $url = route('docs.auth.callback', ['source_url' => urlencode($refererLocal ?: route('docs.home'))]);
+        $url = route('docs.auth.callback', ['jump_url' => urlencode($refererLocal ?: route('docs.home'))]);
 
         return to_route('callback.tencent.login', ['callback_url' => urlencode($url)], 302);
     }
@@ -102,7 +102,7 @@ class DocsAuthController extends DocsBaseController
     {
         // 判断来源url
         $refererLocal = source_local_website('url');
-        $url = route('docs.auth.callback', ['source_url' => urlencode($refererLocal ?: route('docs.home'))]);
+        $url = route('docs.auth.callback', ['jump_url' => urlencode($refererLocal ?: route('docs.home'))]);
 
         return to_route('callback.weibo.login', ['callback_url' => urlencode($url)], 302);
     }
@@ -116,7 +116,7 @@ class DocsAuthController extends DocsBaseController
             return $this->tip_error('登录失败');
         }
 
-        $jump_url = $request->input('source_url', '');
+        $jump_url = $request->input('jump_url', '');
         $to = $jump_url ? urldecode($jump_url) : route('docs.home');
 
         // return redirect()->away($to); // 可跳转外部地址

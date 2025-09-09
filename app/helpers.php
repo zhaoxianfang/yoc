@@ -8,14 +8,14 @@ if (! function_exists('source_local_website')) {
     /**
      * 判断跳转url的上一个地址（来源地址）是不是从本站跳转过来的
      *
-     * @param  string  $returnType  返回类型，默认返回全部，可选值：
+     * @param  string  $returnType  返回类型，默认返回全部信息，可选值：
      *                              status: 返回来源地址是否为本站地址
      *                              url:如果来源地址是本站地址，返回来源地址URL，否则返回 ''
      *                              uri:如果来源地址是本站地址，返回来源地址URI，否则返回 ''
      *                              prefix:如果来源地址是本站地址，返回来源地址URI的前缀地址，否则返回 ''
      *                              all: 返回[是否来源本站,来源URL]
      */
-    function source_local_website(string $returnType = ''): bool|array|string|null
+    function source_local_website(string $returnType = 'all'): bool|array|string|null
     {
         // 获取上一个 地址
         $sessionUrl = session()->previousUrl();
@@ -43,7 +43,12 @@ if (! function_exists('source_local_website')) {
             'url' => ! $isLocal ? '' : $referer  , // 当来源地址是本站时，返回来源地址，否则返回空
             'uri' => ! $isLocal ? '' : $uri ?? ''  , // 当来源地址是本站时，返回来源uri地址，否则返回空
             'prefix' => ! $isLocal ? '' : $uriPrefix ?? ''  , // 当来源地址是本站时，返回来源uri地址，否则返回空
-            default => [(bool) $isLocal, $referer], // 默认返回 [来源是否为本站,本站来源url]
+            default => [ // 默认返回 [来源是否为本站,本站来源url]
+                'local' => (bool) $isLocal,
+                'url' => ! $isLocal ? '' : $referer,
+                'uri' => ! $isLocal ? '' : $uri ?? '',
+                'prefix' => ! $isLocal ? '' : $uriPrefix ?? '',
+            ],
         };
     }
 }

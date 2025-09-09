@@ -111,7 +111,7 @@ class AdminAuthController extends AdminBaseController
     {
         // 判断来源url
         $refererLocal = source_local_website('url');
-        $url = url('admin/auth/callback?source_url='.urlencode($refererLocal ?: route('docs.home')));
+        $url = url('admin/auth/callback?jump_url='.urlencode($refererLocal ?: route('docs.home')));
 
         return to_route('callback.tencent.login', ['callback_url' => urlencode($url)], 302);
     }
@@ -139,7 +139,7 @@ class AdminAuthController extends AdminBaseController
             return to_route('admin.auth.login');
         }
 
-        $jump_url = request()->input('source_url', '');
+        $jump_url = request()->input('jump_url', '');
         $to = $jump_url ? urldecode($jump_url) : route('admin.home');
 
         // return redirect()->away($to); // 可跳转外部地址

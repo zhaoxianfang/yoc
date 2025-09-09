@@ -295,7 +295,7 @@
                                         tempJson = join_callback;
                                     }
                                 }else{
-                                    console.error('验证规则执行错误:remote');
+                                    // console.error('验证规则执行错误:remote');
                                     return false;
                                 }
                             }
@@ -809,7 +809,7 @@
                     form.submit();
                 }
             } catch (error) {
-                console.error('表单提交错误:', error);
+                // console.error('表单提交错误:', error);
                 this.showFormError(form, '表单提交过程中出错，请重试');
             } finally {
                 // 恢复按钮状态
@@ -1044,11 +1044,11 @@
             ).catch(
                 error => {
                     //表单提交后的操作
+                    Modal && Modal.error(error.message, {
+                        position: 'top-right',
+                        timeout: 5000
+                    });
                     if (typeof (form_after) === "function") {
-                        Modal && Modal.error('错误:'+error.message, {
-                            position: 'top-right',
-                            timeout: 5000
-                        });
                         form_after(error);
                     }else{
                         console.log('可以定义一个form_after(resp)方法接管处理AJAX数据',error);
