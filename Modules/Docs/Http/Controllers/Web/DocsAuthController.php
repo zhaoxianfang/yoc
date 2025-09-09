@@ -46,7 +46,8 @@ class DocsAuthController extends DocsBaseController
             return $this->backWithError('账号或者密码错误');
         }
 
-        $jump = url()->previous(); // 成功后跳转到上一个页面地址
+        $jump_url = $request->get('jump_url', '');
+        $jump = $jump_url ? urldecode($jump_url) : url()->previous(); // 成功后跳转到的地址
 
         return redirect($jump)->with('success', '登录成功'); // 成功后跳转到文档设置页面地址
 

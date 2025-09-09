@@ -60,7 +60,8 @@ class AdminAuthController extends AdminBaseController
             ], 401);
         }
 
-        $jump = route('admin.home'); // 成功后跳转到的地址
+        $jump_url = $request->get('jump_url', '');
+        $jump = $jump_url ? urldecode($jump_url) : route('admin.home'); // 成功后跳转到的地址
 
         return $this->json([
             'code' => 200,
