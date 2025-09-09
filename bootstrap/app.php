@@ -66,8 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($code == 401) {
                 return to_route('login');
             }
-            dd($code, $message, $exception);
-        }, [401, 422]);
+        }, [401]);
     })
     ->withSchedule(function (Schedule $schedule) {
         // 自定任务调度
