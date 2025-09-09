@@ -136,7 +136,6 @@
 
 <!-- App js -->
 <script src="{{ asset('static/inspinia/v4.0/assets/js/app.min.js') }}"></script>
-<script src="{{ asset('static/libs/zxf/js/tools.min.js') }}" type='text/javascript'></script>
 
 @include('system::layouts.js_custom_plugins')
 

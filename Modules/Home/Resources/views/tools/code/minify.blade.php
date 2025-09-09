@@ -68,7 +68,6 @@
     <script>
         function form_after(resp) {
             console.log(resp);
-            console.error('操作失败:', resp.message);
             // 处理结果预览
             $('#resp_textarea').val(resp.min_str);
             $('#minify_tips').text('压缩前大小: '+resp.old_len+'; 压缩后大小: '+resp.new_len+'; 压缩比: '+resp.minify_ratio);

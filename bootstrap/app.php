@@ -62,11 +62,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 接入异常处理类
-        \zxf\Laravel\Trace\CustomExceptionHandler::handle($exceptions, function ($code, $message) {
+        \zxf\Laravel\Trace\CustomExceptionHandler::handle($exceptions, function ($code, $message, $exception) {
             if ($code == 401) {
                 return to_route('login');
             }
-        }, [401]);
+            dd($code, $message, $exception);
+        }, [401, 422]);
     })
     ->withSchedule(function (Schedule $schedule) {
         // 自定任务调度

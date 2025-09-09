@@ -277,6 +277,8 @@ __('hello');
 ```
 chmod -R 775 /www/
 chown -R nobody.nobody /www/
+sudo chmod -R 777 /www/yoc_cn/storage/
+sudo chmod -R 777 /www/yoc_cn/bootstrap/cache/
 ```
 
 
