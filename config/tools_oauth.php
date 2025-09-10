@@ -16,6 +16,11 @@ return [
             'is_unioid' => true, // 是否已申请 开通unioid
         ],
         'mobile' => [
+            'app_id' => env('OAUTH_QQ_MOBILE_APP_ID', ''),
+            'app_secret' => env('OAUTH_QQ_MOBILE_APP_KEY', ''),
+            'callback' => env('OAUTH_QQ_MOBILE_PACK_NAME', ''),
+            'scope' => 'get_user_info',
+            'is_unioid' => true, // 是否已申请 开通unioid
         ],
     ],
     // 新浪微博
