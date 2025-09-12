@@ -866,12 +866,20 @@
                 }, opts);
                 return "<input type=\"" + config.event_type + "\" placeholder='' class=\"form-control\" value=\"" + (config.text ? config.text : "") + "\">";
             },
+            // 复制文本
+            copy_text: function (opts = {}) {
+                var config = $.extend(true, {}, {
+                    "text": "复制文本",
+                    "type": "copy_text",
+                }, opts);
+                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><button class=\"btn btn-default btn-sm copy-data-value\" data-copy=\"" + config.text + "\" style='height: 32px;border-radius: 0;'><i class=\"ti ti-copy fs-lg\"></i></button></span></div>";
+            },
             url: function (opts = {}) {
                 var config = $.extend(true, {}, {
                     "text": "链接",
                     "type": "url",
                 }, opts);
-                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\" style='height: 32px;border-radius: 0;'><i class=\"ti ti-link fs-16\"></i></a></span></div>";
+                return "<div class=\"input-group input-group-sm\" style=\"width:250px;margin:0 auto;\"><input type=\"text\" class=\"form-control input-sm\" value=\"" + config.text + "\"><span class=\"input-group-btn input-group-sm\"><a href=\"" + config.text + "\" target=\"_blank\" class=\"btn btn-default btn-sm\" style='height: 32px;border-radius: 0;'><i class=\"ti ti-link fs-lg\"></i></a></span></div>";
             },
             ip: function (opts = {}) {
                 return "<a class=\"btn btn-xs btn-ip badge badge-outline-primary\"><i class=\"ti ti-map-pin fs-14\"></i>&nbsp;" + opts.text + "</a>";
@@ -1096,6 +1104,39 @@
                         buttonsAlign: 'right',
                         showActionIcons:false
                     }).open();
+                });
+                // 复制 data-copy
+                $(".copy-data-value").on("click", function (e) {
+                    e.preventDefault();
+                    var text = $(this).data("copy");
+
+                    if (navigator.clipboard) {
+                        // 使用 Clipboard API
+                        navigator.clipboard.writeText(text)
+                            .then(() => {
+                                console.log("复制成功");
+                                Modal && Modal.success('复制成功', {position: 'top-right',timeout: 2500});
+                            })
+                            .catch((err) => {
+                                console.error("无法复制文本: ", err);
+                                Modal && Modal.error('无法复制文本', {position: 'top-right',timeout: 2500});
+                            });
+                    } else {
+                        // 降级到 execCommand 方法
+                        const textarea = document.createElement("textarea");
+                        textarea.value = text;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand("copy");
+                            console.log("复制成功");
+                            Modal && Modal.success('复制成功', {position: 'top-right',timeout: 2500});
+                        } catch (err) {
+                            console.error("无法复制文本: ", err);
+                            Modal && Modal.error('无法复制文本', {position: 'top-right',timeout: 2500});
+                        }
+                        document.body.removeChild(textarea);
+                    }
                 });
             }
         }

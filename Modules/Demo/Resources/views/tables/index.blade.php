@@ -258,6 +258,21 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                     }
                 },
                 {
+                    "data": "copy_text",
+                    "title":"Copy",
+                    "orderable": false, //是否参与排序 Boolean
+                    // "search_type": "text", //搜索类型 String
+                    "width": "180px",
+                    "render" : function ( data, type, row, meta ) {
+                        return TableTools.createButtonList([
+                            {
+                                'text':data,
+                                'type':'copy_text',
+                            },
+                        ]);
+                    }
+                },
+                {
                     "data": "user.cover",
                     "title":"Url",
                     "orderable": false, //是否参与排序 Boolean

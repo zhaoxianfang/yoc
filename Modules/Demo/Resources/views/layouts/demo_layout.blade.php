@@ -75,7 +75,7 @@
 
 </div>
 <!-- END wrapper -->
-@include('demo::layouts.theme_setting')
+@include('admin::layouts.theme_setting')
 
 @section('page_js_before')
     @hasSection('page_js_before')

@@ -30,6 +30,7 @@ class DataTables extends DemoBaseController
                 // ti 的icon图标
                 'icon' => 'wifi',
                 'input' => 'https://weifang.com',
+                'copy_text' => 'e4A7Fc98z120XYz776abc90MNZ',
                 'ip' => '192.168.1.1',
                 'nickname' => 'admin',
                 'mobile' => '18345678901',
@@ -50,6 +51,7 @@ class DataTables extends DemoBaseController
                 'label' => 'outline-success',
                 'icon' => 'ambulance',
                 'input' => 'https://weifang.com/docs',
+                'copy_text' => 'XY91kLpB42Ga98WxRTzEe55n',
                 'ip' => '192.168.1.2',
                 'nickname' => 'admin',
                 'mobile' => '18345678901',
@@ -70,6 +72,7 @@ class DataTables extends DemoBaseController
                 'label' => 'outline-primary',
                 'icon' => 'analyze',
                 'input' => 'https://weifang.com/docs/2',
+                'copy_text' => 'ZZ99xC8K23Fm10TyPLqZa17d',
                 'ip' => '192.168.1.3',
                 'nickname' => 'admin',
                 'mobile' => '18345678901',

@@ -275,7 +275,7 @@ __('hello');
 ## 13. 设置文件夹权限
 
 ```
-chmod -R 775 /www/
+chmod -R 775 /www/yoc_cn/
 chown -R nobody.nobody /www/
 sudo chmod -R 777 /www/yoc_cn/storage/
 sudo chmod -R 777 /www/yoc_cn/bootstrap/cache/

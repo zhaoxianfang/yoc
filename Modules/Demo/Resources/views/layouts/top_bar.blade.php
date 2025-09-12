@@ -42,113 +42,8 @@
             </div>
 
             <!-- Mega Menu Dropdown -->
-            <div class="topbar-item d-none d-md-flex">
-                <div class="dropdown">
-                    <button class="topbar-link btn fw-medium btn-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,16" type="button" aria-haspopup="false" aria-expanded="false">
-                        Boom Boom! 😍<i class="ti ti-chevron-down ms-1"></i>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-xxl p-0">
-                        <div class="h-100" style="max-height: 380px;" data-simplebar>
-                            <div class="row g-0">
-                                <div class="col-12">
-                                    <div class="p-3 text-center bg-light bg-opacity-50">
-                                        <h4 class="mb-0 fs-lg fw-semibold">Welcome to <span class="text-primary">INSPINIA+</span> Admin Theme.</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <div class="p-3">
-                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">Dashboard & Analytics</h5>
-                                        <ul class="list-unstyled megamenu-list">
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Sales Dashboard</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Marketing Dashboard</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Finance Overview</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">User Analytics</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Traffic Insights</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Performance Metrics</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Conversion Tracking</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3">
-                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">Project Management</h5>
-                                        <ul class="list-unstyled megamenu-list">
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Task Overview</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Kanban Board</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Gantt Chart</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Team Collaboration</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Project Milestones</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Workflow Automation</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Timesheets & Reports</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3">
-                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">User Management</h5>
-                                        <ul class="list-unstyled megamenu-list">
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">User Profiles</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Access Control</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Role Permissions</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Activity Logs</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Security Settings</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">User Groups</a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item">Authentication & Login</a>
-                                            </li>
-                                        </ul>
-                                    </div> <!-- end dropdown-->
-                                </div> <!-- end col-->
-                            </div> <!-- end row-->
-
-                        </div> <!-- end .h-100-->
-                    </div> <!-- .dropdown-menu-->
-                </div> <!-- .dropdown-->
-            </div> <!-- end topbar-item -->
+            @include('admin::layouts.mega_menu')
+            <!-- end topbar-item -->
         </div> <!-- .d-flex-->
 
         <div class="d-flex align-items-center gap-2">
@@ -193,7 +88,7 @@
             </div> <!-- end topbar item-->
 
             <!-- Messages Dropdown -->
-
+            @include('users::layouts.top_nav.nav_messages')
             <!-- Notification Dropdown -->
 
             <!-- Button Trigger Customizer Offcanvas -->
@@ -222,60 +117,7 @@
                         </div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <!-- Header -->
-                        <div class="dropdown-header noti-title">
-                            <h6 class="text-overflow m-0">Welcome back!</h6>
-                        </div>
-
-                        <!-- My Profile -->
-                        <a href="pages-profile.html" class="dropdown-item">
-                            <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Profile</span>
-                        </a>
-
-                        <!-- Notifications -->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="ti ti-bell-ringing me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Notifications</span>
-                        </a>
-
-                        <!-- Wallet -->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="ti ti-credit-card me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Balance: <span class="fw-semibold">$985.25</span></span>
-                        </a>
-
-                        <!-- Settings -->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="ti ti-settings-2 me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Account Settings</span>
-                        </a>
-
-                        <!-- Support -->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="ti ti-headset me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Support Center</span>
-                        </a>
-
-                        <!-- Divider -->
-                        <div class="dropdown-divider"></div>
-                        <a href="{{ url("/admin/system/clear/setting") }}" class="dropdown-item ajax_request">
-                            <i class="ti ti-lock me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">更新缓存</span>
-                        </a>
-
-                        <div class="dropdown-divider"></div>
-                        <!-- Lock -->
-                        <a href="auth-lock-screen.html" class="dropdown-item">
-                            <i class="ti ti-lock me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Lock Screen</span>
-                        </a>
-
-                        <!-- Logout -->
-                        <a href="{{ route('admin.auth.logout') }}" class="dropdown-item text-danger fw-semibold">
-                            <i class="ti ti-logout-2 me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">退出</span>
-                        </a>
+                        @include('demo::layouts.user_card')
                     </div>
 
                 </div>

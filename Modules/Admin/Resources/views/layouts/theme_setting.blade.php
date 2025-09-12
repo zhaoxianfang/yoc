@@ -2,8 +2,8 @@
 <div class="offcanvas offcanvas-end overflow-hidden" tabindex="-1" id="theme-settings-offcanvas">
     <div class="d-flex justify-content-between text-bg-primary gap-2 p-3" style="background-image: url({{asset('static/inspinia/v4.0/assets/images/user-bg-pattern.png')}});">
         <div>
-            <h5 class="mb-1 fw-bold text-white text-uppercase">Admin Customizer</h5>
-            <p class="text-white text-opacity-75 fst-italic fw-medium mb-0">Easily configure layout, styles, and preferences for your admin interface.</p>
+            <h5 class="mb-1 fw-bold text-white text-uppercase">主题配置</h5>
+            <p class="text-white text-opacity-75 fst-italic fw-medium mb-0">轻松配置管理界面的布局、样式和首选项。</p>
         </div>
 
         <div class="flex-grow-0">
@@ -13,7 +13,7 @@
 
     <div class="offcanvas-body p-0 h-100" data-simplebar>
         <div class="p-3 border-bottom border-dashed">
-            <h5 class="mb-3 fw-bold">Select Theme</h5>
+            <h5 class="mb-3 fw-bold">选择主题</h5>
             <div class="row g-3">
                 <div class="col-6">
                     <div class="form-check card-radio">
@@ -74,21 +74,11 @@
                     </div>
                     <h5 class="text-center text-muted mt-2 mb-0">Minimal</h5>
                 </div>
-
-                <div class="col-6">
-                    <div class="form-check card-radio pe-none">
-                        <input class="form-check-input" disabled type="radio" name="data-skin" id="demo-skin-galaxy" value="galaxy">
-                        <label class="form-check-label p-0 w-100" for="demo-skin-galaxy">
-                            <img src="{{ asset('static/inspinia/v4.0/assets/images/layouts/themes/theme-galaxy.png') }}" alt="layout-img" class="img-fluid">
-                        </label>
-                    </div>
-                    <h5 class="text-center text-muted mt-2 mb-0">Galaxy</h5>
-                </div>
             </div>
         </div>
 
         <div class="p-3 border-bottom border-dashed">
-            <h5 class="mb-3 fw-bold">Color Scheme</h5>
+            <h5 class="mb-3 fw-bold">配色方案</h5>
             <div class="row">
                 <div class="col-4">
                     <div class="form-check card-radio">
@@ -123,7 +113,7 @@
         </div>
 
         <div class="p-3 border-bottom border-dashed">
-            <h5 class="mb-3 fw-bold">Topbar Color</h5>
+            <h5 class="mb-3 fw-bold">顶栏颜色</h5>
 
             <div class="row g-3">
                 <div class="col-4">
@@ -169,7 +159,7 @@
         </div>
 
         <div class="p-3 border-bottom border-dashed">
-            <h5 class="mb-3 fw-bold">Sidenav Color</h5>
+            <h5 class="mb-3 fw-bold">侧导航颜色</h5>
 
             <div class="row g-3">
                 <div class="col-4">
@@ -224,7 +214,7 @@
         </div>
 
         <div class="p-3 border-bottom border-dashed">
-            <h5 class="mb-3 fw-bold">Sidebar Size</h5>
+            <h5 class="mb-3 fw-bold">侧边栏尺寸</h5>
 
             <div class="row g-3">
                 <div class="col-4">
@@ -291,7 +281,7 @@
 
         <div class="p-3 border-bottom border-dashed">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0">Layout Position</h5>
+                <h5 class="fw-bold mb-0">布局位置</h5>
 
                 <div class="btn-group radio" role="group">
                     <input type="radio" class="btn-check" name="data-layout-position" id="layout-position-fixed" value="fixed">
@@ -305,7 +295,7 @@
 
         <div class="p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><label class="fw-bold m-0" for="sidebaruser-check">Sidebar User Info</label></h5>
+                <h5 class="mb-0"><label class="fw-bold m-0" for="sidebaruser-check">左侧侧边栏显示用户信息</label></h5>
 
                 <div class="form-check form-switch fs-lg">
                     <input type="checkbox" class="form-check-input" name="sidebar-user" id="sidebaruser-check">
@@ -317,7 +307,7 @@
     <div class="offcanvas-footer border-top p-3 text-center">
         <div class="row">
             <div class="col-12">
-                <button type="button" class="btn btn-light fw-semibold py-2 w-100" id="reset-layout">Reset</button>
+                <button type="button" class="btn btn-light fw-semibold py-2 w-100" id="reset-layout">重置</button>
             </div>
         </div>
     </div>
