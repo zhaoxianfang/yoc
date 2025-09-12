@@ -325,7 +325,7 @@ crontab -uroot -e
 * * * * * /usr/local/php8/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 
 # 每天凌晨3点执行重启任务队列
-0 3 * * * systemctl restart laravel-queue.service >> /dev/null 2>&1
+0 3 * * * systemctl restart yoc_cn-queue.service >> /dev/null 2>&1
 
 # 每天凌晨4点执行mysql备份
 0 4 * * * /data/tasks_command/mysql_back.sh >> /dev/null 2>&1
@@ -339,7 +339,7 @@ crontab -uroot -e
 
 ```
 cd /etc/systemd/system/
-vim laravel-queue.service
+vim yoc_cn-queue.service
 ```
 
 内容
@@ -362,8 +362,8 @@ WantedBy=multi-user.target
 启用并启动服务：
 
 ```
-systemctl enable laravel-queue.service
-systemctl start laravel-queue.service
+systemctl enable yoc_cn-queue.service
+systemctl start yoc_cn-queue.service
 ```
 
 其他命令
