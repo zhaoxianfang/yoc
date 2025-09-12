@@ -56,19 +56,19 @@ class Connect extends CallbackController
      */
     public function callback(Request $request)
     {
-        dd($request->input());
+//        dd($request->input());
         try {
             /** 1、初始化实例类 */
             $oauth = OAuth::Qq();
 
             /** 2、可选：手动验证state 并返回跳转前传入的参数 */
             $callbackUrl = $oauth->mustCheckState()->checkState(); // 如需手动验证state,请关闭此行
-
+dump($callbackUrl);
             /** 3、获取第三方用户信息 */
             $userInfo = $oauth->userInfo(); // 【推荐】处理后的用户信息
             // OR
             // $userInfo = $oauth->getUserInfo(); // 原始用户信息
-
+dd($userInfo);
             /**
              * 如果是App登录
              * $type = "applets";
