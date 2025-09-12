@@ -45,7 +45,7 @@
                     <nav class="container-fluid">
                         <div class="collapse navbar-collapse" id="topnav-menu-content">
                             <ul class="navbar-nav">
-                                {!! empty($classify_top_nav)?'':$classify_top_nav !!}
+                                {!! empty($home_top_nav)?'':$home_top_nav !!}
                             </ul>
                         </div>
                     </nav>

@@ -93,36 +93,42 @@ class TopNavService
     /**
      * 渲染页面顶部水平导航
      */
-    public function classifyTopNav(): string
+    public function homeTopNav(): string
     {
-        $classify = ArticleClassifies::query()
-            ->where('status', ArticleClassifies::STATUS_NORMAL)
-            ->whereIn('show_nav', [
-                ArticleClassifies::SHOW_NAV_ONLY_WEB,
-                ArticleClassifies::SHOW_NAV_ALL,
-            ])
-            ->get();
-        if ($classify->isEmpty()) {
-            return '';
+        $show = show_news_module(); // 是否显示新闻模块
+        $data = [];
+        if ($show) {
+            $classify = ArticleClassifies::query()
+                ->where('status', ArticleClassifies::STATUS_NORMAL)
+                ->whereIn('show_nav', [
+                    ArticleClassifies::SHOW_NAV_ONLY_WEB,
+                    ArticleClassifies::SHOW_NAV_ALL,
+                ])
+                ->get();
+            if ($classify->isNotEmpty()) {
+                $data = $classify->toArray();
+            }
         }
 
-        $data = $classify->toArray();
-        $data = array_merge([
+        // 应用导航
+        $appData = [
             [
-                'id' => 99999,
+                'id' => 99998,
                 'pid' => 0,
                 'level' => 1,
                 'name' => '应用',
                 'sort' => 0,
             ], [
-                'id' => 999991,
-                'pid' => 99999,
+                'id' => 999981,
+                'pid' => 99998,
                 'level' => 2,
                 'name' => '在线文档',
                 'sort' => 0,
                 'url' => url('/docs'),
             ],
-        ], $data);
+        ];
+
+        $data = ! empty($data) ? array_merge($appData, $data) : $appData;
 
         // 使用默认配置 初始化数据
         $treeClassify = Tree::instance($data)

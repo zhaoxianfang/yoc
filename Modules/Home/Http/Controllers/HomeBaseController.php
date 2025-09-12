@@ -11,11 +11,9 @@ class HomeBaseController extends BaseController
 {
     public function initialize(Request $request, TopNavService $topNavService, HomePageService $homePageService)
     {
-        $show = show_news_module();
-
         view_share([
             'mega_menu' => $topNavService->megaMenu(),
-            'classify_top_nav' => $show ? $topNavService->classifyTopNav() : '',
+            'home_top_nav' => $topNavService->homeTopNav(),
         ]);
 
         $homePageService->getHomeArticle();

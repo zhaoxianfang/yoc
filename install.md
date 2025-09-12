@@ -320,9 +320,9 @@ composer dump-autoload
 crontab -uroot -e
 
 ```
-# * * * * * /usr/bin/php /www/weisifang_com/artisan schedule:run >> /dev/null 2>&1
+# * * * * * /usr/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 # 或者跟换你的php 路径
-* * * * * /usr/local/php8/bin/php /www/weisifang_com/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/local/php8/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 
 # 每天凌晨3点执行重启任务队列
 0 3 * * * systemctl restart laravel-queue.service >> /dev/null 2>&1
@@ -346,14 +346,14 @@ vim laravel-queue.service
 
 ```
 [Unit]
-Description=Laravel Queue Worker
+Description=Yoc Cron Queue Worker
 After=network.target
 
 [Service]
 User=www
 Group=www
 Restart=always
-ExecStart=/usr/local/php8/bin/php /www/weisifang_com/artisan queue:work --sleep=3 --tries=3 --timeout=180
+ExecStart=/usr/local/php8/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
 
 [Install]
 WantedBy=multi-user.target
