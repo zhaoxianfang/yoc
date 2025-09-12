@@ -227,7 +227,7 @@ php artisan queue:restart
 4、给予运行权限
 
 ```
-chmod +x post-merge
+sudo chmod +x post-merge
 或 在hooks目录下
-chown -R nobody.nobody ./*
+sudo chown -R nobody.nobody ./*
 ```

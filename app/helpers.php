@@ -446,3 +446,26 @@ if (! function_exists('show_news_module')) {
         return $show;
     }
 }
+
+
+if (! function_exists('debug_test')) {
+    /**
+     * 写入测试数据
+     */
+    function debug_test(string|array|Throwable $data, string $title = '', string $content = ''): void
+    {
+        if ($data instanceof Throwable) {
+            $data = [
+                'message' => $data->getMessage(),
+                'file' => $data->getFile(),
+                'line' => $data->getLine(),
+                // 'trace' => $data->getTraceAsString(),
+            ];
+        }
+        \Modules\Test\Models\Test::create([
+            'title' => $title ?? 'debug_test',
+            'content' => '['.date('Y-m-d H:i:s').']'.($content ?? ''),
+            'object' => is_array($data) ? $data : (array) $data,
+        ]);
+    }
+}
