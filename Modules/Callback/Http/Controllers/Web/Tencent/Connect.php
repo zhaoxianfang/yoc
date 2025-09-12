@@ -41,7 +41,7 @@ class Connect extends CallbackController
 
             // 3、 得到授权跳转地址
             $url = $oauth->getRedirectUrl();
-dd(config("tools_oauth.qq.default"),$url);
+
             // 4、重定向到外部授权地址
             return redirect()->away($url);
         } catch (Exception $e) {
@@ -54,8 +54,9 @@ dd(config("tools_oauth.qq.default"),$url);
     /**
      * 回调&通知
      */
-    public function callback()
+    public function callback(Request $request)
     {
+        dd($request->input());
         try {
             /** 1、初始化实例类 */
             $oauth = OAuth::Qq();

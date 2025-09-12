@@ -212,10 +212,10 @@ php artisan optimize:clear
 php artisan optimize
 
 # 注意: 请把权限操放在最后一步
-sudo chmod -R 755 /www/weisifang_com/
-# sudo chown -R nobody.nobody /www/weisifang_com/
-sudo chmod -R 777 /www/weisifang_com/storage/
-sudo chmod -R 777 /www/weisifang_com/bootstrap/cache/
+sudo chmod -R 755 /www/yoc_cn/
+# sudo chown -R nobody.nobody /www/yoc_cn/
+sudo chmod -R 777 /www/yoc_cn/storage/
+sudo chmod -R 777 /www/yoc_cn/bootstrap/cache/
 
 echo "File permissions have been reset!"
 
