@@ -110,13 +110,6 @@
                 </button>
             </div>
 
-            <!-- 调试QQ登录 -->
-            <div class="topbar-item d-none d-sm-flex">
-                <a href="/docs/auth/qq_login" class="" style="display: inherit;" >
-                    <img src="{{ asset('static/images/icon/qq_login_76X24.png') }}" alt="QQ登录" class="me-1 rounded topbar-link" height="30">
-                </a>
-            </div>
-
             @include('home::layouts.user_card')
 
         </div>

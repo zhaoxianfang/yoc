@@ -21,7 +21,7 @@ class Connect extends CallbackController
      * xxx.com/callback/tencent/login?callback_url=http%3A%2F%2Fwww.a.com%2Fa%2Fb%2Fc%3Fd%3D123 callback_url 参数说明
      * 传入前需要做 urlencode($callback_url) 操作 callback_url 回调地址要求允许跨域或者 csrf
      */
-    public function login()
+    public function login(Request $request)
     {
         try {
             // 1、 初始化实例类
@@ -30,7 +30,7 @@ class Connect extends CallbackController
             // OR 实例化方式二：
             // $oauth = new Qq($config);
 
-            $jump_url = request()->get('callback_url', '');
+            $jump_url = $request->get('callback_url', '');
             $jumpUrl = $jump_url ? urldecode($jump_url) : '';
 
             // 2、 可选：强制验证回跳地址中的state参数
@@ -41,7 +41,7 @@ class Connect extends CallbackController
 
             // 3、 得到授权跳转地址
             $url = $oauth->getRedirectUrl();
-
+dd(config("tools_oauth.qq.default"),$url);
             // 4、重定向到外部授权地址
             return redirect()->away($url);
         } catch (Exception $e) {
