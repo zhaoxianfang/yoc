@@ -4,7 +4,7 @@ namespace Modules\Home\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Modules\Blog\Models\Article;
+use Modules\Article\Models\Article;
 use Modules\Docs\Models\DocsDoc;
 
 class SitemapService

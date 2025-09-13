@@ -4,7 +4,7 @@ namespace Modules\Spider\Services\Events;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Blog\Models\Article;
+use Modules\Article\Models\Article;
 use Modules\Spider\Contracts\SpiderArticleInterface;
 use Modules\Spider\Contracts\SpiderRunEventInterface;
 use Modules\Spider\Models\SpiderLink;

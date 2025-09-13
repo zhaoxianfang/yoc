@@ -24,7 +24,7 @@ class AdminMenuService
     {
         $menus = [];
         $activeUrlLink = request()->path(); // $activeUrlLink = 'admin/home';
-        // $activeUrlLink = '/admin/blog/articles'; // $activeUrlLink = 'admin/home';
+        // $activeUrlLink = '/admin/articles'; // $activeUrlLink = 'admin/home';
         // ->setUrlPrefix('admin/')
 
         if (auth('admin')->guest()) {
