@@ -1,5 +1,5 @@
 <meta charset="UTF-8">
-<link rel="icon" href="{{ asset('static/images/favicon.ico') }}" sizes="any">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
 <meta name="keywords" content="">
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
