@@ -50,13 +50,13 @@
             <!-- Lock -->
             <a href="javascript:void(0);" class="dropdown-item">
                 <i class="ti ti-lock me-2 fs-17 align-middle"></i>
-                <span class="align-middle">Lock Screen</span>
+                <span class="align-middle">锁定屏幕</span>
             </a>
 
             <!-- Logout -->
             <a href="javascript:void(0);" class="dropdown-item text-danger fw-semibold">
                 <i class="ti ti-logout-2 me-2 fs-17 align-middle"></i>
-                <span class="align-middle">Log Out</span>
+                <span class="align-middle">退出</span>
             </a>
         </div>
     </div>

@@ -48,11 +48,11 @@
 
         <div class="d-flex align-items-center gap-2">
             <!-- Language Dropdown -->
-            @include('users::layouts.top_nav.nav_language')
+            @include('system::layouts.top_nav.nav_language')
             <!-- end topbar item-->
 
             <!-- Messages Dropdown -->
-            @include('users::layouts.top_nav.nav_messages')
+            @include('system::layouts.top_nav.nav_messages')
             <!-- Notification Dropdown -->
 
             <!-- Button Trigger Customizer Offcanvas -->

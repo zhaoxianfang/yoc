@@ -7,6 +7,8 @@ use Illuminate\Routing\Controller;
 // use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use Modules\System\Trait\ControllerTrait;
+use Modules\Users\Services\TopNav\MessagesService;
+use Modules\Users\Services\TopNav\NotificationService;
 
 /**
  * Class BaseController 如果是已经登录的用户，判断是否需要刷新 csrf_token
@@ -46,6 +48,10 @@ class BaseController extends Controller
     {
         // 初始化策略类
         $this->gate = Gate::class;
+
+        // 共享消息和通知数据到视图
+        NotificationService::instance()->toView();
+        MessagesService::instance()->toView();
     }
 
     public function dataTables($list = [], $total = 0, $errorMsg = ''): \Illuminate\Http\JsonResponse

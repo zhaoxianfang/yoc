@@ -216,6 +216,8 @@ sudo chmod -R 755 /www/yoc_cn/
 # sudo chown -R nobody.nobody /www/yoc_cn/
 sudo chmod -R 777 /www/yoc_cn/storage/
 sudo chmod -R 777 /www/yoc_cn/bootstrap/cache/
+sudo chmod -R 660 /www/yoc_cn/storage/oauth-public.key
+sudo chmod -R 600 /www/yoc_cn/storage/oauth-private.key
 
 echo "File permissions have been reset!"
 
