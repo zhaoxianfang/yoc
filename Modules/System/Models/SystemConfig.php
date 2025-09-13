@@ -10,8 +10,11 @@ class SystemConfig extends Model
 
     // 前台是否展示新闻模块
     public const SHOW_NEW_MODULE_CLOSE = 'close';
+
     public const SHOW_NEW_MODULE_ONLY_SPIDER = 'only_spider';
+
     public const SHOW_NEW_MODULE_ONLY_USER = 'only_user';
+
     public const SHOW_NEW_MODULE_ALL = 'all';
 
     public static array $showNewModuleMaps = [

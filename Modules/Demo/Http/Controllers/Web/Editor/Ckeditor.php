@@ -11,5 +11,4 @@ class Ckeditor extends DemoBaseController
     {
         return view('demo::editor.ckeditor');
     }
-
 }

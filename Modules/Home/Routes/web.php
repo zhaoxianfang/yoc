@@ -81,4 +81,3 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::get('/text2png/{text}/{width?}/{height?}/{color?}/{bgcolor?}/{rotate?}/{font?}', [Web\Tools\Images\StrToImg::class, 'create']); // ->where('text', '.*');
 
 });
-

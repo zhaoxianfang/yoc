@@ -61,6 +61,7 @@ class IDCard extends HomeBaseController
         $idCard = $request->input('id_card', null);
 
         $result = IDCardGenerator::parse($idCard);
+
         return $this->success([
             'list' => $result,
         ]);

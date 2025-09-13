@@ -14,5 +14,4 @@ class ToolsController extends DemoBaseController
     {
         return view('demo::components/tools.tools');
     }
-
 }

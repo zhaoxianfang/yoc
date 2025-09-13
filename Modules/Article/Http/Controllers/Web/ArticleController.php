@@ -2,14 +2,11 @@
 
 namespace Modules\Article\Http\Controllers\Web;
 
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Request;
 use Modules\Article\Models\Article;
 use Modules\Home\Http\Controllers\HomeBaseController;
 
 class ArticleController extends HomeBaseController
 {
-
     /**
      * 显示文章详情
      */

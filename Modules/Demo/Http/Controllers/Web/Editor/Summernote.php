@@ -14,5 +14,4 @@ class Summernote extends DemoBaseController
     {
         return view('demo::editor.summernote');
     }
-
 }

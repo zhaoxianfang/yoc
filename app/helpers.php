@@ -447,7 +447,6 @@ if (! function_exists('show_news_module')) {
     }
 }
 
-
 if (! function_exists('debug_test')) {
     /**
      * 写入测试数据

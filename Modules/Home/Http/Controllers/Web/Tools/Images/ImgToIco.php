@@ -31,6 +31,7 @@ class ImgToIco extends HomeBaseController
                 'base64_str' => $base64,
             ]);
         }
+
         return $this->error('上传图片失败');
     }
 }

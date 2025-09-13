@@ -14,6 +14,7 @@ class NotificationService extends BaseService
         if (auth('web')->guest()) {
             return [];
         }
+
         // 只有 total 和 items 两个字段 都不为空时前端才展示
         return [
             'total' => 0, // 通知总条数
