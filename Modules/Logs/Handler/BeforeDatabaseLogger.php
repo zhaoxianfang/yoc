@@ -41,8 +41,14 @@ class BeforeDatabaseLogger
             // 检测爬虫
             $crawlerName = is_crawler(true);
 
+            $userId = 0;
+            try {
+                $userId = $this->getUserInfo('id');
+            } catch (\Exception $e) {
+            }
+
             $record['extra']['ip'] = request()->ip(); // 用户ip
-            $record['extra']['user_id'] = (int) $this->getUserInfo('id'); // 用户id
+            $record['extra']['user_id'] = (int) $userId; // 用户id
             $record['extra']['is_crawler'] = ! empty($crawlerName);
             $record['extra']['crawler_name'] = $crawlerName;
             $record['extra']['module_name'] = get_module_name(true); // 使用小写下划线模块名称,
@@ -65,11 +71,11 @@ class BeforeDatabaseLogger
             try {
                 // 测试能不能 访问数据库
                 \Illuminate\Support\Facades\DB::connection()->getPdo();
-                throw new \Exception(! empty($title) ? $title : '猜测可能是某个项目文件(夹)等没有响应的读/写权限');
+                throw new \Exception('猜测可能是某个项目文件(夹)等没有响应的读/写权限:'.$e->getMessage());
             } catch (\Exception $e) {
                 // 无法连接数据库
                 // dd('Could not connect to the database. Error: ' . $e->getMessage());
-                throw new \Exception(! empty($title) ? $title : '猜测可能是数据库无法连接');
+                throw new \Exception('猜测可能是数据库无法连接:'.$e->getMessage());
             }
         }
     }
