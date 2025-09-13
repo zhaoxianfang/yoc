@@ -3,7 +3,6 @@
 namespace Modules\System\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 // use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use Modules\System\Trait\ControllerTrait;
@@ -12,6 +11,7 @@ use Modules\Users\Services\TopNav\NotificationService;
 
 /**
  * 全局基础控制器
+ * 继承了此类的控制器，可以在构造函数执行之后，在被调用方法之前，执行初始化方法initialize，initialize方法支持依赖注入
  */
 class BaseController extends \zxf\Laravel\Controller\BaseController
 {
