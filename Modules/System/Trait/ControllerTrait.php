@@ -9,47 +9,6 @@ use Illuminate\Support\Facades\View;
 
 trait ControllerTrait
 {
-    /**
-     * 返回上一页, 并带上错误信息
-     *
-     * @param  mixed  $errors  错误信息「字符串、数组、Exception」
-     * @return RedirectResponse
-     */
-    public function backWithError(mixed $errors = '出错啦!')
-    {
-        return redirect()->back()->withInput()->withErrors($errors);
-    }
-
-    /**
-     * 返回上一页, 并带上提示信息
-     *
-     * @param  string  $info  提示信息「字符串」
-     * @return RedirectResponse
-     */
-    public function backWithSuccess(string $info = '')
-    {
-        return redirect()->back()->withInput()->with(['success' => $info]);
-    }
-
-    public function json(array $data = [], int $status = 200, string $jumpUrl = '', $wait = 3)
-    {
-        $data['code'] = empty($data['code']) ? 200 : $data['code'];
-        $data['message'] = empty($data['message']) ? '操作成功' : $data['message'];
-
-        if (! empty($jumpUrl)) {
-            $data['url'] = $jumpUrl;
-            $data['wait'] = $wait; // 单位秒
-        }
-
-        return response()->json($data, $status);
-    }
-
-    public function api_json($data = [], $code = 200, $message = '成功', $status = 200): \Illuminate\Http\JsonResponse
-    {
-        // return response()->json(compact('code', 'message', 'data'), $status)->send();
-        return response()->json(compact('code', 'message', 'data'), $status);
-    }
-
     public function success(string|array $resp = '', string $jumpUrl = ''): JsonResponse|RedirectResponse
     {
         $data = ['code' => 200, 'message' => '操作成功'];
