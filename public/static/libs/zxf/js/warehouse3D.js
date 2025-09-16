@@ -547,32 +547,101 @@ class Warehouse3D {
      * @param {Event} event 点击事件
      */
     onCanvasClick(event) {
-        // 计算鼠标在画布上的标准化设备坐标
-        const mouse = new THREE.Vector2();
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        // 获取画布元素
+        const canvas = this.renderer.domElement;
 
-        // 创建射线投射器
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, this.camera);
+        // 判断是否在iframe中
+        const isInIframe = window.self !== window.top;
 
-        // 检查与库位的交点
-        const intersects = raycaster.intersectObjects(this.slots.map(slot => slot.mesh));
+        // 计算鼠标位置
+        const calculateMousePosition = (canvas, event) => {
+            const rect = canvas.getBoundingClientRect();
 
-        if (intersects.length > 0) {
-            const clickedSlot = this.slots.find(slot => slot.mesh === intersects[0].object);
-            if (clickedSlot) {
-                if (this.editMode) {
-                    this.showEditForm(clickedSlot);
-                } else {
-                    this.showSlotInfo(clickedSlot);
-                }
+            let clientX, clientY;
 
-                // 触发点击事件回调
-                if (this.config.onSlotClick) {
-                    this.config.onSlotClick(clickedSlot);
+            if (isInIframe) {
+                // 在iframe中，需要考虑iframe的偏移和缩放
+                const iframeRect = window.frameElement.getBoundingClientRect();
+                const iframeScaleX = iframeRect.width / window.innerWidth;
+                const iframeScaleY = iframeRect.height / window.innerHeight;
+
+                clientX = (event.clientX - iframeRect.left) / iframeScaleX;
+                clientY = (event.clientY - iframeRect.top) / iframeScaleY;
+            } else {
+                // 普通页面
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            // 考虑画布本身的变换
+            const style = window.getComputedStyle(canvas);
+            const transform = style.transform || style.webkitTransform || style.mozTransform;
+
+            let scaleX = 1, scaleY = 1, translateX = 0, translateY = 0;
+
+            if (transform && transform !== 'none') {
+                const matrix = new DOMMatrixReadOnly(transform);
+                scaleX = matrix.a;
+                scaleY = matrix.d;
+                translateX = matrix.e;
+                translateY = matrix.f;
+            }
+
+            // 计算相对于画布的实际坐标
+            const x = (clientX - rect.left - translateX) / scaleX;
+            const y = (clientY - rect.top - translateY) / scaleY;
+
+            return {
+                x: (x / rect.width) * 2 - 1,
+                y: -(y / rect.height) * 2 + 1
+            };
+        };
+
+        try {
+            const mouse = calculateMousePosition(canvas, event);
+
+            // 使用精度更高的射线投射
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, this.camera);
+
+            // 设置射线投射参数
+            raycaster.params.Points.threshold = 0.1; // 提高点选精度
+            raycaster.params.Line.threshold = 0.1;   // 提高线选精度
+
+            // 检查与库位的交点
+            const intersects = raycaster.intersectObjects(
+                this.slots.map(slot => slot.mesh),
+                true // 递归检查子对象
+            );
+
+            if (intersects.length > 0) {
+                // 找到被点击的库位（使用uuid确保精确匹配）
+                const clickedUuid = intersects[0].object.uuid;
+                const clickedSlot = this.slots.find(slot => slot.mesh.uuid === clickedUuid);
+
+                if (clickedSlot) {
+                    if (this.editMode) {
+                        this.showEditForm(clickedSlot);
+                    } else {
+                        this.showSlotInfo(clickedSlot);
+                    }
+
+                    // 触发点击事件回调
+                    if (this.config.onSlotClick) {
+                        this.config.onSlotClick(clickedSlot);
+                    }
+
+                    // 阻止事件冒泡
+                    event.stopPropagation();
+                    return true;
                 }
             }
+
+            return false;
+
+        } catch (error) {
+            console.error('点击事件处理错误:', error);
+            return false;
         }
     }
 
