@@ -1,23 +1,21 @@
-* {
+.wms-box{
+    overflow: hidden;
+    background-color: #0c1e3e;
+    color: #fff;
+
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Microsoft YaHei', sans-serif;
 }
 
-body {
-    overflow: hidden;
-    background-color: #0c1e3e;
-    color: #fff;
-}
-
-#container {
+#wms-container {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-#header {
+#wms-header {
     position: absolute;
     top: 0;
     left: 0;
@@ -32,13 +30,13 @@ body {
     border-bottom: 1px solid #2a3b5d;
 }
 
-.logo {
+.wms-box .wms-logo {
     display: flex;
     align-items: center;
     margin-right: 30px;
 }
 
-.logo-icon {
+.wms-box .wms-logo-icon {
     width: 36px;
     height: 36px;
     background: linear-gradient(135deg, #1890ff, #36cbcb);
@@ -49,7 +47,7 @@ body {
     justify-content: center;
 }
 
-.logo-text {
+.wms-box .wms-logo-text {
     font-size: 18px;
     font-weight: bold;
     background: linear-gradient(90deg, #1890ff, #36cbcb);
@@ -57,12 +55,12 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-.warehouse-tabs {
+.wms-box .warehouse-tabs {
     display: flex;
     gap: 5px;
 }
 
-.warehouse-tab {
+.wms-box .warehouse-tab {
     padding: 8px 16px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 6px;
@@ -71,17 +69,17 @@ body {
     border: 1px solid transparent;
 }
 
-.warehouse-tab:hover {
+.wms-box .warehouse-tab:hover {
     background: rgba(255, 255, 255, 0.12);
 }
 
-.warehouse-tab.active {
+.wms-box .warehouse-tab.active {
     background: rgba(24, 144, 255, 0.2);
     border-color: #1890ff;
     color: #1890ff;
 }
 
-#search-container {
+#wms-search-container {
     position: absolute;
     top: 70px;
     right: 20px;
@@ -94,17 +92,17 @@ body {
     backdrop-filter: blur(5px);
 }
 
-.search-title {
+.wms-box .wms-search-title {
     font-size: 14px;
     margin-bottom: 10px;
     color: #a0aec0;
 }
 
-.search-box {
+.wms-box .wms-search-box {
     display: flex;
 }
 
-#search-input {
+#wms-search-input {
     padding: 10px 15px;
     background: rgba(255, 255, 255, 0.07);
     border: 1px solid #2d3e60;
@@ -114,11 +112,11 @@ body {
     outline: none;
 }
 
-#search-input:focus {
+#wms-search-input:focus {
     border-color: #1890ff;
 }
 
-#search-btn {
+#wms-search-btn {
     padding: 10px 15px;
     background: linear-gradient(90deg, #1890ff, #36cbcb);
     color: white;
@@ -128,7 +126,7 @@ body {
     font-weight: bold;
 }
 
-#info-panel {
+#wms-info-panel {
     position: absolute;
     top: 50%;
     left: 20px;
@@ -143,15 +141,16 @@ body {
     display: none;
 }
 
-.panel-header {
+.wms-box .wms-panel-header {
     padding: 15px;
     border-bottom: 1px solid #243356;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor:pointer;
 }
 
-.panel-title {
+.wms-box .wms-panel-title {
     font-size: 16px;
     font-weight: bold;
     background: linear-gradient(90deg, #1890ff, #36cbcb);
@@ -159,7 +158,7 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-.close-btn {
+.wms-box .wms-close-btn {
     cursor: pointer;
     width: 28px;
     height: 28px;
@@ -169,46 +168,47 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
-    font-size: 18px;
 }
 
-.close-btn:hover {
+.wms-box .wms-close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.panel-content {
+.wms-box .wms-panel-content {
     padding: 15px;
     max-height: 400px;
     overflow-y: auto;
 }
 
-.info-section {
+.wms-box .wms-info-section {
     margin-bottom: 15px;
 }
 
-.info-section-title {
+.wms-box .wms-info-section-title {
     font-size: 14px;
     color: #a0aec0;
     margin-bottom: 8px;
 }
 
-.info-item {
+.wms-box .wms-info-item {
     display: flex;
     margin-bottom: 8px;
 }
 
-.info-label {
-    width: 80px;
+.wms-box .info-label {
+    width: 105px;
+    text-align: right;
+    margin-right: 10px;
     color: #a0aec0;
     font-size: 13px;
 }
 
-.info-value {
+.wms-box .info-value {
     flex: 1;
     font-size: 13px;
 }
 
-.status-indicator {
+.wms-box .status-indicator {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -216,21 +216,23 @@ body {
     margin-right: 5px;
 }
 
-.status-free { background-color: #52c41a; }
-.status-occupied { background-color: #faad14; }
-.status-reserved { background-color: #1890ff; }
-.status-damaged { background-color: #f5222d; }
+.wms-box .status-free { background-color: #52c41a; }
+.wms-box .status-occupied { background-color: #faad14; }
+.wms-box .status-reserved { background-color: #1890ff; }
+.wms-box .status-damaged { background-color: #f5222d; }
+.wms-box .status-locked { background-color: #722ed1; }
+.wms-box .status-maintenance { background-color: #fa541c; }
 
-#control-panel {
+#wms-control-panel {
     position: absolute;
     bottom: 20px;
     left: 20px;
     z-index: 100;
 }
 
-.joystick {
-    width: 140px;
-    height: 140px;
+.wms-box .wms-joystick {
+    width: 120px;
+    height: 120px;
     background: rgba(13, 25, 47, 0.9);
     border-radius: 50%;
     display: flex;
@@ -242,9 +244,9 @@ body {
     position: relative;
 }
 
-.center-btn {
-    width: 60px;
-    height: 60px;
+.wms-box .wms-center-btn {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #1890ff, #36cbcb);
     display: flex;
@@ -254,14 +256,13 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     color: white;
     font-weight: bold;
-    font-size: 20px;
 }
 
-.direction-btn {
+.wms-box .wms-direction-btn {
     position: absolute;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
@@ -269,31 +270,48 @@ body {
     cursor: pointer;
     color: #a0aec0;
     transition: all 0.3s;
-    font-size: 16px;
 }
 
-.direction-btn:hover {
+.wms-box .wms-direction-btn:hover {
     background: rgba(24, 144, 255, 0.3);
     color: #1890ff;
 }
 
-.up { top: 5px; left: 52px; }
-.down { bottom: 5px; left: 52px; }
-.left { top: 52px; left: 5px; }
-.right { top: 52px; right: 5px; }
+.wms-box .up { top: 5px; left: 45px; }
+.wms-box .down { bottom: 5px; left: 45px; }
+.wms-box .left { top: 45px; left: 5px; }
+.wms-box .right { top: 45px; right: 5px; }
 
-#toolbar {
+#wms-toolbar {
     position: absolute;
     bottom: 20px;
     right: 20px;
     z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: all 0.3s ease;
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 4px;
+    width: 110px;
+    transition: all 0.3s;
+}
+#wms-toolbar .wms-tool-btn:nth-child(odd) {
+    justify-self: start; /* 左对齐 */
 }
 
-.tool-btn {
+#wms-toolbar .wms-tool-btn:nth-child(even) {
+    justify-self: end; /* 右对齐 */
+}
+
+#wms-toolbar.collapsed {
+    width: 50px;
+}
+
+#wms-toolbar.collapsed .wms-tool-btn:not(:last-child) {
+    display: none;
+}
+
+.wms-box .wms-tool-btn {
     width: 50px;
     height: 50px;
     border-radius: 8px;
@@ -310,24 +328,19 @@ body {
     transition: all 0.3s;
 }
 
-.tool-btn:hover {
+.wms-box .wms-tool-btn:hover {
     background: rgba(24, 144, 255, 0.2);
     color: #1890ff;
     transform: translateY(-2px);
 }
 
-.tool-btn.active {
+.wms-box .wms-tool-btn.active {
     background: rgba(24, 144, 255, 0.3);
     color: #1890ff;
     box-shadow: 0 0 10px rgba(24, 144, 255, 0.5);
 }
 
-.tool-btn.toggle-tools {
-    background: linear-gradient(135deg, #1890ff, #36cbcb);
-    color: white;
-}
-
-.stats {
+.wms-box .stats {
     position: absolute;
     bottom: 20px;
     left: 160px;
@@ -340,16 +353,16 @@ body {
     font-size: 13px;
 }
 
-.stats div {
+.wms-box .stats div {
     margin-bottom: 5px;
 }
 
-.stats span {
+.wms-box .stats span {
     color: #1890ff;
     font-weight: bold;
 }
 
-.config-panel {
+.wms-box .config-panel {
     position: absolute;
     top: 70px;
     left: 20px;
@@ -364,24 +377,32 @@ body {
     display: none;
 }
 
-.config-title {
+.wms-box .config-title {
     font-size: 14px;
     margin-bottom: 10px;
     color: #a0aec0;
 }
 
-.config-item {
+.wms-box .config-item {
     margin-bottom: 10px;
+    display: flex;
 }
 
-.config-item label {
-    display: block;
+.wms-box .config-item label {
+    display: flex;
     font-size: 12px;
-    margin-bottom: 5px;
     color: #a0aec0;
+    width: 80px;
+    align-items: center;
+}
+.wms-box .config-item span {
+    display: flex;
+    font-size: 12px;
+    color: #a0aec0;
+    align-items: center;
 }
 
-.config-item select, .config-item input {
+.wms-box .config-item select, .config-item input {
     width: 100%;
     padding: 8px;
     background: rgba(255, 255, 255, 0.07);
@@ -391,26 +412,26 @@ body {
     outline: none;
 }
 
-.config-item select:focus, .config-item input:focus {
+.wms-box .config-item select:focus, .config-item input:focus {
     border-color: #1890ff;
 }
 
-.edit-form {
+.wms-box .wms-edit-form {
     display: none;
 }
 
-.form-group {
+.wms-box .wms-form-group {
     margin-bottom: 10px;
 }
 
-.form-group label {
+.wms-box .wms-form-group label {
     display: block;
     font-size: 12px;
     margin-bottom: 5px;
     color: #a0aec0;
 }
 
-.form-group input, .form-group select {
+.wms-box .wms-form-group input, .wms-box .wms-form-group select {
     width: 100%;
     padding: 8px;
     background: rgba(255, 255, 255, 0.07);
@@ -420,47 +441,36 @@ body {
     outline: none;
 }
 
-.form-group input:focus, .form-group select:focus {
+.wms-box .wms-form-group input:focus,.wms-box .wms-form-group select:focus {
     border-color: #1890ff;
 }
 
-.form-actions {
+.wms-box .wms-form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #243356;
 }
 
-.btn {
+.wms-box .wms-btn {
     padding: 8px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    transition: all 0.3s;
 }
 
-.btn-primary {
+.wms-box .wms-btn-primary {
     background: #1890ff;
     color: white;
 }
 
-.btn-primary:hover {
-    background: #40a9ff;
-}
-
-.btn-default {
+.wms-box .wms-btn-default {
     background: rgba(255, 255, 255, 0.1);
     color: #a0aec0;
 }
 
-.btn-default:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.loading-overlay {
+.wms-box .loading-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -471,10 +481,9 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    display: none;
 }
 
-.loading-spinner {
+.wms-box .loading-spinner {
     width: 50px;
     height: 50px;
     border: 5px solid rgba(255, 255, 255, 0.3);
@@ -487,36 +496,31 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.tooltip {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 5px 10px;
+#help-panel {
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 响应式调整 */
+@media (max-height: 700px) {
+}
+
+::-webkit-scrollbar-track {
+    background: #000000; /* 滚动条轨道背景色（黑色） */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333333; /* 滚动条滑块颜色（深灰，更易识别） */
     border-radius: 4px;
-    font-size: 12px;
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.3s;
 }
 
-.mini-map {
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    width: 150px;
-    height: 150px;
-    background: rgba(13, 25, 47, 0.9);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #243356;
-    backdrop-filter: blur(5px);
-    z-index: 90;
-    overflow: hidden;
-    display: none;
+::-webkit-scrollbar-thumb:hover {
+    background: #555555; /* 滑块悬停颜色 */
 }
 
-.mini-map-content {
-    width: 100%;
-    height: 100%;
+/* Firefox 浏览器 */
+* {
+    scrollbar-color: #333333 #000000; /* thumb color | track color */
+    scrollbar-width: auto; /* 可选：auto | thin | none */
 }

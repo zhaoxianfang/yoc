@@ -12,20 +12,26 @@ class Warehouse3D {
         // 合并默认配置和用户配置
         this.config = {
             // 默认库位状态配置
-            slotStatus: {
-                free: { name: '空闲', color: '#52c41a' },
-                occupied: { name: '占用', color: '#faad14' },
-                reserved: { name: '预留', color: '#1890ff' },
-                damaged: { name: '损坏', color: '#f5222d' }
-            },
+            slotStatus: [
+                { id: 'free', name: '空闲', color: '#52c41a' },
+                { id: 'occupied', name: '占用', color: '#faad14' },
+                { id: 'reserved', name: '预留', color: '#1890ff' },
+                { id: 'damaged', name: '损坏', color: '#f5222d' },
+                { id: 'locked', name: '锁定', color: '#722ed1' },
+                { id: 'maintenance', name: '维护中', color: '#fa541c' }
+            ],
             // 默认商品分类配置
-            productCategories: {
-                hardware: { name: '五金', color: '#fa8c16' },
-                frozen: { name: '冻品', color: '#1890ff' },
-                dry: { name: '干货', color: '#722ed1' },
-                aquatic: { name: '水产', color: '#13c2c2' },
-                other: { name: '其他', color: '#eb2f96' }
-            },
+            productCategories: [
+                { id: 'hardware', name: '五金', color: '#fa8c16' },
+                { id: 'frozen', name: '冻品', color: '#1890ff' },
+                { id: 'dry', name: '干货', color: '#722ed1' },
+                { id: 'aquatic', name: '水产', color: '#13c2c2' },
+                { id: 'electronics', name: '电子产品', color: '#eb2f96' },
+                { id: 'clothing', name: '服装', color: '#faad14' },
+                { id: 'food', name: '食品', color: '#52c41a' },
+                { id: 'medicine', name: '药品', color: '#f5222d' },
+                { id: 'other', name: '其他', color: '#d9d9d9' }
+            ],
             // 默认货架材质颜色
             shelfMaterialColor: 0x8B4513,
             // 默认隔板材质颜色
@@ -36,12 +42,8 @@ class Warehouse3D {
             slotSize: { length: 2.5, width: 2, height: 1.5 },
             // 默认货架尺寸
             shelfSize: { width: 5, depth: 3, height: 2 },
-            // 默认通道宽度（货架倍数）
-            aisleWidthMultiplier: 2,
-            // 行通道宽度（货架倍数）
-            rowAisleWidthMultiplier: 2,
-            // 列通道宽度（货架倍数）
-            columnAisleWidthMultiplier: 2,
+            // 默认通道宽度
+            aisleWidth: { row: 8, column: 10 },
             // 默认布局类型
             layoutType: 'STRAIGHT',
             // 是否显示标签
@@ -51,9 +53,9 @@ class Warehouse3D {
             // 是否启用动画
             enableAnimations: true,
             // 是否启用阴影
-            enableShadows: true,
+            enableShadows: false,
             // 初始化相机位置
-            cameraPosition: { x: 50, y: 50, z: 50 },
+            cameraPosition: { x: 25, y: 35, z: 80 },
             // 初始化相机目标
             cameraTarget: { x: 0, y: 0, z: 0 },
             // 渲染精度
@@ -61,11 +63,11 @@ class Warehouse3D {
             // 抗锯齿
             antialias: true,
             // 物理校正光照
-            physicallyCorrectLights: true,
+            physicallyCorrectLights: false,
             // 色调映射
-            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMapping: THREE.NoToneMapping,
             // 曝光级别
-            exposure: 1.5,
+            exposure: 1.0,
             // 阴影类型
             shadowType: THREE.PCFSoftShadowMap,
             // 环境光强度
@@ -81,11 +83,11 @@ class Warehouse3D {
             // 是否启用旋转
             enableRotate: true,
             // 缩放速度
-            zoomSpeed: 1.2,
+            zoomSpeed: 1.0,
             // 旋转速度
             rotateSpeed: 1.0,
             // 平移速度
-            panSpeed: 1.2,
+            panSpeed: 1.0,
             // 最大极化角
             maxPolarAngle: Math.PI,
             // 最小极化角
@@ -93,11 +95,12 @@ class Warehouse3D {
             // 最大距离
             maxDistance: 500,
             // 最小距离
-            minDistance: 3,
+            minDistance: 5,
             // 是否自动旋转
             autoRotate: false,
             // 自动旋转速度
             autoRotateSpeed: 2.0,
+            animationSpeed: 1.0,
             // 库位间距（相对于库位长度的比例）
             slotGapRatio: 0.2,
             // 是否启用编辑模式
@@ -105,19 +108,23 @@ class Warehouse3D {
             // 货架编号规则
             shelfNumberingRule: 'FORWARD_LEFT_TO_RIGHT',
             // 库位标签位置
-            slotLabelPosition: 'back',
-            // 库位高度偏移
-            slotHeightOffset: 0.75,
+            slotLabelPosition: 'front',
+            // 标签背景透明度
+            labelBackgroundOpacity: 0.7,
             // 标签背景颜色
             labelBackgroundColor: 'rgba(0, 0, 0, 0.7)',
-            // 地名位置偏移
-            groundNameOffset: { x: 0, y: 0, z: 0 },
+            // 货架标签背景颜色
+            shelfLabelBackgroundColor: 'rgba(0, 0, 0, 0.4)',
+            // 库位垂直偏移
+            slotVerticalOffset: 0.75,
+            // 整个仓库垂直偏移
+            wholeOffsetY: -15,
             // 性能优化选项
             performance: {
                 // 是否启用实例化渲染
                 useInstancing: true,
                 // 每帧最大渲染库位数
-                maxSlotsPerFrame: 1000,
+                maxSlotsPerFrame: 2000,
                 // 是否启用LOD
                 useLOD: true,
                 // LOD距离阈值
@@ -129,7 +136,7 @@ class Warehouse3D {
             onSlotUpdate: null,
             onSearchComplete: null,
             onEditModeChange: null,
-            onViewChange: null,
+            onConfigChange: null,
             ...options
         };
 
@@ -212,17 +219,16 @@ class Warehouse3D {
             free: 0,
             occupied: 0,
             reserved: 0,
-            damaged: 0
+            damaged: 0,
+            locked: 0,
+            maintenance: 0
         };
         this.editMode = false; // 编辑模式状态
         this.currentEditingSlot = null; // 当前正在编辑的库位
-        this.toolsExpanded = false; // 工具栏展开状态
-        this.miniMapEnabled = false; // 小地图启用状态
 
         // 绑定事件处理
         window.addEventListener('resize', () => this.onWindowResize());
         this.renderer.domElement.addEventListener('click', (event) => this.onCanvasClick(event));
-        this.renderer.domElement.addEventListener('mousemove', (event) => this.onCanvasMouseMove(event));
 
         // 初始化UI事件
         this.initUIEvents();
@@ -239,18 +245,7 @@ class Warehouse3D {
         const ambientLight = new THREE.AmbientLight(0xffffff, this.config.ambientLightIntensity);
         this.scene.add(ambientLight);
 
-        // 添加辅助光
-        const fillLight1 = new THREE.DirectionalLight(0x7777ff, 0.4);
-        fillLight1.position.set(-50, 50, 50);
-        this.scene.add(fillLight1);
-
-        const fillLight2 = new THREE.DirectionalLight(0xff7777, 0.3);
-        fillLight2.position.set(50, 50, -50);
-        this.scene.add(fillLight2);
-
-        const fillLight3 = new THREE.DirectionalLight(0xffffff, 0.2);
-        fillLight3.position.set(0, -50, 0);
-        this.scene.add(fillLight3);
+        // 删除模拟太阳光，只使用环境光
     }
 
     /**
@@ -258,12 +253,12 @@ class Warehouse3D {
      */
     initUIEvents() {
         // 搜索按钮点击事件
-        document.getElementById('search-btn').addEventListener('click', () => {
+        document.getElementById('wms-search-btn').addEventListener('click', () => {
             this.searchSlot();
         });
 
         // 搜索输入框回车事件
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
+        document.getElementById('wms-search-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.searchSlot();
             }
@@ -280,19 +275,19 @@ class Warehouse3D {
         });
 
         // 方向控制
-        document.querySelector('.direction-btn.up').addEventListener('click', () => {
+        document.querySelector('.wms-direction-btn.up').addEventListener('click', () => {
             this.moveView('forward');
         });
 
-        document.querySelector('.direction-btn.down').addEventListener('click', () => {
+        document.querySelector('.wms-direction-btn.down').addEventListener('click', () => {
             this.moveView('backward');
         });
 
-        document.querySelector('.direction-btn.left').addEventListener('click', () => {
+        document.querySelector('.wms-direction-btn.left').addEventListener('click', () => {
             this.moveView('left');
         });
 
-        document.querySelector('.direction-btn.right').addEventListener('click', () => {
+        document.querySelector('.wms-direction-btn.right').addEventListener('click', () => {
             this.moveView('right');
         });
 
@@ -331,19 +326,14 @@ class Warehouse3D {
             this.exportData();
         });
 
+        // 导入数据
+        document.getElementById('import-data').addEventListener('click', () => {
+            this.importData();
+        });
+
         // 切换工具栏
-        document.getElementById('toggle-tools').addEventListener('click', () => {
-            this.toggleTools();
-        });
-
-        // 切换小地图
-        document.getElementById('toggle-minimap').addEventListener('click', () => {
-            this.toggleMiniMap();
-        });
-
-        // 截图
-        document.getElementById('screenshot').addEventListener('click', () => {
-            this.takeScreenshot();
+        document.getElementById('toggle-toolbar').addEventListener('click', () => {
+            this.toggleToolbar();
         });
 
         // 视图模式切换
@@ -356,14 +346,14 @@ class Warehouse3D {
             this.setLabelDisplay(e.target.value);
         });
 
-        // 标签位置设置
-        document.getElementById('label-position').addEventListener('change', (e) => {
-            this.setLabelPosition(e.target.value);
+        // 库位标签位置设置
+        document.getElementById('slot-label-position').addEventListener('change', (e) => {
+            this.setSlotLabelPosition(e.target.value);
         });
 
-        // 库位高度偏移设置
-        document.getElementById('slot-offset').addEventListener('input', (e) => {
-            this.setSlotHeightOffset(parseFloat(e.target.value));
+        // 垂直偏移设置
+        document.getElementById('vertical-offset').addEventListener('input', (e) => {
+            this.setVerticalOffset(parseInt(e.target.value));
         });
 
         // 编辑表单事件
@@ -374,6 +364,173 @@ class Warehouse3D {
         document.getElementById('save-edit').addEventListener('click', () => {
             this.saveEdit();
         });
+
+        document.getElementById('screenshot').addEventListener('click', () => {
+            this.takeScreenshot();
+        });
+
+        document.getElementById('toggle-fullscreen').addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
+
+        document.getElementById('toggle-help').addEventListener('click', () => {
+            this.toggleHelp();
+        });
+
+        document.getElementById('close-help').addEventListener('click', () => {
+            document.getElementById('help-panel').style.display = 'none';
+        });
+
+        // 新增的配置选项事件监听
+        document.getElementById('light-intensity').addEventListener('input', (e) => {
+            this.setLightIntensity(parseFloat(e.target.value));
+        });
+
+        // 动画速度设置
+        // document.getElementById('animation-speed').addEventListener('input', (e) => {
+        //     this.setAnimationSpeed(parseFloat(e.target.value));
+        // });
+
+        // 渲染质量设置
+        // document.getElementById('render-quality').addEventListener('change', (e) => {
+        //     this.setRenderQuality(e.target.value);
+        // });
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            this.handleKeyDown(e);
+        });
+    }
+
+    takeScreenshot() {
+        this.renderer.render(this.scene, this.camera);
+        const dataURL = this.renderer.domElement.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = `warehouse_screenshot_${new Date().toISOString().slice(0, 10)}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        alert('截图已保存');
+    }
+
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            this.container.requestFullscreen().catch(err => {
+                alert(`全屏模式错误: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    toggleHelp() {
+        const helpPanel = document.getElementById('help-panel');
+        helpPanel.style.display = helpPanel.style.display === 'none' ? 'block' : 'none';
+
+        // 可拖动
+        this.makePanelDraggable(helpPanel);
+    }
+
+    setLightIntensity(intensity) {
+        this.config.ambientLightIntensity = intensity;
+
+        // 更新场景中的环境光
+        this.scene.traverse(object => {
+            if (object instanceof THREE.AmbientLight) {
+                object.intensity = intensity;
+            }
+        });
+
+        document.getElementById('light-intensity-value').textContent = intensity.toFixed(1);
+    }
+
+    setAnimationSpeed(speed) {
+        this.config.animationSpeed = speed;
+        // 这里可以应用到任何动画系统
+    }
+
+    setRenderQuality(quality) {
+        switch(quality) {
+            case 'low':
+                this.renderer.setPixelRatio(1);
+                this.config.antialias = false;
+                break;
+            case 'medium':
+                this.renderer.setPixelRatio(1.5);
+                this.config.antialias = true;
+                break;
+            case 'high':
+                this.renderer.setPixelRatio(2);
+                this.config.antialias = true;
+                break;
+        }
+
+        // 重新应用抗锯齿设置
+        const newRenderer = new THREE.WebGLRenderer({
+            antialias: this.config.antialias,
+            powerPreference: "high-performance"
+        });
+
+        newRenderer.setSize(this.renderer.getSize(new THREE.Vector2()).width,
+            this.renderer.getSize(new THREE.Vector2()).height);
+        newRenderer.shadowMap.enabled = this.renderer.shadowMap.enabled;
+        newRenderer.shadowMap.type = this.renderer.shadowMap.type;
+
+        this.container.replaceChild(newRenderer.domElement, this.renderer.domElement);
+        this.renderer.dispose();
+        this.renderer = newRenderer;
+    }
+
+    handleKeyDown(event) {
+        // 防止在输入框中触发快捷键
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        switch(event.key.toLowerCase()) {
+            case 'r': // 重置视角
+                this.resetView();
+                break;
+            case 'h': // help
+                this.toggleHelp();
+                break;
+            case 'f': // 全屏
+                this.toggleFullscreen();
+                break;
+            case 'q': // 上升
+                this.camera.position.y += 5;
+                break;
+            case 'e':
+                this.camera.position.y -= 5;
+                break;
+            case 'w':
+            case 'arrowup': //  上
+                this.moveView('forward');
+                break;
+            case 's':
+            case 'arrowdown': // 下
+                this.moveView('backward');
+                break;
+            case 'a':
+            case 'arrowleft': //  左
+                this.moveView('left');
+                break;
+            case 'd':
+            case 'arrowright': //  右
+                this.moveView('right');
+                break;
+            case 'u': // 垂直偏移：上升
+                this.config.wholeOffsetY += 5;
+                this.setVerticalOffset(this.config.wholeOffsetY);
+                break;
+            case 'l': // 垂直偏移：下降
+                this.config.wholeOffsetY -= 5;
+                this.setVerticalOffset(this.config.wholeOffsetY);
+                break;
+        }
     }
 
     /**
@@ -383,38 +540,6 @@ class Warehouse3D {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    /**
-     * 画布鼠标移动事件处理
-     * @param {Event} event 鼠标移动事件
-     */
-    onCanvasMouseMove(event) {
-        // 计算鼠标在画布上的标准化设备坐标
-        const mouse = new THREE.Vector2();
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
-        // 创建射线投射器
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, this.camera);
-
-        // 检查与库位的交点
-        const intersects = raycaster.intersectObjects(this.slots.map(slot => slot.mesh));
-
-        // 显示或隐藏工具提示
-        const tooltip = document.getElementById('tooltip');
-        if (intersects.length > 0) {
-            const hoveredSlot = this.slots.find(slot => slot.mesh === intersects[0].object);
-            if (hoveredSlot) {
-                tooltip.textContent = hoveredSlot.id;
-                tooltip.style.left = (event.clientX + 10) + 'px';
-                tooltip.style.top = (event.clientY + 10) + 'px';
-                tooltip.style.opacity = '1';
-            }
-        } else {
-            tooltip.style.opacity = '0';
-        }
     }
 
     /**
@@ -456,53 +581,59 @@ class Warehouse3D {
      * @param {Object} slot 库位对象
      */
     showSlotInfo(slot) {
-        const infoPanel = document.getElementById('info-panel');
+        const infoPanel = document.getElementById('wms-info-panel');
         const infoContent = document.getElementById('info-content');
-        const editForm = document.getElementById('edit-form');
+        const editForm = document.getElementById('wms-edit-form');
 
         // 显示信息面板，隐藏编辑表单
         infoContent.style.display = 'block';
         editForm.style.display = 'none';
 
+        // 获取状态信息
+        const statusInfo = this.config.slotStatus.find(s => s.id === slot.status) || { id: 'free', name: '空闲', color: '#52c41a' };
+
         let content = `
-                    <div class="info-section">
-                        <div class="info-section-title">基本信息</div>
-                        <div class="info-item">
+                    <div class="wms-info-section">
+                        <div class="wms-info-section-title">基本信息</div>
+                        <div class="wms-info-item">
                             <div class="info-label">库位编号</div>
                             <div class="info-value">${slot.id}</div>
                         </div>
-                        <div class="info-item">
+                        <div class="wms-info-item">
                             <div class="info-label">位置</div>
                             <div class="info-value">第${slot.row+1}排, 第${slot.column+1}列, 第${slot.level+1}层, 第${slot.index+1}个</div>
                         </div>
-                        <div class="info-item">
+                        <div class="wms-info-item">
                             <div class="info-label">状态</div>
-                            <div class="info-value"><span class="status-indicator status-${slot.status}"></span>${this.config.slotStatus[slot.status].name}</div>
+                            <div class="info-value"><span class="status-indicator status-${slot.status}"></span>${statusInfo.name}</div>
                         </div>
                     </div>
                 `;
 
         if (slot.product) {
+            // 获取分类信息
+            const categoryInfo = this.config.productCategories.find(c => c.id === slot.product.category) || { id: 'other', name: '其他', color: '#d9d9d9' };
+
             content += `
-                        <div class="info-section">
-                            <div class="info-section-title">商品信息</div>
-                            <div class="info-item">
+                        <div class="wms-info-section">
+                            <div class="wms-info-section-title">商品信息</div>
+                            <div class="wms-info-item">
                                 <div class="info-label">商品ID</div>
                                 <div class="info-value">${slot.product.id}</div>
                             </div>
-                            <div class="info-item">
+                            <div class="wms-info-item">
                                 <div class="info-label">商品名称</div>
                                 <div class="info-value">${slot.product.name}</div>
                             </div>
-                            <div class="info-item">
+                            <div class="wms-info-item">
                                 <div class="info-label">商品分类</div>
-                                <div class="info-value">${this.config.productCategories[slot.product.category].name}</div>
+                                <div class="info-value">${categoryInfo.name}</div>
                             </div>
-                            <div class="info-item">
+                            <div class="wms-info-item">
                                 <div class="info-label">入库时间</div>
                                 <div class="info-value">${slot.product.inboundDate || '未知'}</div>
                             </div>
-                            <div class="info-item">
+                            <div class="wms-info-item">
                                 <div class="info-label">入库人</div>
                                 <div class="info-value">${slot.product.inboundPerson || '未知'}</div>
                             </div>
@@ -510,9 +641,9 @@ class Warehouse3D {
                     `;
         } else {
             content += `
-                        <div class="info-section">
-                            <div class="info-section-title">商品信息</div>
-                            <div class="info-item">
+                        <div class="wms-info-section">
+                            <div class="wms-info-section-title">商品信息</div>
+                            <div class="wms-info-item">
                                 <div class="info-value">该库位暂无商品</div>
                             </div>
                         </div>
@@ -531,9 +662,9 @@ class Warehouse3D {
      * @param {Object} slot 库位对象
      */
     showEditForm(slot) {
-        const infoPanel = document.getElementById('info-panel');
+        const infoPanel = document.getElementById('wms-info-panel');
         const infoContent = document.getElementById('info-content');
-        const editForm = document.getElementById('edit-form');
+        const editForm = document.getElementById('wms-edit-form');
 
         // 显示编辑表单，隐藏信息面板
         infoContent.style.display = 'none';
@@ -601,21 +732,22 @@ class Warehouse3D {
 
         this.updateSlot(this.currentEditingSlot.id, updates);
 
+        // 触发更新事件回调
+        if (this.config.onSlotUpdate) {
+            console.log(this.currentEditingSlot, updates);
+            this.config.onSlotUpdate(this.currentEditingSlot);
+        }
+
         // 隐藏面板
         this.hideInfoPanel();
         this.currentEditingSlot = null;
-
-        // 触发更新事件回调
-        if (this.config.onSlotUpdate) {
-            this.config.onSlotUpdate(this.currentEditingSlot);
-        }
     }
 
     /**
      * 隐藏信息面板
      */
     hideInfoPanel() {
-        document.getElementById('info-panel').style.display = 'none';
+        document.getElementById('wms-info-panel').style.display = 'none';
     }
 
     /**
@@ -655,7 +787,7 @@ class Warehouse3D {
         };
 
         // 只有标题栏可拖动
-        const header = panel.querySelector('.panel-header');
+        const header = panel.querySelector('.wms-panel-header');
         header.onmousedown = dragMouseDown;
     }
 
@@ -663,8 +795,12 @@ class Warehouse3D {
      * 搜索库位
      */
     searchSlot() {
-        const query = document.getElementById('search-input').value.trim();
-        if (!query) return;
+        const query = document.getElementById('wms-search-input').value.trim();
+        if (!query) {
+            // 清除之前的高亮
+            this.clearHighlights();
+            return;
+        }
 
         // 显示加载中
         this.showLoading();
@@ -791,19 +927,14 @@ class Warehouse3D {
         // 让相机看向库位
         this.controls.target.copy(slotPosition);
         this.controls.update();
-
-        // 触发视图变化事件回调
-        if (this.config.onViewChange) {
-            this.config.onViewChange('focus', slotPosition);
-        }
     }
 
     /**
      * 移动视图
-     * @param {string} direction 方向 (forward, backward, left, right, up, down)
+     * @param {string} direction 方向 (forward, backward, left, right)
      */
     moveView(direction) {
-        const distance = 15;
+        const distance = 10;
         const directionVector = new THREE.Vector3();
 
         switch (direction) {
@@ -819,12 +950,6 @@ class Warehouse3D {
             case 'right':
                 directionVector.set(distance, 0, 0);
                 break;
-            case 'up':
-                directionVector.set(0, distance, 0);
-                break;
-            case 'down':
-                directionVector.set(0, -distance, 0);
-                break;
         }
 
         // 应用相机方向
@@ -832,11 +957,6 @@ class Warehouse3D {
         this.camera.position.add(directionVector);
         this.controls.target.add(directionVector);
         this.controls.update();
-
-        // 触发视图变化事件回调
-        if (this.config.onViewChange) {
-            this.config.onViewChange('move', direction);
-        }
     }
 
     /**
@@ -844,14 +964,9 @@ class Warehouse3D {
      * @param {string} type 缩放类型 (in, out)
      */
     zoomView(type) {
-        const factor = type === 'in' ? 0.8 : 1.2;
+        const factor = type === 'in' ? 0.9 : 1.1;
         this.camera.fov *= factor;
         this.camera.updateProjectionMatrix();
-
-        // 触发视图变化事件回调
-        if (this.config.onViewChange) {
-            this.config.onViewChange('zoom', type);
-        }
     }
 
     /**
@@ -902,31 +1017,61 @@ class Warehouse3D {
                 slot.productLabel.visible = showSlotLabels;
             }
         });
-    }
 
-    /**
-     * 设置标签位置
-     * @param {string} position 标签位置 (back, top)
-     */
-    setLabelPosition(position) {
-        this.config.slotLabelPosition = position;
-
-        // 重新渲染仓库
-        if (this.currentWarehouse) {
-            this.renderWarehouse();
+        // 触发配置变化事件回调
+        if (this.config.onConfigChange) {
+            this.config.onConfigChange('labelDisplay', mode);
         }
     }
 
     /**
-     * 设置库位高度偏移
-     * @param {number} offset 偏移量
+     * 设置库位标签位置
+     * @param {string} position 标签位置
      */
-    setSlotHeightOffset(offset) {
-        this.config.slotHeightOffset = offset;
+    setSlotLabelPosition(position) {
+        this.config.slotLabelPosition = position;
 
-        // 重新渲染仓库
-        if (this.currentWarehouse) {
-            this.renderWarehouse();
+        // 重新渲染所有库位标签
+        this.slots.forEach(slot => {
+            if (slot.label) {
+                this.warehouseGroup.remove(slot.label);
+            }
+
+            // 重新创建标签
+            slot.label = this.addSlotLabel(
+                this.currentWarehouse,
+                slot.row,
+                slot.level,
+                slot.column,
+                slot.index,
+                slot.shelfNumber,
+                slot.position.x,
+                slot.position.y,
+                slot.position.z,
+                slot.status
+            );
+        });
+
+        // 触发配置变化事件回调
+        if (this.config.onConfigChange) {
+            this.config.onConfigChange('slotLabelPosition', position);
+        }
+    }
+
+    /**
+     * 设置垂直偏移
+     * @param {number} offset 偏移值
+     */
+    setVerticalOffset(offset) {
+        this.config.wholeOffsetY = offset;
+        document.getElementById('vertical-offset-value').textContent = offset;
+
+        // 更新整个仓库组的位置
+        this.warehouseGroup.position.y = offset;
+
+        // 触发配置变化事件回调
+        if (this.config.onConfigChange) {
+            this.config.onConfigChange('wholeOffsetY', offset);
         }
     }
 
@@ -935,7 +1080,7 @@ class Warehouse3D {
      */
     toggleEditMode() {
         this.editMode = !this.editMode;
-        const editBtn = document.getElementById('edit-mode');
+        const editBtn = document.getElementById('wms-edit-mode');
 
         if (this.editMode) {
             editBtn.classList.add('active');
@@ -958,67 +1103,23 @@ class Warehouse3D {
      */
     toggleConfigPanel() {
         const configPanel = document.getElementById('config-panel');
-        configPanel.style.display = configPanel.style.display === 'none' ? 'block' : 'none';
+        configPanel.style.display = configPanel.style.display === 'block' ? 'none' : 'block';
     }
 
     /**
      * 切换工具栏
      */
-    toggleTools() {
-        this.toolsExpanded = !this.toolsExpanded;
-        const toolbar = document.getElementById('toolbar');
-        const toggleBtn = document.getElementById('toggle-tools');
+    toggleToolbar() {
+        const toolbar = document.getElementById('wms-toolbar');
+        toolbar.classList.toggle('collapsed');
 
-        if (this.toolsExpanded) {
-            toolbar.style.transform = 'translateX(0)';
-            toggleBtn.innerHTML = '✕';
-            toggleBtn.title = '收起工具栏';
-        } else {
-            toolbar.style.transform = 'translateX(80%)';
-            toggleBtn.innerHTML = '☰';
+        const toggleBtn = document.getElementById('toggle-toolbar');
+        if (toolbar.classList.contains('collapsed')) {
             toggleBtn.title = '展开工具栏';
-        }
-    }
-
-    /**
-     * 切换小地图
-     */
-    toggleMiniMap() {
-        this.miniMapEnabled = !this.miniMapEnabled;
-        const miniMap = document.getElementById('mini-map');
-        miniMap.style.display = this.miniMapEnabled ? 'block' : 'none';
-
-        // 如果启用小地图，更新小地图内容
-        if (this.miniMapEnabled) {
-            this.updateMiniMap();
-        }
-    }
-
-    /**
-     * 更新小地图
-     */
-    updateMiniMap() {
-        // 简化的实现，实际应用中需要更复杂的小地图渲染逻辑
-        const miniMapContent = document.getElementById('mini-map-content');
-        miniMapContent.innerHTML = '<div style="padding:10px;text-align:center;">小地图预览</div>';
-    }
-
-    /**
-     * 截图
-     */
-    takeScreenshot() {
-        this.renderer.render(this.scene, this.camera);
-        try {
-            const dataURL = this.renderer.domElement.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataURL;
-            a.download = `warehouse_screenshot_${new Date().getTime()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } catch (e) {
-            console.error('截图失败:', e);
-            alert('截图功能需要安全上下文(HTTPS或localhost)');
+            toggleBtn.innerHTML = '≡';
+        } else {
+            toggleBtn.title = '收起工具栏';
+            toggleBtn.innerHTML = '×';
         }
     }
 
@@ -1045,9 +1146,9 @@ class Warehouse3D {
                 break;
         }
 
-        // 触发视图变化事件回调
-        if (this.config.onViewChange) {
-            this.config.onViewChange('mode', mode);
+        // 触发配置变化事件回调
+        if (this.config.onConfigChange) {
+            this.config.onConfigChange('viewMode', mode);
         }
     }
 
@@ -1057,6 +1158,11 @@ class Warehouse3D {
     toggleStats() {
         this.config.showStats = !this.config.showStats;
         document.getElementById('stats-panel').style.display = this.config.showStats ? 'block' : 'none';
+
+        // 触发配置变化事件回调
+        if (this.config.onConfigChange) {
+            this.config.onConfigChange('showStats', this.config.showStats);
+        }
     }
 
     /**
@@ -1077,6 +1183,34 @@ class Warehouse3D {
     }
 
     /**
+     * 导入数据
+     */
+    importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    this.initFromJSON(data);
+                } catch (error) {
+                    alert('导入失败：文件格式不正确');
+                    console.error('导入错误:', error);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        input.click();
+    }
+
+    /**
      * 重置视图
      */
     resetView() {
@@ -1091,11 +1225,6 @@ class Warehouse3D {
             this.config.cameraTarget.z
         );
         this.controls.update();
-
-        // 触发视图变化事件回调
-        if (this.config.onViewChange) {
-            this.config.onViewChange('reset');
-        }
     }
 
     /**
@@ -1120,20 +1249,18 @@ class Warehouse3D {
             columns: 6,
             levels: 3,
             slotsPerLevel: 8, // 每层库位数量
-            shelfWidth: 20,
-            shelfDepth: 4,
-            shelfHeight: 2.5,
-            aisleWidth: 40, // 通道宽度等于货架宽度的2倍
-            rowAisleWidth: 40, // 行通道宽度
-            columnAisleWidth: 40, // 列通道宽度
+            shelfWidth: 20,   // 货架宽度
+            shelfDepth: 4,    // 货架深度
+            shelfHeight: 2.5, // 货架高度
+            aisleWidth: { row: 20, column: 30 }, // 通道宽度
             layout: {
                 type: 'STRAIGHT',
                 xSpaces: 6,
                 ySpaces: 4
             },
-            slotLength: 2.5, // 库位长度
-            slotWidth: 2,    // 库位宽度
-            slotHeight: 1.5, // 库位高度
+            slotLength: 2.5,  // 库位长度
+            slotWidth: 2,     // 库位宽度
+            slotHeight: 1.5,  // 库位高度
             numberingRule: {
                 shelf: 'FORWARD_LEFT_TO_RIGHT', // 货架编号规则
                 slot: 'FULL' // 库位编号规则
@@ -1143,12 +1270,12 @@ class Warehouse3D {
 
         this.warehouses.push(warehouseConfig);
 
-        // 更新仓库标签
-        this.updateWarehouseTabs();
-
         // 如果是第一个仓库，设置为当前仓库
         if (this.warehouses.length === 1) {
             this.setCurrentWarehouse(warehouseConfig.id);
+        }else{
+            // 更新仓库标签
+            this.updateWarehouseTabs();
         }
     }
 
@@ -1187,8 +1314,11 @@ class Warehouse3D {
         // 更新标签状态
         this.updateWarehouseTabs();
 
-        // 更新统计信息
-        this.updateStats();
+        setTimeout(() => {
+            // 更新统计信息
+            this.updateStats();
+        }, 800);
+
 
         // 触发仓库变化事件回调
         if (this.config.onWarehouseChange) {
@@ -1206,7 +1336,9 @@ class Warehouse3D {
             free: 0,
             occupied: 0,
             reserved: 0,
-            damaged: 0
+            damaged: 0,
+            locked: 0,
+            maintenance: 0
         };
 
         // 计算各状态数量
@@ -1223,6 +1355,8 @@ class Warehouse3D {
         document.getElementById('stats-occupied').textContent = this.stats.occupied;
         document.getElementById('stats-reserved').textContent = this.stats.reserved;
         document.getElementById('stats-damaged').textContent = this.stats.damaged;
+        document.getElementById('stats-locked').textContent = this.stats.locked;
+        document.getElementById('stats-maintenance').textContent = this.stats.maintenance;
     }
 
     /**
@@ -1253,6 +1387,9 @@ class Warehouse3D {
             // 添加仓库名称
             this.addWarehouseName(config);
 
+            // 应用垂直偏移
+            this.warehouseGroup.position.y = this.config.wholeOffsetY;
+
             // 重置视图
             this.resetView();
 
@@ -1267,8 +1404,11 @@ class Warehouse3D {
      */
     createGround(config) {
         // 计算地面大小（根据货架布局）
-        const groundWidth = config.columns * (config.shelfWidth + config.columnAisleWidth);
-        const groundDepth = config.rows * (config.shelfDepth + config.rowAisleWidth);
+        const rowAisleWidth = config.aisleWidth.row || 20;
+        const columnAisleWidth = config.aisleWidth.column || 30;
+
+        const groundWidth = config.columns * (config.shelfWidth + columnAisleWidth);
+        const groundDepth = config.rows * (config.shelfDepth + rowAisleWidth);
 
         // 创建地面网格
         const groundGeometry = new THREE.PlaneGeometry(groundWidth * 1.5, groundDepth * 1.5);
@@ -1281,7 +1421,7 @@ class Warehouse3D {
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = Math.PI / 2;
         ground.position.y = -0.1;
-        ground.receiveShadow = true;
+        ground.receiveShadow = this.config.enableShadows;
 
         this.warehouseGroup.add(ground);
     }
@@ -1292,8 +1432,11 @@ class Warehouse3D {
      */
     addWarehouseName(config) {
         // 计算地面大小
-        const groundWidth = config.columns * (config.shelfWidth + config.columnAisleWidth);
-        const groundDepth = config.rows * (config.shelfDepth + config.rowAisleWidth);
+        const rowAisleWidth = config.aisleWidth.row || 20;
+        const columnAisleWidth = config.aisleWidth.column || 30;
+
+        const groundWidth = config.columns * (config.shelfWidth + columnAisleWidth);
+        const groundDepth = config.rows * (config.shelfDepth + rowAisleWidth);
 
         // 创建canvas用于文本渲染
         const canvas = document.createElement('canvas');
@@ -1322,11 +1465,7 @@ class Warehouse3D {
         const textMesh = new THREE.Mesh(geometry, material);
 
         // 将仓库名称放在所有货架的最后面，紧贴地面
-        textMesh.position.set(
-            this.config.groundNameOffset.x,
-            0.1 + this.config.groundNameOffset.y,
-            groundDepth / 2 + 5 + this.config.groundNameOffset.z
-        );
+        textMesh.position.set(0, 0.1, groundDepth / 2 + 5);
         textMesh.rotation.x = -Math.PI / 2;
 
         this.warehouseGroup.add(textMesh);
@@ -1345,9 +1484,11 @@ class Warehouse3D {
             shelfWidth,
             shelfDepth,
             shelfHeight,
-            rowAisleWidth,
-            columnAisleWidth
+            aisleWidth
         } = config;
+
+        const rowAisleWidth = aisleWidth.row || 20;
+        const columnAisleWidth = aisleWidth.column || 30;
 
         // 根据布局类型创建货架
         switch (config.layout.type) {
@@ -1376,9 +1517,11 @@ class Warehouse3D {
             shelfWidth,
             shelfDepth,
             shelfHeight,
-            rowAisleWidth,
-            columnAisleWidth
+            aisleWidth
         } = config;
+
+        const rowAisleWidth = aisleWidth.row || 20;
+        const columnAisleWidth = aisleWidth.column || 30;
 
         const totalWidth = columns * shelfWidth + (columns - 1) * columnAisleWidth;
         const totalDepth = rows * shelfDepth + (rows - 1) * rowAisleWidth;
@@ -1404,7 +1547,8 @@ class Warehouse3D {
                 // 创建货架上的库位
                 for (let level = 0; level < levels; level++) {
                     for (let slotIndex = 0; slotIndex < slotsPerLevel; slotIndex++) {
-                        const y = level * shelfHeight + shelfHeight / 2 + this.config.slotHeightOffset;
+                        // 库位放在隔板上方，与隔板重合
+                        const y = level * shelfHeight + shelfHeight / 2 + this.config.slotVerticalOffset;
                         this.createShelfSlot(config, row, level, col, slotIndex, shelfNumber, x, y, z);
                     }
                 }
@@ -1495,8 +1639,10 @@ class Warehouse3D {
         pillarPositions.forEach(pos => {
             const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
             pillar.position.set(pos.x, pos.y, pos.z);
-            pillar.castShadow = true;
-            pillar.receiveShadow = true;
+            if (this.config.enableShadows) {
+                pillar.castShadow = true;
+                pillar.receiveShadow = true;
+            }
             this.warehouseGroup.add(pillar);
         });
 
@@ -1513,8 +1659,10 @@ class Warehouse3D {
             });
             const plate = new THREE.Mesh(plateGeometry, plateMaterial);
             plate.position.set(x, level * shelfHeight + shelfHeight/2, z);
-            plate.castShadow = true;
-            plate.receiveShadow = true;
+            if (this.config.enableShadows) {
+                plate.castShadow = true;
+                plate.receiveShadow = true;
+            }
             this.warehouseGroup.add(plate);
         }
 
@@ -1566,8 +1714,9 @@ class Warehouse3D {
         canvas.height = 128;
         const context = canvas.getContext('2d');
 
-        // 透明背景
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        // 半透明黑色背景
+        context.fillStyle = this.config.shelfLabelBackgroundColor;
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
         // 绘制文本
         context.font = 'bold 24px Microsoft YaHei';
@@ -1628,9 +1777,9 @@ class Warehouse3D {
             slotWidth * 0.95    // 宽度方向
         );
 
-        // 获取库位状态和颜色
-        const slotStatus = this.getSlotStatus(config, row, level, col, index);
-        const color = new THREE.Color(this.config.slotStatus[slotStatus].color);
+        // 获取库位状态和颜色（默认空闲状态）
+        const defaultStatus = this.config.slotStatus.find(s => s.id === 'free') || this.config.slotStatus[0];
+        const color = new THREE.Color(defaultStatus.color);
 
         // 创建库位材质
         const material = new THREE.MeshPhongMaterial({
@@ -1642,14 +1791,16 @@ class Warehouse3D {
         // 创建库位网格
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(slotX, y, z);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        if (this.config.enableShadows) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+        }
 
         // 添加库位到场景
         this.warehouseGroup.add(mesh);
 
         // 添加库位文本标签
-        const label = this.addSlotLabel(config, row, level, col, index, shelfNumber, slotX, y, z, slotStatus);
+        const label = this.addSlotLabel(config, row, level, col, index, shelfNumber, slotX, y, z, 'free');
 
         // 添加商品分类标签
         const productLabel = this.addProductLabel(config, row, level, col, index, slotX, y, z);
@@ -1662,8 +1813,8 @@ class Warehouse3D {
             column: col,
             index: index,
             shelfNumber: shelfNumber,
-            status: slotStatus,
-            product: this.getSlotProduct(config, row, level, col, index),
+            status: 'free', // 默认空闲状态
+            product: null,  // 默认无商品
             mesh: mesh,
             label: label,
             productLabel: productLabel,
@@ -1709,6 +1860,9 @@ class Warehouse3D {
     addSlotLabel(config, row, level, col, index, shelfNumber, x, y, z, status) {
         const slotId = this.generateSlotId(config, row, level, col, index, shelfNumber);
 
+        // 获取状态信息
+        const statusInfo = this.config.slotStatus.find(s => s.id === status) || this.config.slotStatus[0];
+
         // 创建canvas用于文本渲染
         const canvas = document.createElement('canvas');
         canvas.width = 256;
@@ -1728,10 +1882,10 @@ class Warehouse3D {
 
         // 状态
         context.font = '14px Microsoft YaHei';
-        context.fillText(this.config.slotStatus[status].name, canvas.width / 2, 70);
+        context.fillText(statusInfo.name, canvas.width / 2, 70);
 
         // 位置信息
-        context.fillText(`第${index+1}个`, canvas.width / 2, 100);
+        context.fillText(`NO:${String(index+1).padStart(2, '0')}`, canvas.width / 2, 100);
 
         // 创建纹理
         const texture = new THREE.CanvasTexture(canvas);
@@ -1745,14 +1899,23 @@ class Warehouse3D {
         const geometry = new THREE.PlaneGeometry(4, 2);
         const label = new THREE.Mesh(geometry, material);
 
-        // 设置标签位置（根据配置决定在背面还是顶面）
-        if (this.config.slotLabelPosition === 'back') {
-            // 在库位背面
-            label.position.set(x, y, z + config.slotWidth * 0.5);
-        } else {
-            // 在库位顶面
-            label.position.set(x, y + config.slotHeight * 0.5, z);
-            label.rotation.x = -Math.PI / 2;
+        // 根据配置设置标签位置
+        switch (this.config.slotLabelPosition) {
+            case 'front':
+                label.position.set(x, y, z + config.slotWidth * 0.5);
+                break;
+            case 'top':
+                label.position.set(x, y + config.slotHeight * 0.5, z);
+                label.rotation.x = -Math.PI / 2;
+                break;
+            case 'bottom':
+                label.position.set(x, y - config.slotHeight * 0.5, z);
+                label.rotation.x = Math.PI / 2;
+                break;
+            case 'back':
+            default:
+                label.position.set(x, y, z - config.slotWidth * 0.5);
+                break;
         }
 
         // 添加到场景
@@ -1774,84 +1937,7 @@ class Warehouse3D {
      * @returns {THREE.Mesh|null} 标签网格对象或null
      */
     addProductLabel(config, row, level, col, index, x, y, z) {
-        const product = this.getSlotProduct(config, row, level, col, index);
-        if (!product) return null;
-
-        // 创建canvas用于文本渲染
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 64;
-        const context = canvas.getContext('2d');
-
-        // 透明背景
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 绘制文本
-        context.font = 'bold 16px Microsoft YaHei';
-        context.fillStyle = this.config.productCategories[product.category].color;
-        context.textAlign = 'center';
-        context.fillText(this.config.productCategories[product.category].name, canvas.width / 2, 35);
-
-        // 创建纹理
-        const texture = new THREE.CanvasTexture(canvas);
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            transparent: true,
-            side: THREE.DoubleSide
-        });
-
-        // 创建平面几何体
-        const geometry = new THREE.PlaneGeometry(3, 0.75);
-        const label = new THREE.Mesh(geometry, material);
-
-        // 设置标签位置（在库位顶面）
-        label.position.set(x, y + config.slotHeight * 0.5, z);
-        label.rotation.x = -Math.PI / 2;
-
-        // 添加到场景
-        this.warehouseGroup.add(label);
-
-        return label;
-    }
-
-    /**
-     * 获取库位状态
-     * @param {Object} config 仓库配置
-     * @param {number} row 排
-     * @param {number} level 层
-     * @param {number} col 列
-     * @param {number} index 库位索引
-     * @returns {string} 库位状态
-     */
-    getSlotStatus(config, row, level, col, index) {
-        // 简化实现，实际应从配置数据中获取
-        const statuses = Object.keys(this.config.slotStatus);
-        return statuses[Math.floor(Math.random() * statuses.length)];
-    }
-
-    /**
-     * 获取库位商品信息
-     * @param {Object} config 仓库配置
-     * @param {number} row 排
-     * @param {number} level 层
-     * @param {number} col 列
-     * @param {number} index 库位索引
-     * @returns {Object|null} 商品信息
-     */
-    getSlotProduct(config, row, level, col, index) {
-        // 简化实现，实际应从配置数据中获取
-        if (Math.random() > 0.5) {
-            const categories = Object.keys(this.config.productCategories);
-            const category = categories[Math.floor(Math.random() * categories.length)];
-
-            return {
-                id: `P${Math.floor(1000 + Math.random() * 9000)}`,
-                name: `商品${Math.floor(1 + Math.random() * 100)}`,
-                category: category,
-                inboundDate: new Date().toLocaleDateString(),
-                inboundPerson: `操作员${Math.floor(1 + Math.random() * 10)}`
-            };
-        }
+        // 默认无商品，返回null
         return null;
     }
 
@@ -1877,6 +1963,16 @@ class Warehouse3D {
         // 设置当前仓库
         if (data.currentWarehouseId) {
             this.setCurrentWarehouse(data.currentWarehouseId);
+        }
+
+        // 更新库位信息
+        if (Array.isArray(data.slots)) {
+            data.slots.forEach(slotData => {
+                this.updateSlot(slotData.id, {
+                    status: slotData.status,
+                    product: slotData.product
+                });
+            });
         }
     }
 
@@ -1915,7 +2011,8 @@ class Warehouse3D {
         // 更新库位信息
         if (updates.status !== undefined) {
             slot.status = updates.status;
-            slot.mesh.material.color = new THREE.Color(this.config.slotStatus[updates.status].color);
+            const statusInfo = this.config.slotStatus.find(s => s.id === updates.status) || this.config.slotStatus[0];
+            slot.mesh.material.color = new THREE.Color(statusInfo.color);
 
             // 更新标签
             if (slot.label) {
@@ -1942,16 +2039,21 @@ class Warehouse3D {
             if (slot.productLabel) {
                 this.warehouseGroup.remove(slot.productLabel);
             }
-            slot.productLabel = this.addProductLabel(
-                this.currentWarehouse,
-                slot.row,
-                slot.level,
-                slot.column,
-                slot.index,
-                slot.position.x,
-                slot.position.y,
-                slot.position.z
-            );
+
+            if (updates.product) {
+                slot.productLabel = this.addProductLabel(
+                    this.currentWarehouse,
+                    slot.row,
+                    slot.level,
+                    slot.column,
+                    slot.index,
+                    slot.position.x,
+                    slot.position.y,
+                    slot.position.z
+                );
+            } else {
+                slot.productLabel = null;
+            }
         }
 
         // 更新统计信息
@@ -1982,7 +2084,8 @@ class Warehouse3D {
         // 更新库位状态
         slot.status = 'free';
         slot.product = null;
-        slot.mesh.material.color = new THREE.Color(this.config.slotStatus.free.color);
+        const statusInfo = this.config.slotStatus.find(s => s.id === 'free') || this.config.slotStatus[0];
+        slot.mesh.material.color = new THREE.Color(statusInfo.color);
 
         // 更新商品标签
         if (slot.productLabel) {
@@ -2031,7 +2134,8 @@ class Warehouse3D {
             inboundDate: new Date().toLocaleDateString(),
             inboundPerson: inboundInfo.inboundPerson || '未知'
         };
-        slot.mesh.material.color = new THREE.Color(this.config.slotStatus.occupied.color);
+        const statusInfo = this.config.slotStatus.find(s => s.id === 'occupied') || this.config.slotStatus[1];
+        slot.mesh.material.color = new THREE.Color(statusInfo.color);
 
         // 更新商品标签
         if (slot.productLabel) {
@@ -2083,7 +2187,6 @@ class Warehouse3D {
         // 移除事件监听
         window.removeEventListener('resize', () => this.onWindowResize());
         this.renderer.domElement.removeEventListener('click', (event) => this.onCanvasClick(event));
-        this.renderer.domElement.removeEventListener('mousemove', (event) => this.onCanvasMouseMove(event));
 
         // 清除渲染器
         this.renderer.dispose();
