@@ -7,7 +7,7 @@ use Illuminate\Auth\Access\Response;
 use Modules\Docs\Models\DocsApp;
 use Modules\Docs\Models\DocsAppMenu;
 use Modules\Docs\Models\DocsDoc;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class DocsDocPolicy
 {

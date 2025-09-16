@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use Modules\Docs\Http\Controllers\DocsBaseController;
 use Modules\Docs\Models\DocsApp;
 use Modules\Docs\Models\DocsAppUser;
-use Modules\Users\Models\User;
-use Modules\Users\Services\UserAuthServices;
+use Modules\User\Models\User;
+use Modules\User\Services\UserAuthServices;
 
 /**
  * 文档用户管理

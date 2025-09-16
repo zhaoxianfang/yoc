@@ -5,7 +5,7 @@ namespace Modules\Docs\Http\Resources;
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Docs\Models\DocsAppUser;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class DocsUsersResource extends JsonResource
 {

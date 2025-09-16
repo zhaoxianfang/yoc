@@ -74,7 +74,7 @@ class DatabaseLogHandler extends AbstractProcessingHandler
             // 预处理日志记录
             $processedRecord = $this->processRecordData($record);
             // 是否是 js、css、图片等资源文件
-            if (is_resource_file($processedRecord['url'])) {
+            if (empty($processedRecord['url']) || is_resource_file($processedRecord['url'])) {
                 return;
             }
 

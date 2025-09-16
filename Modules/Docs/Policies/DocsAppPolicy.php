@@ -5,7 +5,7 @@ namespace Modules\Docs\Policies;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
 use Modules\Docs\Models\DocsApp;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class DocsAppPolicy
 {

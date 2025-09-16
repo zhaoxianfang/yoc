@@ -79,7 +79,7 @@ return [
         // 新增
         'users' => [
             'driver' => 'eloquent',
-            'model' => \Modules\Users\Models\User::class,
+            'model' => \Modules\User\Models\User::class,
         ],
 
         'admins' => [

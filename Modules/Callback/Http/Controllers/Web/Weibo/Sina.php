@@ -5,7 +5,7 @@ namespace Modules\Callback\Http\Controllers\Web\Weibo;
 use Exception;
 use Illuminate\Http\Request;
 use Modules\Callback\Http\Controllers\Web\CallbackController;
-use Modules\Users\Services\UserAuthServices;
+use Modules\User\Services\UserAuthServices;
 use zxf\Login\Constants\ConstCode;
 use zxf\Login\OAuth;
 

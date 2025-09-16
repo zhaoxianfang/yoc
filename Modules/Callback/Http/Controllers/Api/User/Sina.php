@@ -4,7 +4,7 @@ namespace Modules\Callback\Http\Controllers\Api\User;
 
 use Illuminate\Http\Request;
 use Modules\Callback\Http\Controllers\Web\CallbackController;
-use Modules\Users\Services\UserAuthServices;
+use Modules\User\Services\UserAuthServices;
 use zxf\Login\OAuth;
 
 class Sina extends CallbackController

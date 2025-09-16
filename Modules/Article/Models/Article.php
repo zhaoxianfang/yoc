@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Spider\Contracts\SpiderArticleInterface;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class Article extends Model implements SpiderArticleInterface
 {

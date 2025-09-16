@@ -35,6 +35,9 @@ Route::prefix('demo')->name('demo.')->group(function () {
 
         // 自定义 tools 组件
         Route::get('tools', [Web\Components\ToolsController::class, 'index']);
+
+        // wms 仓库管理
+        Route::get('wms', [Web\Components\WmsController::class, 'index']);
     });
 
     // 编辑器

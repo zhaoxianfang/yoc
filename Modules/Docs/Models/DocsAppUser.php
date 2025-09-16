@@ -3,7 +3,7 @@
 namespace Modules\Docs\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class DocsAppUser extends Pivot
 {

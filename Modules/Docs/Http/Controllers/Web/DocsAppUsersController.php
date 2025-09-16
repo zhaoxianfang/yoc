@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Modules\Docs\Http\Controllers\DocsBaseController;
 use Modules\Docs\Models\DocsApp;
 use Modules\Docs\Models\DocsAppUser;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 /**
  * 文档用户管理

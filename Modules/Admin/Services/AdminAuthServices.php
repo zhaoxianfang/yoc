@@ -3,7 +3,7 @@
 namespace Modules\Admin\Services;
 
 use Modules\Admin\Models\Admin;
-use Modules\Users\Contracts\UserAuthAbstract;
+use Modules\User\Contracts\UserAuthAbstract;
 
 /**
  * 用户登录、退出、获取个人信息等、第三方平台快速登录

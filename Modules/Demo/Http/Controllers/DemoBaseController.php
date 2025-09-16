@@ -16,6 +16,11 @@ class DemoBaseController extends BaseController
             'name' => '',
             'icon' => 'ti ti-medical-cross',
             'badge_text' => '',
+            // badge 显示标签，badge-*可用类型：eg:(badge badge-outline-success)
+            //      default,
+            //      outline-(dark,light,purple,danger,warning,info,success,secondary,primary)
+            //      soft-(dark,light,purple,danger,warning,info,success,secondary,primary)
+            'badge_text_style' => 'badge-outline-success',
         ],
         [
             'id' => 2,
@@ -24,6 +29,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/editor/summernote',
             'icon' => 'ti ti-medical-cross',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 3,
@@ -32,6 +38,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/editor/ckeditor',
             'icon' => 'ti ti-medical-cross',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 4,
@@ -40,6 +47,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/editor/cherry',
             'icon' => 'ti ti-markdown',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         // [
         //     'id' => 5,
@@ -48,6 +56,7 @@ class DemoBaseController extends BaseController
         //     'name' => '/demo/editor/editor_md',
         //     'icon' => 'ti ti-markdown',
         //     'badge_text' => '',
+        //     'badge_text_style' => '',
         // ],
         [
             'id' => 10,
@@ -56,6 +65,7 @@ class DemoBaseController extends BaseController
             'name' => '',
             'icon' => 'ti ti-table',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 11,
@@ -64,6 +74,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/table/data_tables',
             'icon' => 'ti ti-table',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 20,
@@ -72,6 +83,7 @@ class DemoBaseController extends BaseController
             'name' => '',
             'icon' => 'ti ti-file-function',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 21,
@@ -80,6 +92,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/excel/import',
             'icon' => 'ti ti-upload',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 22,
@@ -88,6 +101,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/excel/export',
             'icon' => 'ti ti-download',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 23,
@@ -96,6 +110,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/word/write',
             'icon' => 'ti ti-pencil-code',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 24,
@@ -104,6 +119,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/word/template',
             'icon' => 'ti ti-replace',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         // [
         //     'id' => 30,
@@ -112,6 +128,7 @@ class DemoBaseController extends BaseController
         //     'name' => '',
         //     'icon' => 'ti ti-tools',
         //     'badge_text' => '',
+        //     'badge_text_style' => '',
         // ],
         // [
         //     'id' => 31,
@@ -120,6 +137,7 @@ class DemoBaseController extends BaseController
         //     'name' => '/demo/tools/time_zone',
         //     'icon' => 'ti ti-timezone',
         //     'badge_text' => '',
+        //     'badge_text_style' => '',
         // ],
         // [
         //     'id' => 32,
@@ -128,6 +146,7 @@ class DemoBaseController extends BaseController
         //     'name' => '/demo/other/region',
         //     'icon' => 'ti ti-sitemap',
         //     'badge_text' => '',
+        //     'badge_text_style' => '',
         // ],
         [
             'id' => 40,
@@ -136,6 +155,7 @@ class DemoBaseController extends BaseController
             'name' => '',
             'icon' => 'ti ti-components',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 41,
@@ -144,6 +164,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/components/modal',
             'icon' => 'ti ti-layers-subtract',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 42,
@@ -152,6 +173,7 @@ class DemoBaseController extends BaseController
             'name' => '/demo/components/right-menu',
             'icon' => 'ti ti-pointer-check',
             'badge_text' => '',
+            'badge_text_style' => '',
         ],
         [
             'id' => 43,
@@ -160,6 +182,20 @@ class DemoBaseController extends BaseController
             'name' => '/demo/components/tools',
             'icon' => 'ti ti-swords',
             'badge_text' => '',
+            'badge_text_style' => '',
+        ],
+        [
+            'id' => 44,
+            'pid' => 40,
+            'title' => 'WMS 仓库管理',
+            'name' => '/demo/components/wms',
+            'icon' => 'ti ti-building-warehouse',
+            'badge_text' => 'new',
+            // badge 显示标签，badge-*可用类型：eg:(badge badge-outline-success)
+            //      default,
+            //      outline-(dark,light,purple,danger,warning,info,success,secondary,primary)
+            //      soft-(dark,light,purple,danger,warning,info,success,secondary,primary)
+            'badge_text_style' => 'badge-outline-success',
         ],
     ];
 

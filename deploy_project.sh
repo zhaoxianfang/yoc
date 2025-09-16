@@ -199,6 +199,9 @@ $PHP_BIN artisan optimize
 sudo chmod -R 755 ${PROJECT_PATH}
 sudo chmod -R 777 ${PROJECT_PATH}/storage/
 sudo chmod -R 777 ${PROJECT_PATH}/bootstrap/cache/
+sudo chmod -R 660 ${PROJECT_PATH}/storage/oauth-public.key
+sudo chmod -R 600 ${PROJECT_PATH}/storage/oauth-private.key
+
 # 重启任务队列
 $PHP_BIN artisan queue:restart
 

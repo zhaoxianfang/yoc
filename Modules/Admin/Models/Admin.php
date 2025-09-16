@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 // use Laravel\Sanctum\HasApiTokens;
 // 使用 Passport 方式登录 Passport也是支持 session 登录模式滴
 use Laravel\Passport\HasApiTokens;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class Admin extends Authenticatable
 {

@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 // use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use Modules\System\Trait\ControllerTrait;
-use Modules\Users\Services\TopNav\MessagesService;
-use Modules\Users\Services\TopNav\NotificationService;
+use Modules\User\Services\TopNav\MessagesService;
+use Modules\User\Services\TopNav\NotificationService;
 
 /**
  * 全局基础控制器

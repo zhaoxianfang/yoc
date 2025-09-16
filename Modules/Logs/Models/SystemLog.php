@@ -5,7 +5,7 @@ namespace Modules\Logs\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Users\Models\User;
+use Modules\User\Models\User;
 
 class SystemLog extends Model
 {
