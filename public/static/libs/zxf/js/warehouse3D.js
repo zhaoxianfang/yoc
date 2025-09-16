@@ -1149,7 +1149,7 @@ class Warehouse3D {
      */
     toggleEditMode() {
         this.editMode = !this.editMode;
-        const editBtn = document.getElementById('wms-edit-mode');
+        const editBtn = document.getElementById('edit-mode');
 
         if (this.editMode) {
             editBtn.classList.add('active');
