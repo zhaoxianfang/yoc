@@ -89,15 +89,25 @@ class AdminMenuService
             $list = self::findBreadcrumbTree($treeList);
             $count = count($list);
             if ($count > 1) {
+                // 取出 $list最后一个元素
+                $last = end($list);
+
+                $str = '<div class="page-title-head d-flex align-items-center">';
+                // 左侧：当前菜单
+                $str .= '<div class="flex-grow-1"><h4 class="fs-sm text-uppercase fw-bold m-0">'.$last['title'].'</h4></div>';
+
+                // 右侧导航
+                $str .= '<div class="text-end"><ol class="breadcrumb m-0 py-0">';
                 foreach ($list as $key => $item) {
-                    $str .= '<li class="breadcrumb-item">';
+                    $str .= '<li class="breadcrumb-item'.($key == $count - 1 ? ' active' : '').'">';
                     if ($key == $count - 1) {
                         $str .= '<strong>'.$item['title'].'</strong>';
                     } else {
-                        // $str .= '<a href="' . $item['url'] . '">' . $item['title'] . '</a>';
                         $str .= '<a href="javascript:;">'.$item['title'].'</a>';
                     }
+                    $str .= '</li>';
                 }
+                $str .= '</ol></div></div>';
             }
         }
 

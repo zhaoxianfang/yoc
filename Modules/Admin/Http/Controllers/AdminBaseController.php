@@ -16,6 +16,7 @@ class AdminBaseController extends BaseController
         if ($request->isMethod('get')) {
             view_share([
                 'admin_menu_html' => $adminMenuService->getLeftMenu(),
+                'admin_breadcrumb_html' => $adminMenuService->getBreadcrumb(),
                 'admin' => auth('admin')->user(),
             ]);
         }
