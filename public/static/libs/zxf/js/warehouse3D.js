@@ -43,7 +43,7 @@ class Warehouse3D {
             // 默认货架尺寸
             shelfSize: { width: 5, depth: 3, height: 2 },
             // 默认通道宽度
-            aisleWidth: { row: 8, column: 10 },
+            aisleWidth: { row: 8, column: 12 },
             // 默认布局类型
             layoutType: 'STRAIGHT',
             // 是否显示标签
@@ -1300,9 +1300,29 @@ class Warehouse3D {
      * 动画循环
      */
     animate() {
+        // this.animationId = requestAnimationFrame(() => this.animate());
+        // this.controls.update();
+        // this.renderer.render(this.scene, this.camera);
         this.animationId = requestAnimationFrame(() => this.animate());
-        this.controls.update();
+
+        // 只在需要时更新控制器
+        if (this.controls.enabled) {
+            this.controls.update();
+        }
+
+        // 使用节流渲染
+        this.renderThrottled();
+    }
+
+    /**
+     * 节流渲染函数
+     */
+    renderThrottled() {
+        const now = Date.now();
+        if (now - this.lastRenderTime < 1000 / 30) return; // 限制到30FPS
+
         this.renderer.render(this.scene, this.camera);
+        this.lastRenderTime = now;
     }
 
     /**

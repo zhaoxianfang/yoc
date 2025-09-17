@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         shelfWidth: 60,   // 货架宽度
         shelfDepth: 3,    // 货架深度
         shelfHeight: 2.5, // 货架高度
-        aisleWidth: { row: 6, column: 8 }, // 通道宽度
+        aisleWidth: { row: 8, column: 12 }, // 通道宽度
         layout: {
             type: 'STRAIGHT',
             xSpaces: 6,
