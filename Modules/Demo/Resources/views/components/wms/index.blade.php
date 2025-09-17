@@ -241,7 +241,7 @@
     <script src="{{ asset('static/libs/three@0.132.2/build/three.min.js') }}" type='text/javascript'></script>
     <script src="{{ asset('static/libs/three@0.132.2/examples/OrbitControls.js') }}" type='text/javascript'></script>
 
-    <script src="{{ asset('static/libs/zxf/js/warehouse3D.js') }}" type='text/javascript'></script>
+    <script src="{{ asset('static/libs/zxf/js/warehouse3D.min.js') }}" type='text/javascript'></script>
     <script src="{{ asset('static/wms/wms.js') }}" type='text/javascript'></script>
 
     <script>

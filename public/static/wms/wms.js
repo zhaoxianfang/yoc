@@ -41,10 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('仓库已切换:', warehouse.name);
         },
         onSlotClick: (slot) => {
-            console.log('库位被点击:', slot.id);
+            console.log('库位被点击:', slot.id,slot);
         },
         onSlotUpdate: (slot) => {
-            console.log('库位已更新:', slot.id);
+            console.log('库位已更新:', slot.id,slot);
         },
         onSearchComplete: (slots) => {
             console.log('搜索完成，找到', slots.length, '个库位');

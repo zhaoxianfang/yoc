@@ -465,7 +465,8 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'btn_class':'danger',
                                 'url_name':'del_url',
                                 'url_params':"{id:"+row.id+"}",
-                            },{
+                            }
+                            ,{
                                 'text':'提示',
                                 "title":'提示',
                                 "content":"提示内容是：此行ID为["+row.id+']',
@@ -483,6 +484,34 @@ div.dt-scroll-body tfoot tr,div.dt-scroll-body thead tr {
                                 'event_type':'jump_url',
                                 'btn_class':'link',
                                 'url_name':'docs_url'
+                            }
+                            ,{
+                                'text':'按钮组',
+                                'type':'btn_group',
+                                'btn_class':'primary',
+                                "icon": "ti ti-dots-vertical", // fa 按钮小图标 ,例如 fa fa-pencil
+                                'buttons':[
+                                    {
+                                        'text':'删除',
+                                        "title":"确认删除["+row.nickname+']吗？',
+                                        'type':'btn',
+                                        "icon": "ti ti-trash fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
+                                        'event_type':'confirm_open',
+                                        'btn_class':'danger',
+                                        'url_name':'del_url',
+                                        'url_params':"{id:"+row.id+"}",
+                                    },
+                                    {
+                                        'text':'编辑',
+                                        "title":"编辑["+row.nickname+']',
+                                        'type':'btn', // btn、status、label、icon、sub_str、datetime、toggle、image、input、url、ip
+                                        "icon": "ti ti-pencil fs-14", // fa 按钮小图标 ,例如 fa fa-pencil
+                                        'event_type':'layer_open', //callback:自定义回调操作, layer_open:弹出框打开url,confirm_open:对话操作,jump_url:跳转url,tips:仅提示
+                                        'btn_class':'info', // bootstrap 按钮的样式类型，不需要带 btn-前缀
+                                        'url_name':'edit_url', // index_url,add_url,edit_url,del_url,detail_url 等在urls里面定义的url名称
+                                        'url_params':"{id:"+row.id+"}",// 替换url的参数
+                                    },
+                                ]
                             }
                         ]);
                     }

@@ -1886,6 +1886,7 @@ class Warehouse3D {
             shelfNumber: shelfNumber,
             status: 'free', // 默认空闲状态
             product: null,  // 默认无商品
+            original:{}, // 初始化原始数据为空对象
             mesh: mesh,
             label: label,
             productLabel: productLabel,
@@ -2127,6 +2128,9 @@ class Warehouse3D {
             }
         }
 
+        // 保留原始数据
+        slot.original = { ...slot.original, ...updates };
+
         // 更新统计信息
         this.updateStats();
 
@@ -2155,6 +2159,7 @@ class Warehouse3D {
         // 更新库位状态
         slot.status = 'free';
         slot.product = null;
+        slot.original = {};
         const statusInfo = this.config.slotStatus.find(s => s.id === 'free') || this.config.slotStatus[0];
         slot.mesh.material.color = new THREE.Color(statusInfo.color);
 
@@ -2205,6 +2210,8 @@ class Warehouse3D {
             inboundDate: new Date().toLocaleDateString(),
             inboundPerson: inboundInfo.inboundPerson || '未知'
         };
+        // 保留原始数据
+        slot.original = { ...slot.original, ...inboundInfo };
         const statusInfo = this.config.slotStatus.find(s => s.id === 'occupied') || this.config.slotStatus[1];
         slot.mesh.material.color = new THREE.Color(statusInfo.color);
 

@@ -32,7 +32,8 @@
         preDrawCallback: null,// (function)
         // 每当为表主体创建 TR 元素时进行回调
         createdRow: null,// (function)
-
+        // 正在绘制第几行的表格行索引
+        drawRowIndex: 0,
         // 是否显示表格顶部刷新按钮
 
         urls: {
@@ -149,6 +150,7 @@
                 // if ( data[4] == "A" ) {
                 //     $(row).addClass( 'important' );
                 // }
+                TableTools.drawRowIndex = dataIndex + 1;
                 (typeof (this.createdRow) == "function") && this.createdRow(row, data, dataIndex);
 
             },
@@ -550,8 +552,8 @@
             return this;
         },
         drawTable: function () {
-            var _this = this;
-
+            const _this = this;
+            this.drawRowIndex = 0; // 初始化正在绘制的行索引
             //DataTable对象
             this.tableObj = $(this.tableElement).DataTable(this.options);
 
@@ -960,7 +962,36 @@
                     return "<button type=\"button\" data-url=\"" + url + "\" data-title=\"" + config.title + "\" data-options='" + (config.options || "{}") + "' class=\"btn btn-xs btn-" + config.btn_class +
                         " " + ext_class + "\">" + (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") + (config.text ? config.text : "BTN") + "</button>";
                 }
-            }
+            },
+            // 创建按钮组
+            btn_group: function (opts = {}) {
+                const config = $.extend(true, {}, {
+                    "type": "btn_group",
+                    "buttons": [],
+                    "text": "按钮组",
+                    "icon": "ti ti-dots-vertical",
+                    "btn_class": "primary",
+                }, opts);
+
+                // 遍历 config.buttons，给每一项的 btn_class 都追加上 dropdown-item 样式
+                config.buttons.forEach(function (item) {
+                    let btn_class = TableTools.getButtonType(item.btn_class);
+                    item.btn_class = item.btn_class +" bg-" + btn_class + " dropdown-item";
+                })
+                // 创建按钮组 drop 的方向
+                let dropDirection = TableTools.drawRowIndex > 0 ? "dropup" : "dropend";
+
+                return '<div class="btn-group '+dropDirection+'">' +
+                    '<button type="button" class="btn btn-xs btn-' + config.btn_class + ' dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                    (config.icon ? "<i class=\"" + config.icon + "\"></i>&nbsp;" : "") +
+                    (config.text ? config.text : "BTN") +
+                    '<i class="ti ti-chevron-down align-middle ms-1"></i>'+
+                    '</button>' +
+                    '<div class="dropdown-menu p-0">' +
+                    TableTools.createButtonList(config.buttons) +
+                    '</div>' +
+                    '</div>';
+            },
         },
         // 创建按钮列表
         createButtonList: function (buttons = {}) {
@@ -974,6 +1005,22 @@
                 }
             });
             return btnsHtml;
+        },
+        /**
+         * 获取按钮类型
+         * @param btn_class
+         * @returns {*|null}
+         */
+        getButtonType: function(btn_class) {
+            const classes = btn_class.split(' ');
+            const types = ['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'purple', 'dark', 'light'];
+
+            for (let i = 0; i < classes.length; i++) {
+                if (types.includes(classes[i])) {
+                    return classes[i];
+                }
+            }
+            return 'primary'; // 如果没有匹配的类型，返回primary
         },
         /**
          * json 对象转url参数

@@ -3172,4 +3172,5 @@ div.dtsr-creation button:hover {
 .dt-length label{
     margin-bottom: 0!important;
 }
+.drop-arrow-none:after{display: none!important;}
 
