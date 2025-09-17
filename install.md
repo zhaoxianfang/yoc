@@ -275,8 +275,8 @@ __('hello');
 ## 13. 设置文件夹权限
 
 ```
-chmod -R 775 /www/yoc_cn/
-chown -R nobody.nobody /www/
+sudo chmod -R 775 /www/yoc_cn/
+sudo chown -R nobody.nobody /www/yoc_cn/
 sudo chmod -R 777 /www/yoc_cn/storage/
 sudo chmod -R 777 /www/yoc_cn/bootstrap/cache/
 ```
@@ -319,10 +319,15 @@ composer dump-autoload
 
 crontab -uroot -e
 
+查找 PHP 可执行文件的路径:
+```
+which php 或者 command -v php
+```
+
 ```
 # * * * * * /usr/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 # 或者跟换你的php 路径
-* * * * * /usr/local/php8/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
+* * * * * /root/.config/herd-lite/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 
 # 每天凌晨3点执行重启任务队列
 0 3 * * * systemctl restart yoc_cn-queue.service >> /dev/null 2>&1
@@ -353,7 +358,7 @@ After=network.target
 User=www
 Group=www
 Restart=always
-ExecStart=/usr/local/php8/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
+ExecStart=/root/.config/herd-lite/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
 
 [Install]
 WantedBy=multi-user.target
