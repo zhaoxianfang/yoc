@@ -327,7 +327,7 @@ which php 或者 command -v php
 ```
 # * * * * * /usr/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 # 或者跟换你的php 路径
-* * * * * /root/.config/herd-lite/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/local/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 
 # 每天凌晨3点执行重启任务队列
 0 3 * * * systemctl restart yoc_cn-queue.service >> /dev/null 2>&1
@@ -351,14 +351,14 @@ vim yoc_cn-queue.service
 
 ```
 [Unit]
-Description=Yoc Cron Queue Worker
+Description=Yoc Cron Queue Worker(YOC 队列运行服务)
 After=network.target
 
 [Service]
 User=www
 Group=www
 Restart=always
-ExecStart=/root/.config/herd-lite/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
+ExecStart=/usr/local/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
 
 [Install]
 WantedBy=multi-user.target

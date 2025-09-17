@@ -1300,29 +1300,9 @@ class Warehouse3D {
      * 动画循环
      */
     animate() {
-        // this.animationId = requestAnimationFrame(() => this.animate());
-        // this.controls.update();
-        // this.renderer.render(this.scene, this.camera);
         this.animationId = requestAnimationFrame(() => this.animate());
-
-        // 只在需要时更新控制器
-        if (this.controls.enabled) {
-            this.controls.update();
-        }
-
-        // 使用节流渲染
-        this.renderThrottled();
-    }
-
-    /**
-     * 节流渲染函数
-     */
-    renderThrottled() {
-        const now = Date.now();
-        if (now - this.lastRenderTime < 1000 / 30) return; // 限制到30FPS
-
+        this.controls.update();
         this.renderer.render(this.scene, this.camera);
-        this.lastRenderTime = now;
     }
 
     /**
