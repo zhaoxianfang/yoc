@@ -1627,18 +1627,20 @@ class Warehouse3D {
                 const x = startX + col * (shelfWidth + columnAisleWidth);
                 const z = startZ + row * (shelfDepth + rowAisleWidth);
 
+                // 从可视的左下角开始编号
+                let newRowIndex = rows-row-1;
                 // 获取货架编号
                 const shelfNumber = shelfNumbers[row][col];
 
                 // 创建货架
-                this.createShelf(config, row, col, shelfNumber, x, z);
+                this.createShelf(config, newRowIndex, col, shelfNumber, x, z);
 
                 // 创建货架上的库位
                 for (let level = 0; level < levels; level++) {
                     for (let slotIndex = 0; slotIndex < slotsPerLevel; slotIndex++) {
                         // 库位放在隔板上方，与隔板重合
                         const y = level * shelfHeight + shelfHeight / 2 + this.config.slotVerticalOffset;
-                        this.createShelfSlot(config, row, level, col, slotIndex, shelfNumber, x, y, z);
+                        this.createShelfSlot(config, newRowIndex, level, col, slotIndex, shelfNumber, x, y, z);
                     }
                 }
             }

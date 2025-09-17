@@ -62,9 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
         id: 'WH001',
         name: '一号仓库',
         rows: 8,
-        columns: 4,
+        columns: 3,
         levels: 6,
-        slotsPerLevel: 20, // 每层8个库位
+        slotsPerLevel: 20, // 每层20个库位
         shelfWidth: 60,   // 货架宽度
         shelfDepth: 3,    // 货架深度
         shelfHeight: 2.5, // 货架高度
