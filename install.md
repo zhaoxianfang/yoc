@@ -431,3 +431,42 @@ php artisan queue:work --tries=3
 设置任务执行的超时时间(允许最大执行时间), 默认为60秒,超时则进入失败队列
 php artisan queue:work --timeout=180
 ```
+
+
+## 常见问题
+
+### linux 服务器安装php8.4
+```
+/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
+```
+
+### 让任意用户可以使用 root 用户安装的 composer
+
+1、找到当前 Composer 的可执行文件位置（以 root 用户执行）：
+```
+which composer
+// 得到 ：/root/.config/herd-lite/bin/composer
+```
+
+2、将 Composer 移动到系统全局的 bin 目录（例如 /usr/local/bin）：
+```
+// 将 composer 文件移动到全局目录
+mv /root/.config/herd-lite/bin/composer /usr/local/bin/composer
+
+// 确保移动后的文件仍有可执行权限
+chmod +x /usr/local/bin/composer
+```
+
+3、验证：
+切换到 www 用户或其他任何用户，再次尝试运行 `composer -V`：
+
+### 让任意用户可以使用 root 用户安装的 php
+```
+which php
+
+// 将 composer 文件移动到全局目录
+mv /root/.config/herd-lite/bin/php /usr/local/bin/php
+
+// 确保移动后的文件仍有可执行权限
+chmod +x /usr/local/bin/php
+```
