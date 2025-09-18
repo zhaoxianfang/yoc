@@ -128,7 +128,7 @@
 
         function form_after(res){
             $('#pre_rule_res').empty(); // 清空div
-            if(!my.isEmpty(res.data)){
+            if(!myTools.func.isEmpty(res.data)){
                 // 采集到数据
                 $('#preview_box').show();
                 $('#pre_rule_res').show();

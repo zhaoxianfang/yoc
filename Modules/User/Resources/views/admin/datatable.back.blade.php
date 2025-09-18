@@ -190,7 +190,7 @@
 
 
             // TEST
-            // my.layer.open('https://www.baidu.com','百度',{maxmin:false,area:['1000px','600px']});
+            // Modal.iframe('百度','https://www.baidu.com',1000','600');
         });
 
         {{--    setTimeout(function () {--}}

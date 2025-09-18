@@ -136,7 +136,7 @@
                         console.log('onImageUpload',files);
 
                         for (var i = 0; i < files.length; i++) {
-                            my.upload('/files/uploads/summernote/image/img', files[i], function(res){
+                            myTools.http.upload('/files/uploads/summernote/image/img', files[i], function(res){
                                 // console.log('success',res)
                                 summernoteObj.summernote('insertImage', res.url);
                             },function (err){

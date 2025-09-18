@@ -2777,17 +2777,20 @@
         /**
          * 文件上传方法(简化版)
          * @param {string} url 上传URL
-         * @param {Object} formData 表单数据(包含文件)
+         * @param file 表单数据(包含文件)
          * @param {Object} config 请求配置
+         * @param filename 文件名
          * @returns {Promise} 返回Promise对象
          */
-        upload : function(url, formData, config) {
+        upload : function(url, file, config,filename = "file") {
             // 设置Content-Type为multipart/form-data
             var uploadConfig = Object.assign({}, config, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
+            const formData = new FormData();
+            formData.append(filename, file);
 
             return this.post(url, formData, uploadConfig);
         },
