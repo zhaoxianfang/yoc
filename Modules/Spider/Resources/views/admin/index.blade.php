@@ -188,8 +188,8 @@
                         if(row.sub_tasks !== 1){
                             // 主任务 可以「立即执行」
                             runTaskBtn = TableTools.createButtonList([{
-                                'text':'立即执行',
-                                "title":"确认执行["+row.name+']任务吗？',
+                                'text':'执行',
+                                "title":"确认立即执行["+row.name+']任务吗？',
                                 'type':'btn',
                                 "icon": "ti ti-player-play",
                                 'event_type':'confirm_open',

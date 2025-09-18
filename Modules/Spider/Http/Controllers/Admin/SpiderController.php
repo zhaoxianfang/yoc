@@ -3,13 +3,12 @@
 namespace Modules\Spider\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Modules\Admin\Http\Controllers\AdminBaseController;
 use Modules\Article\Models\ArticleClassifies;
 use Modules\Spider\Http\Resources\SpiderTaskListResource;
 use Modules\Spider\Models\SpiderTask;
 use Modules\Spider\Services\SpiderHandleService;
-use Modules\Task\Jobs\SpiderJob;
+use Modules\Spider\Services\SpiderTasksService;
 
 class SpiderController extends AdminBaseController
 {
@@ -187,26 +186,9 @@ class SpiderController extends AdminBaseController
     /**
      * 运行爬虫
      */
-    public function run(SpiderTask $task)
+    public function run(SpiderTask $task, SpiderTasksService $service)
     {
-        try {
-            // 队列调度，避免运行超时1分钟
-            SpiderJob::dispatch($task)->afterCommit();
-
-            return $this->success(['message' => '任务已启动']);
-        } catch (\Exception $err) {
-            $content = [
-                'message:' => $err->getMessage(),   // 返回用户自定义的异常信息
-                'code:' => $err->getCode(),      // 返回用户自定义的异常代码
-                'file:' => str_replace(base_path(), '', $err->getFile()),      // 返回发生异常的PHP程序文件名
-                'line:' => $err->getLine(),        // 返回发生异常的代码所在行的行号
-                // "trace:"     => $err->getTrace(),      //返回发生异常的传递路线
-                // "传递路线String" => $err->getTraceAsString(),//返回发生异常的传递路线
-            ];
-            Log::error('[异常]:'.'爬虫队列加入失败:'.$err->getMessage(), $content);
-
-            return $this->error('爬虫队列加入失败:'.$err->getMessage());
-        }
+        return $service->runTask($task, true);
     }
 
     // 爬虫规则测试

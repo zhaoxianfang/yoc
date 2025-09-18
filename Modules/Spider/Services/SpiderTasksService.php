@@ -3,8 +3,9 @@
 namespace Modules\Spider\Services;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\Spider\Models\SpiderTask;
 use Modules\Spider\Models\SpiderTasksLog;
@@ -32,34 +33,21 @@ class SpiderTasksService
                     foreach ($tasks as $task) {
                         $schedule->call(function () use ($task) {
                             // TODO 放在一个数组中，再慢慢的去调度，避免运行超时1分钟
-                            //                        try {
-                            //                            // 调度采集任务
-                            //                            (new SpiderHandleService())->entry($task);
-                            //                        } catch (\Exception $err) {
-                            //                            $model             = SpiderTask::where('id', $task->id)->first();
-                            //                            $model->run_status = SpiderTask::RUN_STATUS_FAIL; // 失败
-                            //                            $model->run_at     = now()->toDateTimeString();
-                            //                            $model->save();
-                            //                            try {
-                            //                                SpiderTasksLog::writeErr($task, $err);
-                            //                            } catch (\Exception $e) {
-                            //                            }
-                            //                        }
+                            //    try {
+                            //        // 调度采集任务
+                            //        (new SpiderHandleService())->entry($task);
+                            //    } catch (\Exception $err) {
+                            //        $model             = SpiderTask::where('id', $task->id)->first();
+                            //        $model->run_status = SpiderTask::RUN_STATUS_FAIL; // 失败
+                            //        $model->run_at     = now()->toDateTimeString();
+                            //        $model->save();
+                            //        try {
+                            //            SpiderTasksLog::writeErr($task, $err);
+                            //        } catch (\Exception $e) {
+                            //        }
+                            //    }
 
-                            try {
-                                // 队列调度，避免运行超时1分钟
-                                SpiderJob::dispatch($task)->afterCommit();
-                            } catch (\Exception $err) {
-                                $content = [
-                                    'message:' => $err->getMessage(),   // 返回用户自定义的异常信息
-                                    'code:' => $err->getCode(),      // 返回用户自定义的异常代码
-                                    'file:' => str_replace(base_path(), '', $err->getFile()),      // 返回发生异常的PHP程序文件名
-                                    'line:' => $err->getLine(),        // 返回发生异常的代码所在行的行号
-                                    // "trace:"     => $err->getTrace(),      //返回发生异常的传递路线
-                                    // "传递路线String" => $err->getTraceAsString(),//返回发生异常的传递路线
-                                ];
-                                Log::error('[异常]:'.'爬虫队列加入失败:'.$err->getMessage(), $content);
-                            }
+                            $this->runTask($task, false);
                         })->cron(trim($task->timer));
                     }
                 } catch (\Exception $e) {
@@ -103,5 +91,50 @@ class SpiderTasksService
         $cronFrequency .= str_repeat(' *', 5 - $count);
 
         return $cronFrequency;
+    }
+
+    /**
+     * 运行任务
+     *
+     * @param  SpiderTask  $task  任务
+     */
+    public function runTask(SpiderTask $task, bool $returnResponse = true): Response|ResponseFactory|bool
+    {
+        try {
+            if ($task->sub_tasks) {
+                return $returnResponse
+                    ? response([
+                        'code' => 412,
+                        'message' => '请选择主任务执行.',
+                    ], 412)
+                : false;
+            }
+            // 队列调度，避免运行超时1分钟
+            SpiderJob::dispatch($task)->afterCommit();
+
+            try {
+                SpiderTasksLog::writeLog($task, '加入爬虫队列成功.');
+            } catch (\Exception $e) {
+            }
+
+            return $returnResponse
+            ? response([
+                'code' => 200,
+                'message' => '任务已启动.',
+            ], 200)
+            : true;
+        } catch (\Exception $err) {
+            try {
+                SpiderTasksLog::writeErr($task, $err);
+
+                return $returnResponse
+                    ? response([
+                        'code' => 500,
+                        'message' => '爬虫队列加入失败:'.$err->getMessage(),
+                    ], 500)
+                    : false;
+            } catch (\Exception $e) {
+            }
+        }
     }
 }
