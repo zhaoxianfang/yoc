@@ -977,7 +977,7 @@
                 config.buttons.forEach(function (item) {
                     let btn_class = TableTools.getButtonType(item.btn_class);
                     item.btn_class = item.btn_class +" bg-" + btn_class + " dropdown-item";
-                })
+                });
                 // 创建按钮组 drop 的方向
                 let dropDirection = TableTools.drawRowIndex > 0 ? "dropup" : "dropend";
 

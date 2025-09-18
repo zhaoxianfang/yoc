@@ -33,6 +33,7 @@
                 add_url: "{{ admin_auth('spider/list/create','/admin/spider/list/create') }}",
                 edit_url: "{{ admin_auth('spider/list/update','/admin/spider/list/{id}/edit') }}",
                 del_url: "{{ admin_auth('spider/list/delete','/admin/spider/list/{id}/delete') }}",
+                run_task_url: "{{ admin_auth('spider/list/run/task','/admin/spider/run/{id}') }}",
                 detail_url: "",
             },[
                 {
@@ -182,7 +183,25 @@
                     "width": "100px", //列宽 String ..px..x%,..em
                     "render" : function ( data, type, row, meta )
                     {
-                        // console.log(data, type, row, meta);
+                        let runTaskBtn = ''
+                        // 是否主任务
+                        if(row.sub_tasks !== 1){
+                            // 主任务 可以「立即执行」
+                            runTaskBtn = TableTools.createButtonList([{
+                                'text':'立即执行',
+                                "title":"确认执行["+row.name+']任务吗？',
+                                'type':'btn',
+                                "icon": "ti ti-player-play",
+                                'event_type':'confirm_open',
+                                'url_name':'run_task_url',
+                                'url_params':"{id:"+row.id+"}",
+                                'data':row,
+                                'btn_class':'success',
+                                'callback':function (data) {
+                                    console.log(data);
+                                }
+                            }])
+                        }
                         return TableTools.createButtonList([
                             {
                                 'text':'编辑',
@@ -207,7 +226,7 @@
                                 'url_params':"{id:"+row.id+"}",
                                 'data':row,
                             }
-                        ]);
+                        ])+runTaskBtn;
 
                     }
                 }

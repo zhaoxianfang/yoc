@@ -27,6 +27,9 @@ Route::prefix('admin/spider')->name('admin.spider.')->group(function () {
 
         Route::post('list/{task}/delete', [Admin\SpiderController::class, 'destroy'])->name('destroy');
 
+        // 执行爬虫
+        Route::post('run/{task}', [Admin\SpiderController::class, 'run'])->name('run');
+
         // 爬虫规则测试
         Route::any('list/rule_test', [Admin\SpiderController::class, 'ruleTest'])->name('rule_test');
     });
