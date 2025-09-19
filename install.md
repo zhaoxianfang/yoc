@@ -435,7 +435,17 @@ php artisan queue:work --timeout=180
 
 ## 常见问题
 
+### 
+编译安装php 时 使用 grep 快速筛选可以使用的扩展
+```
+wget https://www.php.net/distributions/php-8.4.12.tar.gz
+
+./configure --help | grep -E "(enable|with)-[a-zA-Z]"
+```
+
 ### linux 服务器安装php8.4
+> https://blog.csdn.net/ziqibit/article/details/129461718
+
 ```
 /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
 ```
