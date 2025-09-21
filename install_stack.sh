@@ -343,43 +343,42 @@ install_dependencies() {
     # 通用开发工具
     local dev_tools=(
         wget curl git make cmake automake autoconf libtool pkg-config
-        # gcc gcc-c++ g++ kernel-devel kernel-headers
-        # bison re2c flex patch unzip zip
+         gcc gcc-c++ g++ kernel-devel kernel-headers
+         bison re2c flex patch unzip zip
     )
 
     # PHP 编译依赖
     local php_deps=()
     if [ "$PKG_MGR" = "apt" ]; then
         php_deps=(
-            # libxml2-dev libssl-dev libcurl4-openssl-dev libjpeg-dev
-            # libpng-dev libwebp-dev libfreetype6-dev libzip-dev zlib1g-dev
-            # libsqlite3-dev libonig-dev libicu-dev libxslt1-dev libgmp-dev
-            # libbz2-dev libreadline-dev libldap2-dev unixodbc-dev libtidy-dev
-            # libsodium-dev libargon2-dev libpq-dev libpspell-dev libenchant-2-dev
-            # libc-client-dev libkrb5-dev libsasl2-dev libsnmp-dev libedit-dev
-            # libmm-dev libevent-dev librabbitmq-dev libgearman-dev libmemcached-dev
-            # libyaml-dev libmongoc-dev libvirt-dev libcap-dev libffi-dev
-            # libpng16-16 libjpeg62-turbo libwebp6 libfreetype6 libzip4
+             libxml2-dev libssl-dev libcurl4-openssl-dev libjpeg-dev
+             libpng-dev libwebp-dev libfreetype6-dev libzip-dev zlib1g-dev
+             libsqlite3-dev libonig-dev libicu-dev libxslt1-dev libgmp-dev
+             libbz2-dev libreadline-dev libldap2-dev unixodbc-dev libtidy-dev
+             libsodium-dev libargon2-dev libpq-dev libpspell-dev libenchant-2-dev
+             libc-client-dev libkrb5-dev libsasl2-dev libsnmp-dev libedit-dev
+             libmm-dev libevent-dev librabbitmq-dev libgearman-dev libmemcached-dev
+             libyaml-dev libmongoc-dev libvirt-dev libcap-dev libffi-dev
+             libpng16-16 libjpeg62-turbo libwebp6 libfreetype6 libzip4
             yum-utils gcc gcc-c++ autoconf libtool perl perl-devel libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel openldap openldap-devel openldap-clients freetype freetype-devel libxml2 libxml2-devel sqlite-devel zlib zlib-devel curl curl-devel pcre pcre-devel gd gd-devel expat-devel libicu-devel bzip2 bzip2-devel python3 python3-devel libwebp-devel make libzstd-devel wget oniguruma oniguruma-devel zstd glibc-headers krb5-devel libzip libzip-devel libxslt libxslt-devel openssl openssl-devel libsodium-devel glib2-devel cairo-devel gmp-devel libevent-devel readline-devel net-snmp-devel aspell-devel unixODBC-devel libc-client-devel libXpm-devel enchant-devel php-ldap automake kernel keyutils patch tidy epel-release libtidy libtidy-devel
         )
     else
         php_deps=(
-            # libxml2-devel openssl-devel curl-devel libjpeg-turbo-devel
-            # libpng-devel libwebp-devel freetype-devel libzip-devel zlib-devel
-            # sqlite-devel oniguruma-devel libicu-devel libxslt-devel gmp-devel
-            # bzip2-devel readline-devel openldap-devel unixODBC-devel libtidy-devel
-            # libsodium-devel argon2-devel postgresql-devel pspell-devel enchant-devel
-            # libc-client-devel krb5-devel cyrus-sasl-devel net-snmp-devel libedit-devel
-            # libmm-devel libevent-devel rabbitmq-c-devel gearmand-devel libmemcached-devel
-            # libyaml-devel mongo-c-driver-devel libvirt-devel libcap-devel libffi-devel
+             libxml2-devel openssl-devel curl-devel libjpeg-turbo-devel
+             libpng-devel libwebp-devel freetype-devel libzip-devel zlib-devel
+             sqlite-devel oniguruma-devel libicu-devel libxslt-devel gmp-devel
+             bzip2-devel readline-devel openldap-devel unixODBC-devel libtidy-devel
+             libsodium-devel argon2-devel postgresql-devel pspell-devel enchant-devel
+             libc-client-devel krb5-devel cyrus-sasl-devel net-snmp-devel libedit-devel
+             libmm-devel libevent-devel rabbitmq-c-devel gearmand-devel libmemcached-devel
+             libyaml-devel mongo-c-driver-devel libvirt-devel libcap-devel libffi-devel
             yum-utils gcc gcc-c++ autoconf libtool perl perl-devel libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel openldap openldap-devel openldap-clients freetype freetype-devel libxml2 libxml2-devel sqlite-devel zlib zlib-devel curl curl-devel pcre pcre-devel gd gd-devel expat-devel libicu-devel bzip2 bzip2-devel python3 python3-devel libwebp-devel make libzstd-devel wget oniguruma oniguruma-devel zstd glibc-headers krb5-devel libzip libzip-devel libxslt libxslt-devel openssl openssl-devel libsodium-devel glib2-devel cairo-devel gmp-devel libevent-devel readline-devel net-snmp-devel aspell-devel unixODBC-devel libc-client-devel libXpm-devel enchant-devel php-ldap automake kernel keyutils patch tidy epel-release libtidy libtidy-devel
 
         )
     fi
 
     # 安装所有依赖
-    # pkg_install "${dev_tools[@]}" "${php_deps[@]}"
-    # pkg_install "${php_deps[@]}"
+     pkg_install "${dev_tools[@]}" "${php_deps[@]}"
 
     success "系统依赖安装完成 $(timer $start)"
 }
