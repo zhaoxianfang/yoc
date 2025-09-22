@@ -1,1620 +1,647 @@
 #!/usr/bin/env bash
 # 指定使用的解释器为 bash，确保脚本可移植
 # -----------------------------------------------------------------------------
-# industrial_php_stack_improved.sh  # 脚本名及说明
-# 改进版：工业级 PHP 环境一键安装脚本（增强错误接管、回滚、备份与日志）  # 脚本功能简介
-# 功能：安装 PHP / Nginx / MySQL / Redis / Composer / 常用扩展  # 支持的软件组件
-# 主要改进点：  # 列出主要改动
-#  - 全面中文注释  # 每行均添加注释
-#  - ERR/INT/TERM 信号接管并触发回滚  # 错误处理策略
-#  - 记录每一步的反向操作（rollback），异常时按逆序执行以回滚系统改动  # 回滚机制
-#  - 智能判断哪些包是新安装的，回滚时仅移除这些包（尽量避免删除已有系统包）  # 安全移除策略
-#  - 对修改的配置文件先备份，回滚时恢复备份  # 备份机制
-#  - 优化 run_cmd 执行方式，使用 "bash -lc" 执行多行命令，解决命令包含换行符导致的执行问题  # 解决换行/特殊字符问题
-#  - 避免不必要的 eval，修复 make -j 等错误引用  # 安全改进
-#  - 增强日志（安装日志 + 错误日志 + 回滚日志）  # 日志策略
-#  - 增加临时文件管理，退出时自动清理  # 清理机制
-#  - 添加安全提示与使用说明  # 用户友好性
+# industrial_php_stack_improved.sh
+# 改进版：工业级 PHP 环境一键安装脚本（增强错误接管、回滚、备份与日志）
+# 功能：安装 PHP / Nginx / MySQL / Redis / Composer / 常用扩展
+# 主要改进点：
+#  - 全面中文注释
+#  - ERR/INT/TERM 信号接管并触发回滚
+#  - 记录每一步的反向操作（rollback），异常时按逆序执行以回滚系统改动
+#  - 智能判断哪些包是新安装的，回滚时仅移除这些包（尽量避免删除已有系统包）
+#  - 对修改的配置文件先备份，回滚时恢复备份
+#  - 优化 run_cmd 执行方式，使用 "bash -lc" 执行多行命令，解决命令包含换行符导致的执行问题
+#  - 避免不必要的 eval，修复 make -j 等错误引用
+#  - 增强日志（安装日志 + 错误日志 + 回滚日志）
+#  - 增加临时文件管理，退出时自动清理
+#  - 添加安全提示与使用说明
+#  - 提取公共变量，优化代码结构
+#  - 增强错误处理和回滚能力
 # -----------------------------------------------------------------------------
 
 set -euo pipefail  # 开启严格模式：出错退出、未定义变量视作错误、管道失败时整体失败
-set -o errtrace   # 使 ERR trap 在函数/子 shell 中也生效  # 保证错误捕获完整
+set -o errtrace   # 使 ERR trap 在函数/子 shell 中也生效
 IFS=$'\n\t'  # 设置内部字段分隔符为换行和制表符，避免空格或换行导致参数被错误拆分
 
 # ---------------- 可配置参数（保持与原脚本兼容） ----------------
-INSTALL_PHP="${INSTALL_PHP:-yes}"  # 是否安装 PHP，默认 yes
-INSTALL_MYSQL="${INSTALL_MYSQL:-yes}"  # 是否安装 MySQL，默认 yes
-INSTALL_REDIS="${INSTALL_REDIS:-yes}"  # 是否安装 Redis，默认 yes
-INSTALL_NGINX="${INSTALL_NGINX:-yes}"  # 是否安装 Nginx，默认 yes
-INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}"  # 是否安装 Composer，默认 yes
-INSTALL_PHP_EXTENSIONS="${INSTALL_PHP_EXTENSIONS:-yes}"  # 是否安装常用 PHP 扩展，默认 yes
+INSTALL_PHP="${INSTALL_PHP:-yes}"
+INSTALL_MYSQL="${INSTALL_MYSQL:-yes}"
+INSTALL_REDIS="${INSTALL_REDIS:-yes}"
+INSTALL_NGINX="${INSTALL_NGINX:-yes}"
+INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}"
+INSTALL_PHP_EXTENSIONS="${INSTALL_PHP_EXTENSIONS:-yes}"
 
-PHP_VERSION="${PHP_VERSION:-8.4.12}"  # PHP 默认版本
-MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"  # MySQL 版本（仅记录用）
-REDIS_VERSION="${REDIS_VERSION:-7.2.4}"  # Redis 版本（仅记录用）
-NGINX_VERSION="${NGINX_VERSION:-1.28.0}"  # Nginx 版本（仅记录用）
+PHP_VERSION="${PHP_VERSION:-8.4.12}"
+MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
+REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
+NGINX_VERSION="${NGINX_VERSION:-1.28.0}"
 
-PHP_MIRRORS=(  # PHP 源码镜像列表，按优先级排列
-    "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"  # 官方镜像
-    "https://mirrors.aliyun.com/php-distributions/php-${PHP_VERSION}.tar.gz"  # 阿里云镜像
-    "https://mirrors.cloud.tencent.com/php-distributions/php-${PHP_VERSION}.tar.gz"  # 腾讯云镜像
+# ---------------- 公共路径配置 ----------------
+PHP_PREFIX="${PHP_PREFIX:-/usr/local/php8}"
+MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"
+NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
+REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
+SRC_DIR="${SRC_DIR:-/usr/local/src}"
+
+# ---------------- 安全凭证配置 ----------------
+MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-$(openssl rand -base64 24)}"
+REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-phpadmin}"
+REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-$(openssl rand -base64 24)}"
+WWW_USER="${WWW_USER:-www}"
+WWW_PASS="${WWW_PASS:-$(openssl rand -base64 24)}"
+
+# ---------------- 日志和临时文件配置 ----------------
+LOG_DIR="${LOG_DIR:-/var/log/php-stack-install}"
+LOG_FILE="${LOG_FILE:-$LOG_DIR/install.log}"
+ERROR_LOG_FILE="${ERROR_LOG_FILE:-$LOG_DIR/error.log}"
+ROLLBACK_LOG_FILE="${ROLLBACK_LOG_FILE:-$LOG_DIR/rollback.log}"
+INSTALL_SUMMARY="${INSTALL_SUMMARY:-/data/install_config.log}"
+INSTALLED_PACKAGES_LOG="${INSTALLED_PACKAGES_LOG:-$LOG_DIR/installed_packages.log}"
+
+# ---------------- 性能配置 ----------------
+MAKE_JOBS="${MAKE_JOBS:-$(nproc 2>/dev/null || echo 1)}"
+AUTO_START_SERVICES="${AUTO_START_SERVICES:-yes}"
+MAX_RETRIES="${MAX_RETRIES:-3}"
+DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"
+CLEAN_TEMP="${CLEAN_TEMP:-yes}"
+
+# ---------------- PHP 配置 ----------------
+PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT:-512M}"
+PHP_MAX_EXECUTION_TIME="${PHP_MAX_EXECUTION_TIME:-300}"
+PHP_UPLOAD_MAX_FILESIZE="${PHP_UPLOAD_MAX_FILESIZE:-256M}"
+PHP_POST_MAX_SIZE="${PHP_POST_MAX_SIZE:-256M}"
+PROFILE_FILE="${PROFILE_FILE:-/etc/profile}"
+
+# ---------------- PHP 镜像配置 ----------------
+PHP_MIRRORS=(
+    "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
+    "https://mirrors.aliyun.com/php-distributions/php-${PHP_VERSION}.tar.gz"
+    "https://mirrors.cloud.tencent.com/php-distributions/php-${PHP_VERSION}.tar.gz"
 )
 
-PHP_PREFIX="${PHP_PREFIX:-/usr/local/php8}"  # PHP 安装前缀
-MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"  # MySQL 安装前缀（如源码安装时使用）
-NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"  # Nginx 安装前缀
-REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"  # Redis 安装前缀
-
-MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-$(openssl rand -base64 24)}"  # MySQL root 密码，默认随机生成
-REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-phpadmin}"  # 远程管理用户
-REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-$(openssl rand -base64 24)}"  # 远程管理用户密码
-WWW_USER="${WWW_USER:-www}"  # 网站运行用户
-WWW_PASS="${WWW_PASS:-$(openssl rand -base64 24)}"  # 网站运行用户密码
-
-SRC_DIR="${SRC_DIR:-/usr/local/src}"  # 源码下载目录
-LOG_DIR="${LOG_DIR:-/var/log/php-stack-install}"  # 日志目录
-LOG_FILE="${LOG_FILE:-$LOG_DIR/install.log}"  # 安装日志文件
-ERROR_LOG_FILE="${ERROR_LOG_FILE:-$LOG_DIR/error.log}"  # 错误日志文件
-ROLLBACK_LOG_FILE="${ROLLBACK_LOG_FILE:-$LOG_DIR/rollback.log}"  # 回滚日志文件
-INSTALL_SUMMARY="${INSTALL_SUMMARY:-/data/install_config.log}"  # 安装总结输出文件
-MAKE_JOBS="${MAKE_JOBS:-$(nproc 2>/dev/null || echo 1)}"  # make -j 使用的并行数，默认为 CPU 核心数
-AUTO_START_SERVICES="${AUTO_START_SERVICES:-yes}"  # 是否自动启用并启动服务
-MAX_RETRIES="${MAX_RETRIES:-3}"  # 全局重试次数，默认 3（按用户要求）
-DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"  # 下载重试次数，默认 3
-CLEAN_TEMP="${CLEAN_TEMP:-yes}"  # 是否清理临时文件
-PROFILE_FILE="${PROFILE_FILE:-/etc/profile}"  # 全局 profile 文件
-
-PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT:-512M}"  # PHP memory_limit
-PHP_MAX_EXECUTION_TIME="${PHP_MAX_EXECUTION_TIME:-300}"  # PHP max_execution_time
-PHP_UPLOAD_MAX_FILESIZE="${PHP_UPLOAD_MAX_FILESIZE:-256M}"  # PHP upload_max_filesize
-PHP_POST_MAX_SIZE="${PHP_POST_MAX_SIZE:-256M}"  # PHP post_max_size
+# ---------------- PHP 编译选项配置（提取为公共变量） ----------------
+PHP_CONFIGURE_OPTS=(
+    "--prefix=$PHP_PREFIX"  # 编译安装前缀
+    "--with-config-file-path=$PHP_PREFIX/lib"  # php.ini 路径
+    # "--with-config-file-scan-dir=$PHP_PREFIX/lib/conf.d"  # 扫描扩展配置目录
+    "--with-fpm-user=$WWW_USER"  # fpm 用户
+    "--with-fpm-group=$WWW_USER"  # fpm 用户组
+    "--enable-fpm"
+    "--with-libxml"
+    "--with-openssl"
+    "--with-kerberos"
+    "--with-system-ciphers"
+    "--with-mysqli"
+    "--with-mysql-sock"
+    "--enable-pdo"
+    "--with-pdo-sqlite"
+    "--with-pdo-mysql"
+    "--with-pdo-sqlite"
+    "--with-pdo-sqlite"
+    "--with-zlib"
+    "--enable-bcmath"
+    "--with-bz2"
+    "--enable-calendar"
+    "--with-curl"
+    "--enable-exif"
+    "--enable-fileinfo"
+    "--enable-gd"
+    "--with-freetype"
+    "--with-gettext"
+    "--with-mhash"
+    "--with-iconv"
+    "--with-imap-ssl"
+    "--enable-intl"
+    "--with-ldap"
+    "--with-ldap-sasl"
+    "--enable-mbstring"
+    "--enable-mbregex"
+    "--enable-opcache"
+    "--enable-pcntl"
+    "--enable-session"
+    "--enable-simplexml"
+    "--enable-shmop"
+    "--enable-soap"
+    "--enable-sockets"
+    "--with-sodium"
+    "--enable-sysvmsg"
+    "--enable-sysvsem"
+    "--with-tidy"
+    "--enable-tokenizer"
+    "--enable-xml"
+    "--with-xsl"
+    "--with-zip"
+    "--with-bz2"
+    "--enable-mysqlnd"
+    "--with-pear"
+    "--with-jpeg"
+    "--with-libdir=lib64"
+    "--enable-cli"
+    "--enable-static"
+)
 
 # ---------------- 全局变量 ----------------
-PKG_MGR=""  # 包管理器标识
-OS_ID=""  # 操作系统 ID
-OS_NAME=""  # 操作系统名称
-OS_VERSION=""  # 操作系统版本
-OS_ARCH=""  # 系统架构
-PHP_SRC_DIR=""  # PHP 源码解压目录
-PHP_INI_FILE=""  # php.ini 路径
-START_TIME=$(date +%s)  # 记录脚本开始时间
-TMP_FILES=()  # 临时文件列表
+PKG_MGR=""
+OS_ID=""
+OS_NAME=""
+OS_VERSION=""
+OS_ARCH=""
+PHP_SRC_DIR=""
+PHP_INI_FILE=""
+START_TIME=$(date +%s)
+TMP_FILES=()
 
 # rollback 命令栈（按顺序 push，回滚时逆序执行）
-ROLLBACK_CMDS=()  # 回滚命令栈
+ROLLBACK_CMDS=()
 # 记录由脚本新安装的软件包（回滚时会移除这些包）
-INSTALLED_PKGS=()  # 记录新安装的软件包
+INSTALLED_PKGS=()
 # 记录创建的用户（回滚时会删除）
-CREATED_USERS=()  # 记录创建的用户
+CREATED_USERS=()
 # 记录备份的配置文件（回滚时恢复）
-BACKUP_FILES=()  # 记录备份文件
+BACKUP_FILES=()
 
 # 创建目录并初始化日志
-mkdir -p "$SRC_DIR" "$LOG_DIR" "$(dirname "$INSTALL_SUMMARY")"  # 确保目录存在
-: > "$LOG_FILE"  # 清空安装日志
-: > "$ERROR_LOG_FILE"  # 清空错误日志
-: > "$ROLLBACK_LOG_FILE"  # 清空回滚日志
+mkdir -p "$SRC_DIR" "$LOG_DIR" "$(dirname "$INSTALL_SUMMARY")" "$(dirname "$INSTALLED_PACKAGES_LOG")"
+: > "$LOG_FILE"
+: > "$ERROR_LOG_FILE"
+: > "$ROLLBACK_LOG_FILE"
+: > "$INSTALLED_PACKAGES_LOG"
 
 # ---------------- 输出（彩色） ----------------
-_red() { echo -e "[31m$*[0m"; }  # 红色输出函数
-_green() { echo -e "[32m$*[0m"; }  # 绿色输出函数
-_yellow() { echo -e "[33m$*[0m"; }  # 黄色输出函数
-_blue() { echo -e "[34m$*[0m"; }  # 蓝色输出函数
-_bold() { echo -e "[1m$*[0m"; }  # 粗体输出函数
+_red() { echo -e "\033[31m$*\033[0m"; }
+_green() { echo -e "\033[32m$*\033[0m"; }
+_yellow() { echo -e "\033[33m$*\033[0m"; }
+_blue() { echo -e "\033[34m$*\033[0m"; }
+_bold() { echo -e "\033[1m$*\033[0m"; }
 
-ICON_INFO="🔵"  # 信息图标
-ICON_SUCCESS="✅"  # 成功图标
-ICON_WARN="🟡"  # 警告图标
-ICON_ERROR="🔴"  # 错误图标
+ICON_INFO="🔵"
+ICON_SUCCESS="✅"
+ICON_WARN="🟡"
+ICON_ERROR="🔴"
 
-log() {  # 日志记录函数
-    echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"  # 同时输出到控制台并追加到日志
+log() {
+    echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
 }
 
-info() {  # 信息输出函数
-    log "${ICON_INFO} $*"  # 写日志
-    echo -e "${ICON_INFO} $*"  # 控制台输出
+info() {
+    log "${ICON_INFO} $*"
+    echo -e "${ICON_INFO} $*"
 }
 
-success() {  # 成功输出函数
-    log "${ICON_SUCCESS} $*"  # 写日志
-    echo -e "${ICON_SUCCESS} $*"  # 控制台输出
+success() {
+    log "${ICON_SUCCESS} $*"
+    echo -e "${ICON_SUCCESS} $*"
 }
 
-warn() {  # 警告输出函数
-    log "${ICON_WARN} $*"  # 写日志
-    echo -e "${ICON_WARN} $*" >&2  # 输出到 stderr
+warn() {
+    log "${ICON_WARN} $*"
+    echo -e "${ICON_WARN} $*" >&2
 }
 
-error() {  # 错误输出函数
-    log "${ICON_ERROR} $*"  # 写日志
-    echo -e "${ICON_ERROR} $*" >&2  # 输出到 stderr
-    echo "$(date '+%F %T') - ERROR: $*" >> "$ERROR_LOG_FILE"  # 同时写入错误日志
+error() {
+    log "${ICON_ERROR} $*"
+    echo -e "${ICON_ERROR} $*" >&2
+    echo "$(date '+%F %T') - ERROR: $*" >> "$ERROR_LOG_FILE"
 }
 
 # --------------- 回滚记录与执行工具 ----------------
-# 将一条回滚命令入栈（描述性说明 + shell 命令）
-mark_rollback() {  # 将回滚动作记录到栈中
-    local desc="$1"  # 回滚动作描述
-    local cmd="$2"  # 回滚命令
-    ROLLBACK_CMDS+=("# $desc\n$cmd")  # 入栈，保存描述和命令
-    log "[ROLLBACK MARK] $desc -> $cmd"  # 记录到日志
+mark_rollback() {
+    local desc="$1"
+    local cmd="$2"
+    ROLLBACK_CMDS+=("# $desc\n$cmd")
+    log "[ROLLBACK MARK] $desc -> $cmd"
 }
 
-# 执行回滚（按逆序）
-rollback_all() {  # 执行所有记录的回滚命令
-    echo "" | tee -a "$ROLLBACK_LOG_FILE"  # 写入空行分隔
-    echo "[$(date '+%F %T')] 开始回滚..." | tee -a "$ROLLBACK_LOG_FILE"  # 回滚开始时间写日志
+rollback_all() {
+    echo "" | tee -a "$ROLLBACK_LOG_FILE"
+    echo "[$(date '+%F %T')] 开始回滚..." | tee -a "$ROLLBACK_LOG_FILE"
 
-    # 逆序执行
-    for ((i=${#ROLLBACK_CMDS[@]}-1; i>=0; i--)); do  # 逆序遍历回滚栈
-        local item="${ROLLBACK_CMDS[i]}"  # 取出栈项
-        echo "- 执行回滚步骤: ${item%%$'\n'*}" | tee -a "$ROLLBACK_LOG_FILE"  # 输出步骤描述
-        # 执行命令体（跳过以 '#' 开头的注释行）
-        local cmd=$(printf '%s' "$item" | sed -n '2,999p')  # 取得命令体
-        if [ -n "$cmd" ]; then  # 若命令体非空则执行
-            set +e  # 临时取消 -e，保证回滚继续执行
-            bash -lc "$cmd" >>"$ROLLBACK_LOG_FILE" 2>&1  # 执行并记录输出
-            local rc=$?  # 获取退出码
-            set -e  # 恢复 -e
-            if [ $rc -eq 0 ]; then  # 判断执行结果
-                echo "  -> 回滚步骤成功" | tee -a "$ROLLBACK_LOG_FILE"  # 成功日志
+    local total_steps=${#ROLLBACK_CMDS[@]}
+    local current_step=1
+
+    for ((i=total_steps-1; i>=0; i--)); do
+        local item="${ROLLBACK_CMDS[i]}"
+        local desc="${item%%$'\n'*}"
+        desc="${desc#\# }"
+
+        echo "- 执行回滚步骤 ($current_step/$total_steps): $desc" | tee -a "$ROLLBACK_LOG_FILE"
+
+        local cmd=$(printf '%s' "$item" | sed -n '2,999p')
+        if [ -n "$cmd" ]; then
+            set +e
+            bash -lc "$cmd" >>"$ROLLBACK_LOG_FILE" 2>&1
+            local rc=$?
+            set -e
+
+            if [ $rc -eq 0 ]; then
+                echo "  -> 回滚步骤成功" | tee -a "$ROLLBACK_LOG_FILE"
             else
-                echo "  -> 回滚步骤失败 (退出码:$rc)" | tee -a "$ROLLBACK_LOG_FILE"  # 失败日志
+                echo "  -> 回滚步骤失败 (退出码:$rc)" | tee -a "$ROLLBACK_LOG_FILE"
             fi
         fi
+        current_step=$((current_step + 1))
     done
 
-    echo "[$(date '+%F %T')] 回滚完成" | tee -a "$ROLLBACK_LOG_FILE"  # 回滚完成时间写日志
+    echo "[$(date '+%F %T')] 回滚完成" | tee -a "$ROLLBACK_LOG_FILE"
 }
 
 # --------------- 临时文件管理 ----------------
-register_tmp_file() {  # 注册临时文件，退出时自动清理
-    TMP_FILES+=("$1")  # 将临时文件路径加入数组
+register_tmp_file() {
+    TMP_FILES+=("$1")
 }
 
-cleanup_tmpfiles() {  # 清理注册的临时文件
-    for f in "${TMP_FILES[@]:-}"; do  # 遍历所有注册的临时文件
-        [ -e "$f" ] && rm -rf "$f" || true  # 逐个删除
+cleanup_tmpfiles() {
+    for f in "${TMP_FILES[@]:-}"; do
+        [ -e "$f" ] && rm -rf "$f" || true
     done
 }
 
 # ----------------- 运行命令的通用函数（支持多行） -----------------
-# 使用 bash -lc 来执行任意复杂命令（包含换行），解决命令中包含换行或特殊字符时的执行问题
-run_cmd() {  # 运行单条命令并记录日志（带 spinner）
-    local cmd="$1"  # 要执行的命令
-    local desc="${2:-执行命令}"  # 命令描述，默认 "执行命令"
+run_cmd() {
+    local cmd="$1"
+    local desc="${2:-执行命令}"
+    local log_output="${3:-yes}"
 
-    log "[CMD] $desc : $cmd"  # 记录命令到日志
+    log "[CMD] $desc : $cmd"
 
-    # 后台执行以支持 spinner（保持与原脚本交互性），但简化实现以避免 eval 的安全问题
-    bash -lc "$cmd" >>"$LOG_FILE" 2>>"$ERROR_LOG_FILE" &  # 使用 bash -lc 执行命令并重定向输出
-    local pid=$!  # 获取后台进程 PID
-
-    # 简单的 spinner（如果命令很快结束，不影响）
-    local i=0  # spinner 索引
-    local frames=("-" "\\" "|" "/")  # spinner 帧：- \ | /
-    printf "⏳ %s " "$desc"  # 初始 spinner 输出
-    while kill -0 "$pid" 2>/dev/null; do  # 当进程存在时更新 spinner
-        i=$(((i+1) % ${#frames[@]}))  # 计算下一个帧索引
-        printf "\r⏳ %s %s" "$desc" "${frames[i]}"  # 打印 spinner
-        sleep 0.08  # spinner 刷新间隔
-    done
-    wait "$pid"  # 等待命令结束
-    local rc=$?  # 获取命令退出码
-    if [ $rc -ne 0 ]; then  # 非零视为失败
-        log "[CMD-FAIL] $desc (退出码:$rc)"  # 记录失败
-        return $rc  # 返回失败码
+    if [ "$log_output" = "yes" ]; then
+        bash -lc "$cmd" >>"$LOG_FILE" 2>>"$ERROR_LOG_FILE" &
+    else
+        bash -lc "$cmd" >/dev/null 2>&1 &
     fi
-    printf "\r✅ %s 完成\n" "$desc"  # 成功提示
-    log "[CMD-OK] $desc"  # 记录成功
-    return 0  # 返回成功
+
+    local pid=$!
+    local i=0
+    local frames=("-" "\\" "|" "/")
+
+    printf "⏳ %s " "$desc"
+    while kill -0 "$pid" 2>/dev/null; do
+        i=$(((i+1) % ${#frames[@]}))
+        printf "\r⏳ %s %s" "$desc" "${frames[i]}"
+        sleep 0.08
+    done
+
+    wait "$pid"
+    local rc=$?
+
+    if [ $rc -ne 0 ]; then
+        log "[CMD-FAIL] $desc (退出码:$rc)"
+        return $rc
+    fi
+
+    printf "\r✅ %s 完成\n" "$desc"
+    log "[CMD-OK] $desc"
+    return 0
 }
 
-# 带重试的 run_cmd
-run_cmd_with_retry() {  # 带重试的命令执行函数
-    local cmd="$1"  # 要执行的命令
-    local desc="${2:-执行命令}"  # 描述
-    local max_retries="${3:-$MAX_RETRIES}"  # 最大重试次数
-    local retry_delay="${4:-2}"  # 重试间隔秒数
+run_cmd_with_retry() {
+    local cmd="$1"
+    local desc="${2:-执行命令}"
+    local max_retries="${3:-$MAX_RETRIES}"
+    local retry_delay="${4:-2}"
+    local log_output="${5:-yes}"
 
-    local attempt=1  # 初始尝试次数
-    while [ $attempt -le $max_retries ]; do  # 循环直到达到最大重试次数
-        if run_cmd "$cmd" "$desc"; then  # 如果命令成功则返回
+    local attempt=1
+    while [ $attempt -le $max_retries ]; do
+        if run_cmd "$cmd" "$desc" "$log_output"; then
             return 0
         fi
-        warn "$desc 失败 (尝试 $attempt/$max_retries)，${retry_delay}s 后重试..."  # 警告并等待
-        sleep $retry_delay  # 等待
-        attempt=$((attempt+1))  # 增加尝试次数
+        warn "$desc 失败 (尝试 $attempt/$max_retries)，${retry_delay}s 后重试..."
+        sleep $retry_delay
+        attempt=$((attempt+1))
     done
 
-    error "$desc 在 $max_retries 次尝试后仍然失败: $cmd"  # 最终失败记录错误
-    return 1  # 返回失败
+    error "$desc 在 $max_retries 次尝试后仍然失败: $cmd"
+    return 1
 }
 
 # ----------------- 系统检测 -----------------
-# 检测操作系统类型、包管理器与架构信息
-detect_system() {  # 检测系统信息和包管理器类型
-    info "检测系统环境..."  # 输出信息
-    if [ -f /etc/os-release ]; then  # 如果存在 os-release 文件则读取
-        . /etc/os-release  # 导入变量
-        OS_ID="${ID:-unknown}"  # 设置 OS_ID
-        OS_NAME="${NAME:-unknown}"  # 设置 OS_NAME
-        OS_VERSION="${VERSION_ID:-unknown}"  # 设置 OS_VERSION
+detect_system() {
+    info "检测系统环境..."
+
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS_ID="${ID:-unknown}"
+        OS_NAME="${NAME:-unknown}"
+        OS_VERSION="${VERSION_ID:-unknown}"
     else
-        fail_msg="无法检测操作系统"  # 无法检测时的错误信息
-        error "$fail_msg"  # 输出错误
-        return 1  # 返回失败
+        error "无法检测操作系统"
+        return 1
     fi
 
-    OS_ARCH=$(uname -m)  # 获取系统架构
-    [ "$OS_ARCH" = "x86_64" ] && OS_ARCH="x64" || true  # 对常见架构做友好显示
+    OS_ARCH=$(uname -m)
+    [ "$OS_ARCH" = "x86_64" ] && OS_ARCH="x64" || true
 
-    if command -v dnf >/dev/null 2>&1; then  # 检查 dnf
-        PKG_MGR="dnf"  # 使用 dnf
-    elif command -v yum >/dev/null 2>&1; then  # 检查 yum
-        PKG_MGR="yum"  # 使用 yum
-    elif command -v apt-get >/dev/null 2>&1; then  # 检查 apt-get
-        PKG_MGR="apt"  # 使用 apt
+    if command -v dnf >/dev/null 2>&1; then
+        PKG_MGR="dnf"
+    elif command -v yum >/dev/null 2>&1; then
+        PKG_MGR="yum"
+    elif command -v apt-get >/dev/null 2>&1; then
+        PKG_MGR="apt"
     else
-        error "未找到受支持的包管理器 (dnf|yum|apt-get)"  # 未找到包管理器时错误
-        return 1  # 返回失败
+        error "未找到受支持的包管理器 (dnf|yum|apt-get)"
+        return 1
     fi
 
-    success "系统: $OS_NAME $OS_VERSION ($OS_ARCH), 包管理器: $PKG_MGR"  # 打印检测结果
+    success "系统: $OS_NAME $OS_VERSION ($OS_ARCH), 包管理器: $PKG_MGR"
+    log "系统信息: ID=$OS_ID, NAME=$OS_NAME, VERSION=$OS_VERSION, ARCH=$OS_ARCH"
 }
 
-# ----------------- 软件包安装工具（智能判断哪些包是新安装） -----------------
-# 检查包是否已安装（返回 0=已安装 1=未安装）
-pkg_is_installed() {  # 检测具体包是否已安装
-    local pkg="$1"  # 包名参数
-    if [ "$PKG_MGR" = "apt" ]; then  # apt 系统使用 dpkg
+# ----------------- 软件包安装工具 -----------------
+pkg_is_installed() {
+    local pkg="$1"
+    if [ "$PKG_MGR" = "apt" ]; then
         dpkg -s "$pkg" >/dev/null 2>&1 && return 0 || return 1
-    else  # rpm 系统使用 rpm -q
+    else
         rpm -q "$pkg" >/dev/null 2>&1 && return 0 || return 1
     fi
 }
 
-# 将包数组拼成安全的 shell 字符串（逐个 printf '%q'）
-escape_pkg_list() {  # 对包名做 shell 转义以安全地放入命令行（返回以空格分隔的转义字符串）
-    local -n arr=$1  # 通过 nameref 引用传入的数组名
-    local out=()  # 临时数组用于保存转义后的包名
-    for p in "${arr[@]}"; do  # 遍历包名数组
-        out+=("$(printf '%q' "$p")")  # 使用 printf '%q' 转义每个包名并加入列表
+escape_pkg_list() {
+    local -n arr=$1
+    local out=()
+    for p in "${arr[@]}"; do
+        out+=("$(printf '%q' "$p")")
     done
-    # 将转义后的包名用空格连接，末尾不含额外空格
-    local joined=""  # 初始化连接字符串
-    for item in "${out[@]}"; do  # 遍历转义结果
-        if [ -z "$joined" ]; then  # 若为空则直接赋值
+
+    local joined=""
+    for item in "${out[@]}"; do
+        if [ -z "$joined" ]; then
             joined="$item"
         else
-            joined="$joined $item"  # 否则追加空格分隔
+            joined="$joined $item"
         fi
     done
-    printf '%s' "$joined"  # 输出最终的转义字符串
+    printf '%s' "$joined"
 }
 
-# 安装一组包（只安装尚未安装的包），并记录安装的包以便回滚
-pkg_install() {  # 智能安装包函数
-    local pkgs=("$@")  # 将传入参数组成数组
-    info "准备安装软件包: ${pkgs[*]}"  # 打印准备安装的包列表
+pkg_install() {
+    local pkgs=("$@")
+    info "准备安装软件包: ${pkgs[*]}"
 
-    local to_install=()  # 需要安装的包列表
-    for p in "${pkgs[@]}"; do  # 遍历每个包
-        if pkg_is_installed "$p"; then  # 如果已安装则跳过
+    local to_install=()
+    for p in "${pkgs[@]}"; do
+        if pkg_is_installed "$p"; then
             info "已存在: $p，跳过安装"
         else
-            to_install+=("$p")  # 否则加入待安装列表
+            to_install+=("$p")
         fi
     done
 
-    if [ ${#to_install[@]} -eq 0 ]; then  # 若无新包则直接返回
+    if [ ${#to_install[@]} -eq 0 ]; then
         info "没有需要安装的新包"
         return 0
     fi
 
-    local pkgstr=$(escape_pkg_list to_install)  # 将包列表转义拼接为字符串
+    local pkgstr=$(escape_pkg_list to_install)
+    echo "新安装包: ${to_install[*]}" >> "$INSTALLED_PACKAGES_LOG"
 
-    case "$PKG_MGR" in  # 根据包管理器选择安装命令，并尽量使用 --allowerasing 处理冲突
+    case "$PKG_MGR" in
         dnf)
-            run_cmd_with_retry "dnf -y install --allowerasing $pkgstr" "安装软件包" || return 1  # dnf 使用 --allowerasing
-            INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-            mark_rollback "卸载脚本新安装的软件包" "dnf -y remove --noautoremove ${pkgstr} || true"  # 回滚命令
+            run_cmd_with_retry "dnf -y install --allowerasing $pkgstr" "安装软件包" || return 1
+            INSTALLED_PKGS+=("${to_install[@]}")
+            mark_rollback "卸载脚本新安装的软件包" "dnf -y remove --noautoremove ${pkgstr} || true"
             ;;
         yum)
-            run_cmd_with_retry "yum -y install --allowerasing $pkgstr" "安装软件包" || return 1  # yum 使用 --allowerasing
-            INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-            mark_rollback "卸载脚本新安装的软件包" "yum -y remove ${pkgstr} || true"  # 回滚命令
+            run_cmd_with_retry "yum -y install --allowerasing $pkgstr" "安装软件包" || return 1
+            INSTALLED_PKGS+=("${to_install[@]}")
+            mark_rollback "卸载脚本新安装的软件包" "yum -y remove ${pkgstr} || true"
             ;;
         apt)
-            run_cmd_with_retry "DEBIAN_FRONTEND=noninteractive apt-get -y install ${pkgstr}" "安装软件包" || return 1  # apt 安装
-            INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-            mark_rollback "卸载脚本新安装的软件包" "DEBIAN_FRONTEND=noninteractive apt-get -y remove --purge ${pkgstr} || true; apt-get -y autoremove || true"  # 回滚命令
+            run_cmd_with_retry "DEBIAN_FRONTEND=noninteractive apt-get -y install ${pkgstr}" "安装软件包" || return 1
+            INSTALLED_PKGS+=("${to_install[@]}")
+            mark_rollback "卸载脚本新安装的软件包" "DEBIAN_FRONTEND=noninteractive apt-get -y remove --purge ${pkgstr} || true; apt-get -y autoremove || true"
             ;;
     esac
 
-    success "安装软件包完成: ${to_install[*]}"  # 安装成功提示
+    success "安装软件包完成: ${to_install[*]}"
 }
 
-# --------------- 备份配置文件（修改前） ----------------
-safe_backup_file() {  # 备份指定文件以便回滚恢复
-    local file="$1"  # 目标文件
-    if [ -f "$file" ]; then  # 仅对存在的文件进行备份
-        local bak="${file}.bak.$(date +%s)"  # 生成唯一备份名
-        cp -a "$file" "$bak"  # 复制备份
-        BACKUP_FILES+=("$file:$bak")  # 记录备份映射
-        mark_rollback "恢复配置文件 $file" "if [ -f '$bak' ]; then mv -f '$bak' '$file' || true; fi"  # 回滚命令
-        log "备份配置文件: $file -> $bak"  # 记录日志
+# --------------- 备份配置文件 ----------------
+safe_backup_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        local bak="${file}.bak.$(date +%s)"
+        cp -a "$file" "$bak"
+        BACKUP_FILES+=("$file:$bak")
+        mark_rollback "恢复配置文件 $file" "if [ -f '$bak' ]; then mv -f '$bak' '$file' || true; fi"
+        log "备份配置文件: $file -> $bak"
     fi
 }
 
 # --------------- 错误/中断处理 ----------------
-# 处理错误：记录信息并触发回滚
-handle_error() {  # 全局错误处理函数
-    local lineno="${1:-?}"  # 失败发生的行号
-    local cmd="${2:-?}"  # 失败时正在执行的命令
-    local code="${3:-1}"  # 失败退出码
+handle_error() {
+    local lineno="${1:-?}"
+    local cmd="${2:-?}"
+    local code="${3:-1}"
 
-    error "脚本在行 $lineno 执行命令 '$cmd' 时失败 (退出码: $code)"  # 打印错误摘要
-    error "详细日志请查看: $ERROR_LOG_FILE"  # 指引错误日志位置
-    error "完整安装日志请查看: $LOG_FILE"  # 指引安装日志位置
+    error "脚本在行 $lineno 执行命令 '$cmd' 时失败 (退出码: $code)"
+    error "详细日志请查看: $ERROR_LOG_FILE"
+    error "完整安装日志请查看: $LOG_FILE"
 
-    # 输出错误日志末尾若干行以便快速定位
-    if [ -f "$ERROR_LOG_FILE" ]; then  # 如果错误日志存在则打印部分内容
-        error "---- 最近的错误输出（最多 200 行） ----"  # 分隔线
-        tail -n 200 "$ERROR_LOG_FILE" | sed 's/^/  /' >&2 || true  # 打印尾部错误信息
-        error "---- 错误输出结束 ----"  # 分隔线结束
+    if [ -f "$ERROR_LOG_FILE" ]; then
+        error "---- 最近的错误输出（最多 200 行） ----"
+        tail -n 200 "$ERROR_LOG_FILE" | sed 's/^/  /' >&2 || true
+        error "---- 错误输出结束 ----"
     fi
 
-    # 执行回滚
-    warn "开始执行回滚操作..."  # 回滚提示
-    rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"  # 尝试回滚并提示可能的失败
+    warn "开始执行回滚操作..."
+    rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"
 
-    error "安装被中止 (行 $lineno, 命令: $cmd, 退出码: $code)"  # 最终错误信息
-    exit "$code"  # 退出脚本并返回错误码
+    error "安装被中止 (行 $lineno, 命令: $cmd, 退出码: $code)"
+    exit "$code"
 }
 
-# 处理中断信号（Ctrl-C 等）
-on_interrupt() {  # 处理中断信号，触发回滚
-    warn "检测到中断信号，开始回滚并退出..."  # 中断提示
-    rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"  # 尝试回滚
-    exit 1  # 退出
+on_interrupt() {
+    warn "检测到中断信号，开始回滚并退出..."
+    rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"
+    exit 1
 }
 
-trap 'handle_error ${LINENO} "${BASH_COMMAND}" $?' ERR  # 捕获错误并调用 handle_error
-trap 'on_interrupt' INT TERM  # 捕获中断/终止信号并调用 on_interrupt
+trap 'handle_error ${LINENO} "${BASH_COMMAND}" $?' ERR
+trap 'on_interrupt' INT TERM
 
-# ----------------- 各步骤实现（与原脚本逻辑类似，但增加备份和回滚） -----------------
+# ----------------- 系统依赖安装 -----------------
+install_dependencies() {
+    local start=$(date +%s)
+    info "安装系统依赖..."
 
-
-
-install_dependencies() {  # 安装系统依赖的主函数
-    local start=$(date +%s)  # 记录开始时间
-    info "安装系统依赖..."  # 输出信息
-
-    case "$PKG_MGR" in  # 根据不同包管理器采用不同策略
+    case "$PKG_MGR" in
         dnf)
-            run_cmd_with_retry "dnf -y update" "更新系统"  # 更新系统包
-            # 优先尝试通过包管理器安装 epel-release，如果失败则使用远端 rpm 包回退安装
-            if ! run_cmd_with_retry "dnf -y install --allowerasing epel-release" "安装 EPEL 通过 dnf" 3 2; then  # 使用 --allowerasing 处理冲突
-                warn "通过 dnf 安装 epel-release 失败，尝试备用方式安装 EPEL..."  # 警告
-                if run_cmd_with_retry "yum -y install --allowerasing epel-release" "安装 EPEL 通过 yum" 3 2; then  # 尝试 yum
-                    success "通过 yum 安装 epel-release 成功"  # 成功提示
-                else
-                    warn "yum 也失败，尝试从 Fedora 官方下载 epel rpm 并安装"  # 再次备选方案
-                    local epel_rpm="/tmp/epel-release-latest.rpm"  # 临时 rpm 路径
-                    if command -v rpm >/dev/null 2>&1; then  # 若存在 rpm
-                        local rhelver="$(rpm -E '%{?rhel}' 2>/dev/null || echo '')"  # 尝试获取 rhel 宏
-                        if [ -n "$rhelver" ]; then  # 若拿到 rhel 版本号则尽量下载对应版本
-                            run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-$rhelver.noarch.rpm'" "下载 epel rpm" 3 2 || true
-                        fi
-                        # 如果没有 rhel 变量或下载失败，再尝试通用路径
-                        run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'" "下载 epel rpm 备用" 3 2 || true
-                        if [ -f "$epel_rpm" ]; then  # 如果下载到 rpm 则尝试安装
-                            run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 epel rpm" 3 2 || warn "使用 rpm 安装 epel-release 失败"  # 使用 --replacepkgs 提高成功率
-                            register_tmp_file "$epel_rpm"  # 注册临时文件以便清理
-                        else
-                            warn "未能下载到 epel rpm，EPEL 安装被跳过，请手动处理"  # 最终失败提示
-                        fi
-                    else
-                        warn "系统无 rpm 命令，无法用 rpm 安装 epel-release，EPEL 安装被跳过"  # 无 rpm 时的提示
-                    fi
-                fi
+            run_cmd_with_retry "dnf -y update" "更新系统"
+            if ! run_cmd_with_retry "dnf -y install --allowerasing epel-release" "安装 EPEL 通过 dnf" 3 2; then
+                warn "通过 dnf 安装 epel-release 失败，尝试备用方式安装 EPEL..."
+                install_epel_fallback
             fi
             ;;
         yum)
-            run_cmd_with_retry "yum -y update" "更新系统"  # 更新系统
-            if ! run_cmd_with_retry "yum -y install --allowerasing epel-release" "安装 EPEL 通过 yum" 3 2; then  # 使用 --allowerasing
-                warn "yum 安装 epel-release 失败，尝试从 Fedora 官方下载并安装 rpm 包"  # 失败后备用方案
-                local epel_rpm="/tmp/epel-release-latest.rpm"  # rpm 临时路径
-                run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'" "下载 epel rpm 备用" 3 2 || true
-                if [ -f "$epel_rpm" ]; then  # 如果下载到则安装
-                    run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 epel rpm" 3 2 || warn "使用 rpm 安装 epel-release 失败"  # 使用 --replacepkgs
-                    register_tmp_file "$epel_rpm"  # 注册临时文件
-                else
-                    warn "未能下载到 epel rpm，EPEL 安装被跳过，请手动处理"  # 无法下载提示
-                fi
+            run_cmd_with_retry "yum -y update" "更新系统"
+            if ! run_cmd_with_retry "yum -y install --allowerasing epel-release" "安装 EPEL 通过 yum" 3 2; then
+                install_epel_fallback
             fi
             ;;
         apt)
-            run_cmd_with_retry "apt-get -y update" "更新包列表"  # apt-get 更新
-            run_cmd_with_retry "apt-get -y upgrade" "升级系统"  # apt-get 升级
+            run_cmd_with_retry "apt-get -y update" "更新包列表"
+            run_cmd_with_retry "apt-get -y upgrade" "升级系统"
             ;;
     esac
 
-    # 尝试安装一些常用工具（示例，按需添加）
-    local common=(yum-utils gcc gcc-c++ autoconf libtool perl perl-devel libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel openldap openldap-devel openldap-clients freetype freetype-devel libxml2 libxml2-devel sqlite-devel zlib zlib-devel curl curl-devel pcre pcre-devel gd gd-devel expat-devel libicu-devel bzip2 bzip2-devel python3 python3-devel libwebp-devel make libzstd-devel wget oniguruma oniguruma-devel zstd glibc-headers krb5-devel libzip libzip-devel libxslt libxslt-devel openssl openssl-devel libsodium-devel glib2-devel cairo-devel gmp-devel libevent-devel readline-devel net-snmp-devel aspell-devel unixODBC-devel libc-client-devel libXpm-devel enchant-devel php-ldap automake kernel keyutils patch tidy epel-release libtidy libtidy-devel)  # 常用工具清单
-    pkg_install "${common[@]}"  # 安装这些工具
+    local common_packages=(
+        yum-utils gcc gcc-c++ autoconf libtool perl perl-devel
+        libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel
+        openldap openldap-devel openldap-clients freetype freetype-devel
+        libxml2 libxml2-devel sqlite-devel zlib zlib-devel curl curl-devel
+        pcre pcre-devel gd gd-devel expat-devel libicu-devel bzip2 bzip2-devel
+        python3 python3-devel libwebp-devel make libzstd-devel wget
+        oniguruma oniguruma-devel zstd glibc-headers krb5-devel libzip libzip-devel
+        libxslt libxslt-devel openssl openssl-devel libsodium-devel glib2-devel
+        cairo-devel gmp-devel libevent-devel readline-devel net-snmp-devel
+        aspell-devel unixODBC-devel libc-client-devel libXpm-devel enchant-devel
+        php-ldap automake kernel keyutils patch tidy epel-release libtidy libtidy-devel
+    )
 
-    success "系统依赖安装完成 (耗时: $(($(date +%s) - start)) 秒)"  # 完成提示并显示耗时
+    pkg_install "${common_packages[@]}"
+
+    success "系统依赖安装完成 (耗时: $(($(date +%s) - start)) 秒)"
 }
 
-# ----------------- PHP 源码下载/解压/编译（保留原逻辑，但改进错误处理） -----------------（保留原逻辑，但改进错误处理） -----------------
+install_epel_fallback() {
+    warn "尝试从 Fedora 官方下载 epel rpm 并安装"
+    local epel_rpm="/tmp/epel-release-latest.rpm"
 
-download_php() {  # 下载 PHP 源码函数
-    local start=$(date +%s)  # 记录开始时间
-    info "下载 PHP 源码..."  # 信息提示
-    mkdir -p "$SRC_DIR" && cd "$SRC_DIR"  # 确保源码目录并切换
-    local php_archive="php-${PHP_VERSION}.tar.gz"  # 源码包名
+    if command -v rpm >/dev/null 2>&1; then
+        local rhelver="$(rpm -E '%{?rhel}' 2>/dev/null || echo '')"
+        if [ -n "$rhelver" ]; then
+            run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-$rhelver.noarch.rpm'" "下载 epel rpm" 3 2 || true
+        fi
 
-    for mirror in "${PHP_MIRRORS[@]}"; do  # 遍历镜像
-        info "尝试从镜像下载: $mirror"  # 输出当前尝试的镜像
-        if command -v wget >/dev/null 2>&1; then  # 优先使用 wget
-            if run_cmd_with_retry "wget -c --tries=$DOWNLOAD_RETRIES --timeout=30 '$mirror' -O '$php_archive'" "下载 PHP ($mirror)" 3 3; then  # 使用 DOWNLOAD_RETRIES
-                [ -s "$php_archive" ] && { success "PHP 下载成功"; register_tmp_file "$SRC_DIR/$php_archive"; return 0; }  # 若下载成功则注册临时文件并返回
+        run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'" "下载 epel rpm 备用" 3 2 || true
+
+        if [ -f "$epel_rpm" ]; then
+            run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 epel rpm" 3 2 || warn "使用 rpm 安装 epel-release 失败"
+            register_tmp_file "$epel_rpm"
+        else
+            warn "未能下载到 epel rpm，EPEL 安装被跳过，请手动处理"
+        fi
+    else
+        warn "系统无 rpm 命令，无法用 rpm 安装 epel-release，EPEL 安装被跳过"
+    fi
+}
+
+# ----------------- PHP 安装相关函数 -----------------
+download_php() {
+    local start=$(date +%s)
+    info "下载 PHP 源码..."
+    mkdir -p "$SRC_DIR" && cd "$SRC_DIR"
+    local php_archive="php-${PHP_VERSION}.tar.gz"
+
+    for mirror in "${PHP_MIRRORS[@]}"; do
+        info "尝试从镜像下载: $mirror"
+        if command -v wget >/dev/null 2>&1; then
+            if run_cmd_with_retry "wget -c --tries=$DOWNLOAD_RETRIES --timeout=30 '$mirror' -O '$php_archive'" "下载 PHP ($mirror)" 3 3; then
+                [ -s "$php_archive" ] && { success "PHP 下载成功"; register_tmp_file "$SRC_DIR/$php_archive"; return 0; }
             fi
-        else  # 否则使用 curl
-            if run_cmd_with_retry "curl -L --retry $DOWNLOAD_RETRIES --connect-timeout 30 '$mirror' -o '$php_archive'" "下载 PHP ($mirror)" 3 3; then  # 使用 DOWNLOAD_RETRIES
+        else
+            if run_cmd_with_retry "curl -L --retry $DOWNLOAD_RETRIES --connect-timeout 30 '$mirror' -o '$php_archive'" "下载 PHP ($mirror)" 3 3; then
                 [ -s "$php_archive" ] && { success "PHP 下载成功"; register_tmp_file "$SRC_DIR/$php_archive"; return 0; }
             fi
         fi
-        warn "下载失败: $mirror"  # 当前镜像失败提示
-        rm -f "$php_archive" 2>/dev/null || true  # 清理残留文件
+        warn "下载失败: $mirror"
+        rm -f "$php_archive" 2>/dev/null || true
     done
 
-    return 1  # 所有镜像尝试失败返回 1
+    return 1
 }
 
-extract_php() {  # 解压 PHP 源码
-    info "解压 PHP 源码..."  # 信息提示
-    cd "$SRC_DIR"  # 切换到源码目录
-    local php_archive="php-${PHP_VERSION}.tar.gz"  # 源码包名
-    if [ ! -s "$php_archive" ]; then  # 校验文件是否存在且非空
-        error "PHP 源码包不存在: $php_archive"  # 错误提示
-        return 1  # 返回失败
+extract_php() {
+    info "解压 PHP 源码..."
+    cd "$SRC_DIR"
+    local php_archive="php-${PHP_VERSION}.tar.gz"
+
+    if [ ! -s "$php_archive" ]; then
+        error "PHP 源码包不存在: $php_archive"
+        return 1
     fi
 
-    run_cmd "tar -xzf '$php_archive'" "解压 PHP 源码"  # 解压命令
+    run_cmd "tar -xzf '$php_archive'" "解压 PHP 源码"
 
-    PHP_SRC_DIR="$SRC_DIR/php-${PHP_VERSION}"  # 预期解压目录
-    if [ ! -d "$PHP_SRC_DIR" ]; then  # 若默认目录不存在则从归档中解析实际目录
+    PHP_SRC_DIR="$SRC_DIR/php-${PHP_VERSION}"
+    if [ ! -d "$PHP_SRC_DIR" ]; then
         local actual_dir
-        actual_dir=$(tar -tf "$php_archive" | head -n1 | cut -d/ -f1)  # 取归档第一行目录名
-        PHP_SRC_DIR="$SRC_DIR/$actual_dir"  # 设置实际目录
+        actual_dir=$(tar -tf "$php_archive" | head -n1 | cut -d/ -f1)
+        PHP_SRC_DIR="$SRC_DIR/$actual_dir"
     fi
 
-    if [ ! -d "$PHP_SRC_DIR" ]; then  # 最终检查是否存在源码目录
-        error "无法找到 PHP 源码目录"  # 错误提示
-        return 1  # 返回失败
+    if [ ! -d "$PHP_SRC_DIR" ]; then
+        error "无法找到 PHP 源码目录"
+        return 1
     fi
 
-    success "PHP 源码解压完成"  # 成功提示
+    success "PHP 源码解压完成"
 }
 
-configure_php() {  # 配置 PHP 编译选项
-    info "配置 PHP 编译选项..."  # 信息提示
-    cd "$PHP_SRC_DIR"  # 切换到源码目录
+configure_php() {
+    info "配置 PHP 编译选项..."
+    cd "$PHP_SRC_DIR"
 
-    if [ -f buildconf ]; then  # 若存在 buildconf 则运行
-        run_cmd "./buildconf --force" "运行 buildconf" || warn "buildconf 运行失败"  # 运行并在失败时给出警告
+    if [ -f buildconf ]; then
+        run_cmd "./buildconf --force" "运行 buildconf" || warn "buildconf 运行失败"
     fi
 
-    local CONFIGURE_OPTS=(  # 配置数组
-        "--prefix=$PHP_PREFIX"  # 编译安装前缀
-        "--with-config-file-path=$PHP_PREFIX/lib"  # php.ini 路径
-        "--with-config-file-scan-dir=$PHP_PREFIX/lib/conf.d"  # 扫描扩展配置目录
-        "--enable-fpm"  # 启用 fpm
-        "--with-fpm-user=$WWW_USER"  # fpm 用户
-        "--with-fpm-group=$WWW_USER"  # fpm 用户组
-        "--with-libxml"  # 启用 libxml
-        "--with-openssl"  # 启用 openssl
-        # "--with-mysqli=mysqlnd"  # mysqli 使用 mysqlnd
-        "--with-mysqli"
-        "--with-mysql-sock"
-        "--enable-pdo"  # 启用 pdo
-        "--enable-pdo"
-        "--with-pdo-sqlite"
-        "--with-pdo-mysql"
-        "--with-pdo-sqlite"
-        "--with-pdo-sqlite"
-        "--with-zlib"  # 启用 zlib
-        "--enable-mbstring"  # 启用 mbstring
-        "--enable-opcache"  # 启用 opcache
-        "--enable-cli"  # 启用 cli
-        # 根据实际需求添加/删除配置项
-        "--with-kerberos"
-        "--with-system-ciphers"
-        "--enable-bcmath"
-        "--with-bz2"
-        "--enable-calendar"
-        "--with-curl"
-        "--enable-exif"
-        "--enable-fileinfo"
-        "--enable-gd"
-        "--with-freetype"
-        "--with-gettext"
-        "--with-mhash"
-        "--with-iconv"
-        "--with-imap-ssl"
-        "--enable-intl"
-        "--with-ldap"
-        "--with-ldap-sasl"
-        "--enable-mbregex"
-        "--enable-pcntl"
-        "--enable-session"
-        "--enable-simplexml"
-        "--enable-shmop"
-        "--enable-soap"
-        "--enable-sockets"
-        "--with-sodium"
-        "--enable-sysvmsg"
-        "--enable-sysvsem"
-        "--with-tidy"
-        "--enable-tokenizer"
-        "--enable-xml"
-        "--with-xsl"
-        "--with-zip"
-        "--with-bz2"
-        "--enable-mysqlnd"
-        "--with-pear"
-        "--with-jpeg"
-        "--with-libdir=lib64"
-        "--enable-static"
-    )
-    # 将数组拼接为字符串;彻底移除所有换行符（即使有也清除）
-    local opts_str=$(printf '%s ' "${CONFIGURE_OPTS[@]}" | tr -d '\n\r' | sed 's/ $//')
-
-    local attempt=1  # 初始尝试次数
-    while [ $attempt -le $MAX_RETRIES ]; do  # 重试配置直到 MAX_RETRI#!/usr/bin/env bash
-                                                               # 指定使用的解释器为 bash，确保脚本可移植
-                                                               # -----------------------------------------------------------------------------
-                                                               # industrial_php_stack_improved.sh  # 脚本名及说明
-                                                               # 改进版：工业级 PHP 环境一键安装脚本（增强错误接管、回滚、备份与日志）  # 脚本功能简介
-                                                               # 功能：安装 PHP / Nginx / MySQL / Redis / Composer / 常用扩展  # 支持的软件组件
-                                                               # 主要改进点：  # 列出主要改动
-                                                               #  - 全面中文注释  # 每行均添加注释
-                                                               #  - ERR/INT/TERM 信号接管并触发回滚  # 错误处理策略
-                                                               #  - 记录每一步的反向操作（rollback），异常时按逆序执行以回滚系统改动  # 回滚机制
-                                                               #  - 智能判断哪些包是新安装的，回滚时仅移除这些包（尽量避免删除已有系统包）  # 安全移除策略
-                                                               #  - 对修改的配置文件先备份，回滚时恢复备份  # 备份机制
-                                                               #  - 优化 run_cmd 执行方式，使用 "bash -lc" 执行多行命令，解决命令包含换行符导致的执行问题  # 解决换行/特殊字符问题
-                                                               #  - 避免不必要的 eval，修复 make -j 等错误引用  # 安全改进
-                                                               #  - 增强日志（安装日志 + 错误日志 + 回滚日志）  # 日志策略
-                                                               #  - 增加临时文件管理，退出时自动清理  # 清理机制
-                                                               #  - 添加安全提示与使用说明  # 用户友好性
-                                                               # -----------------------------------------------------------------------------
-
-                                                               set -euo pipefail  # 开启严格模式：出错退出、未定义变量视作错误、管道失败时整体失败
-                                                               set -o errtrace   # 使 ERR trap 在函数/子 shell 中也生效  # 保证错误捕获完整
-                                                               IFS=$'\n\t'  # 设置内部字段分隔符为换行和制表符，避免空格或换行导致参数被错误拆分
-
-                                                               # ---------------- 可配置参数（保持与原脚本兼容） ----------------
-                                                               INSTALL_PHP="${INSTALL_PHP:-yes}"  # 是否安装 PHP，默认 yes
-                                                               INSTALL_MYSQL="${INSTALL_MYSQL:-yes}"  # 是否安装 MySQL，默认 yes
-                                                               INSTALL_REDIS="${INSTALL_REDIS:-yes}"  # 是否安装 Redis，默认 yes
-                                                               INSTALL_NGINX="${INSTALL_NGINX:-yes}"  # 是否安装 Nginx，默认 yes
-                                                               INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}"  # 是否安装 Composer，默认 yes
-                                                               INSTALL_PHP_EXTENSIONS="${INSTALL_PHP_EXTENSIONS:-yes}"  # 是否安装常用 PHP 扩展，默认 yes
-
-                                                               PHP_VERSION="${PHP_VERSION:-8.4.12}"  # PHP 默认版本
-                                                               MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"  # MySQL 版本（仅记录用）
-                                                               REDIS_VERSION="${REDIS_VERSION:-7.2.4}"  # Redis 版本（仅记录用）
-                                                               NGINX_VERSION="${NGINX_VERSION:-1.28.0}"  # Nginx 版本（仅记录用）
-
-                                                               PHP_MIRRORS=(  # PHP 源码镜像列表，按优先级排列
-                                                                   "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"  # 官方镜像
-                                                                   "https://mirrors.aliyun.com/php-distributions/php-${PHP_VERSION}.tar.gz"  # 阿里云镜像
-                                                                   "https://mirrors.cloud.tencent.com/php-distributions/php-${PHP_VERSION}.tar.gz"  # 腾讯云镜像
-                                                               )
-
-                                                               PHP_PREFIX="${PHP_PREFIX:-/usr/local/php8}"  # PHP 安装前缀
-                                                               MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"  # MySQL 安装前缀（如源码安装时使用）
-                                                               NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"  # Nginx 安装前缀
-                                                               REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"  # Redis 安装前缀
-
-                                                               MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-$(openssl rand -base64 24)}"  # MySQL root 密码，默认随机生成
-                                                               REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-phpadmin}"  # 远程管理用户
-                                                               REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-$(openssl rand -base64 24)}"  # 远程管理用户密码
-                                                               WWW_USER="${WWW_USER:-www}"  # 网站运行用户
-                                                               WWW_PASS="${WWW_PASS:-$(openssl rand -base64 24)}"  # 网站运行用户密码
-
-                                                               SRC_DIR="${SRC_DIR:-/usr/local/src}"  # 源码下载目录
-                                                               LOG_DIR="${LOG_DIR:-/var/log/php-stack-install}"  # 日志目录
-                                                               LOG_FILE="${LOG_FILE:-$LOG_DIR/install.log}"  # 安装日志文件
-                                                               ERROR_LOG_FILE="${ERROR_LOG_FILE:-$LOG_DIR/error.log}"  # 错误日志文件
-                                                               ROLLBACK_LOG_FILE="${ROLLBACK_LOG_FILE:-$LOG_DIR/rollback.log}"  # 回滚日志文件
-                                                               INSTALL_SUMMARY="${INSTALL_SUMMARY:-/data/install_config.log}"  # 安装总结输出文件
-                                                               MAKE_JOBS="${MAKE_JOBS:-$(nproc 2>/dev/null || echo 1)}"  # make -j 使用的并行数，默认为 CPU 核心数
-                                                               AUTO_START_SERVICES="${AUTO_START_SERVICES:-yes}"  # 是否自动启用并启动服务
-                                                               MAX_RETRIES="${MAX_RETRIES:-3}"  # 全局重试次数，默认 3（按用户要求）
-                                                               DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"  # 下载重试次数，默认 3
-                                                               CLEAN_TEMP="${CLEAN_TEMP:-yes}"  # 是否清理临时文件
-                                                               PROFILE_FILE="${PROFILE_FILE:-/etc/profile}"  # 全局 profile 文件
-
-                                                               PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT:-512M}"  # PHP memory_limit
-                                                               PHP_MAX_EXECUTION_TIME="${PHP_MAX_EXECUTION_TIME:-300}"  # PHP max_execution_time
-                                                               PHP_UPLOAD_MAX_FILESIZE="${PHP_UPLOAD_MAX_FILESIZE:-256M}"  # PHP upload_max_filesize
-                                                               PHP_POST_MAX_SIZE="${PHP_POST_MAX_SIZE:-256M}"  # PHP post_max_size
-
-                                                               # ---------------- 全局变量 ----------------
-                                                               PKG_MGR=""  # 包管理器标识
-                                                               OS_ID=""  # 操作系统 ID
-                                                               OS_NAME=""  # 操作系统名称
-                                                               OS_VERSION=""  # 操作系统版本
-                                                               OS_ARCH=""  # 系统架构
-                                                               PHP_SRC_DIR=""  # PHP 源码解压目录
-                                                               PHP_INI_FILE=""  # php.ini 路径
-                                                               START_TIME=$(date +%s)  # 记录脚本开始时间
-                                                               TMP_FILES=()  # 临时文件列表
-
-                                                               # rollback 命令栈（按顺序 push，回滚时逆序执行）
-                                                               ROLLBACK_CMDS=()  # 回滚命令栈
-                                                               # 记录由脚本新安装的软件包（回滚时会移除这些包）
-                                                               INSTALLED_PKGS=()  # 记录新安装的软件包
-                                                               # 记录创建的用户（回滚时会删除）
-                                                               CREATED_USERS=()  # 记录创建的用户
-                                                               # 记录备份的配置文件（回滚时恢复）
-                                                               BACKUP_FILES=()  # 记录备份文件
-
-                                                               # 创建目录并初始化日志
-                                                               mkdir -p "$SRC_DIR" "$LOG_DIR" "$(dirname "$INSTALL_SUMMARY")"  # 确保目录存在
-                                                               : > "$LOG_FILE"  # 清空安装日志
-                                                               : > "$ERROR_LOG_FILE"  # 清空错误日志
-                                                               : > "$ROLLBACK_LOG_FILE"  # 清空回滚日志
-
-                                                               # ---------------- 输出（彩色） ----------------
-                                                               _red() { echo -e "[31m$*[0m"; }  # 红色输出函数
-                                                               _green() { echo -e "[32m$*[0m"; }  # 绿色输出函数
-                                                               _yellow() { echo -e "[33m$*[0m"; }  # 黄色输出函数
-                                                               _blue() { echo -e "[34m$*[0m"; }  # 蓝色输出函数
-                                                               _bold() { echo -e "[1m$*[0m"; }  # 粗体输出函数
-
-                                                               ICON_INFO="🔵"  # 信息图标
-                                                               ICON_SUCCESS="✅"  # 成功图标
-                                                               ICON_WARN="🟡"  # 警告图标
-                                                               ICON_ERROR="🔴"  # 错误图标
-
-                                                               log() {  # 日志记录函数
-                                                                   echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"  # 同时输出到控制台并追加到日志
-                                                               }
-
-                                                               info() {  # 信息输出函数
-                                                                   log "${ICON_INFO} $*"  # 写日志
-                                                                   echo -e "${ICON_INFO} $*"  # 控制台输出
-                                                               }
-
-                                                               success() {  # 成功输出函数
-                                                                   log "${ICON_SUCCESS} $*"  # 写日志
-                                                                   echo -e "${ICON_SUCCESS} $*"  # 控制台输出
-                                                               }
-
-                                                               warn() {  # 警告输出函数
-                                                                   log "${ICON_WARN} $*"  # 写日志
-                                                                   echo -e "${ICON_WARN} $*" >&2  # 输出到 stderr
-                                                               }
-
-                                                               error() {  # 错误输出函数
-                                                                   log "${ICON_ERROR} $*"  # 写日志
-                                                                   echo -e "${ICON_ERROR} $*" >&2  # 输出到 stderr
-                                                                   echo "$(date '+%F %T') - ERROR: $*" >> "$ERROR_LOG_FILE"  # 同时写入错误日志
-                                                               }
-
-                                                               # --------------- 回滚记录与执行工具 ----------------
-                                                               # 将一条回滚命令入栈（描述性说明 + shell 命令）
-                                                               mark_rollback() {  # 将回滚动作记录到栈中
-                                                                   local desc="$1"  # 回滚动作描述
-                                                                   local cmd="$2"  # 回滚命令
-                                                                   ROLLBACK_CMDS+=("# $desc\n$cmd")  # 入栈，保存描述和命令
-                                                                   log "[ROLLBACK MARK] $desc -> $cmd"  # 记录到日志
-                                                               }
-
-                                                               # 执行回滚（按逆序）
-                                                               rollback_all() {  # 执行所有记录的回滚命令
-                                                                   echo "" | tee -a "$ROLLBACK_LOG_FILE"  # 写入空行分隔
-                                                                   echo "[$(date '+%F %T')] 开始回滚..." | tee -a "$ROLLBACK_LOG_FILE"  # 回滚开始时间写日志
-
-                                                                   # 逆序执行
-                                                                   for ((i=${#ROLLBACK_CMDS[@]}-1; i>=0; i--)); do  # 逆序遍历回滚栈
-                                                                       local item="${ROLLBACK_CMDS[i]}"  # 取出栈项
-                                                                       echo "- 执行回滚步骤: ${item%%$'\n'*}" | tee -a "$ROLLBACK_LOG_FILE"  # 输出步骤描述
-                                                                       # 执行命令体（跳过以 '#' 开头的注释行）
-                                                                       local cmd=$(printf '%s' "$item" | sed -n '2,999p')  # 取得命令体
-                                                                       if [ -n "$cmd" ]; then  # 若命令体非空则执行
-                                                                           set +e  # 临时取消 -e，保证回滚继续执行
-                                                                           bash -lc "$cmd" >>"$ROLLBACK_LOG_FILE" 2>&1  # 执行并记录输出
-                                                                           local rc=$?  # 获取退出码
-                                                                           set -e  # 恢复 -e
-                                                                           if [ $rc -eq 0 ]; then  # 判断执行结果
-                                                                               echo "  -> 回滚步骤成功" | tee -a "$ROLLBACK_LOG_FILE"  # 成功日志
-                                                                           else
-                                                                               echo "  -> 回滚步骤失败 (退出码:$rc)" | tee -a "$ROLLBACK_LOG_FILE"  # 失败日志
-                                                                           fi
-                                                                       fi
-                                                                   done
-
-                                                                   echo "[$(date '+%F %T')] 回滚完成" | tee -a "$ROLLBACK_LOG_FILE"  # 回滚完成时间写日志
-                                                               }
-
-                                                               # --------------- 临时文件管理 ----------------
-                                                               register_tmp_file() {  # 注册临时文件，退出时自动清理
-                                                                   TMP_FILES+=("$1")  # 将临时文件路径加入数组
-                                                               }
-
-                                                               cleanup_tmpfiles() {  # 清理注册的临时文件
-                                                                   for f in "${TMP_FILES[@]:-}"; do  # 遍历所有注册的临时文件
-                                                                       [ -e "$f" ] && rm -rf "$f" || true  # 逐个删除
-                                                                   done
-                                                               }
-
-                                                               # ----------------- 运行命令的通用函数（支持多行） -----------------
-                                                               # 使用 bash -lc 来执行任意复杂命令（包含换行），解决命令中包含换行或特殊字符时的执行问题
-                                                               run_cmd() {  # 运行单条命令并记录日志（带 spinner）
-                                                                   local cmd="$1"  # 要执行的命令
-                                                                   local desc="${2:-执行命令}"  # 命令描述，默认 "执行命令"
-
-                                                                   log "[CMD] $desc : $cmd"  # 记录命令到日志
-
-                                                                   # 后台执行以支持 spinner（保持与原脚本交互性），但简化实现以避免 eval 的安全问题
-                                                                   bash -lc "$cmd" >>"$LOG_FILE" 2>>"$ERROR_LOG_FILE" &  # 使用 bash -lc 执行命令并重定向输出
-                                                                   local pid=$!  # 获取后台进程 PID
-
-                                                                   # 简单的 spinner（如果命令很快结束，不影响）
-                                                                   local i=0  # spinner 索引
-                                                                   local frames=("-" "\\" "|" "/")  # spinner 帧：- \ | /
-                                                                   printf "⏳ %s " "$desc"  # 初始 spinner 输出
-                                                                   while kill -0 "$pid" 2>/dev/null; do  # 当进程存在时更新 spinner
-                                                                       i=$(((i+1) % ${#frames[@]}))  # 计算下一个帧索引
-                                                                       printf "\r⏳ %s %s" "$desc" "${frames[i]}"  # 打印 spinner
-                                                                       sleep 0.08  # spinner 刷新间隔
-                                                                   done
-                                                                   wait "$pid"  # 等待命令结束
-                                                                   local rc=$?  # 获取命令退出码
-                                                                   if [ $rc -ne 0 ]; then  # 非零视为失败
-                                                                       log "[CMD-FAIL] $desc (退出码:$rc)"  # 记录失败
-                                                                       return $rc  # 返回失败码
-                                                                   fi
-                                                                   printf "\r✅ %s 完成\n" "$desc"  # 成功提示
-                                                                   log "[CMD-OK] $desc"  # 记录成功
-                                                                   return 0  # 返回成功
-                                                               }
-
-                                                               # 带重试的 run_cmd
-                                                               run_cmd_with_retry() {  # 带重试的命令执行函数
-                                                                   local cmd="$1"  # 要执行的命令
-                                                                   local desc="${2:-执行命令}"  # 描述
-                                                                   local max_retries="${3:-$MAX_RETRIES}"  # 最大重试次数
-                                                                   local retry_delay="${4:-2}"  # 重试间隔秒数
-
-                                                                   local attempt=1  # 初始尝试次数
-                                                                   while [ $attempt -le $max_retries ]; do  # 循环直到达到最大重试次数
-                                                                       if run_cmd "$cmd" "$desc"; then  # 如果命令成功则返回
-                                                                           return 0
-                                                                       fi
-                                                                       warn "$desc 失败 (尝试 $attempt/$max_retries)，${retry_delay}s 后重试..."  # 警告并等待
-                                                                       sleep $retry_delay  # 等待
-                                                                       attempt=$((attempt+1))  # 增加尝试次数
-                                                                   done
-
-                                                                   error "$desc 在 $max_retries 次尝试后仍然失败: $cmd"  # 最终失败记录错误
-                                                                   return 1  # 返回失败
-                                                               }
-
-                                                               # ----------------- 系统检测 -----------------
-                                                               # 检测操作系统类型、包管理器与架构信息
-                                                               detect_system() {  # 检测系统信息和包管理器类型
-                                                                   info "检测系统环境..."  # 输出信息
-                                                                   if [ -f /etc/os-release ]; then  # 如果存在 os-release 文件则读取
-                                                                       . /etc/os-release  # 导入变量
-                                                                       OS_ID="${ID:-unknown}"  # 设置 OS_ID
-                                                                       OS_NAME="${NAME:-unknown}"  # 设置 OS_NAME
-                                                                       OS_VERSION="${VERSION_ID:-unknown}"  # 设置 OS_VERSION
-                                                                   else
-                                                                       fail_msg="无法检测操作系统"  # 无法检测时的错误信息
-                                                                       error "$fail_msg"  # 输出错误
-                                                                       return 1  # 返回失败
-                                                                   fi
-
-                                                                   OS_ARCH=$(uname -m)  # 获取系统架构
-                                                                   [ "$OS_ARCH" = "x86_64" ] && OS_ARCH="x64" || true  # 对常见架构做友好显示
-
-                                                                   if command -v dnf >/dev/null 2>&1; then  # 检查 dnf
-                                                                       PKG_MGR="dnf"  # 使用 dnf
-                                                                   elif command -v yum >/dev/null 2>&1; then  # 检查 yum
-                                                                       PKG_MGR="yum"  # 使用 yum
-                                                                   elif command -v apt-get >/dev/null 2>&1; then  # 检查 apt-get
-                                                                       PKG_MGR="apt"  # 使用 apt
-                                                                   else
-                                                                       error "未找到受支持的包管理器 (dnf|yum|apt-get)"  # 未找到包管理器时错误
-                                                                       return 1  # 返回失败
-                                                                   fi
-
-                                                                   success "系统: $OS_NAME $OS_VERSION ($OS_ARCH), 包管理器: $PKG_MGR"  # 打印检测结果
-                                                               }
-
-                                                               # ----------------- 软件包安装工具（智能判断哪些包是新安装） -----------------
-                                                               # 检查包是否已安装（返回 0=已安装 1=未安装）
-                                                               pkg_is_installed() {  # 检测具体包是否已安装
-                                                                   local pkg="$1"  # 包名参数
-                                                                   if [ "$PKG_MGR" = "apt" ]; then  # apt 系统使用 dpkg
-                                                                       dpkg -s "$pkg" >/dev/null 2>&1 && return 0 || return 1
-                                                                   else  # rpm 系统使用 rpm -q
-                                                                       rpm -q "$pkg" >/dev/null 2>&1 && return 0 || return 1
-                                                                   fi
-                                                               }
-
-                                                               # 将包数组拼成安全的 shell 字符串（逐个 printf '%q'）
-                                                               escape_pkg_list() {  # 对包名做 shell 转义以安全地放入命令行（返回以空格分隔的转义字符串）
-                                                                   local -n arr=$1  # 通过 nameref 引用传入的数组名
-                                                                   local out=()  # 临时数组用于保存转义后的包名
-                                                                   for p in "${arr[@]}"; do  # 遍历包名数组
-                                                                       out+=("$(printf '%q' "$p")")  # 使用 printf '%q' 转义每个包名并加入列表
-                                                                   done
-                                                                   # 将转义后的包名用空格连接，末尾不含额外空格
-                                                                   local joined=""  # 初始化连接字符串
-                                                                   for item in "${out[@]}"; do  # 遍历转义结果
-                                                                       if [ -z "$joined" ]; then  # 若为空则直接赋值
-                                                                           joined="$item"
-                                                                       else
-                                                                           joined="$joined $item"  # 否则追加空格分隔
-                                                                       fi
-                                                                   done
-                                                                   printf '%s' "$joined"  # 输出最终的转义字符串
-                                                               }
-
-                                                               # 安装一组包（只安装尚未安装的包），并记录安装的包以便回滚
-                                                               pkg_install() {  # 智能安装包函数
-                                                                   local pkgs=("$@")  # 将传入参数组成数组
-                                                                   info "准备安装软件包: ${pkgs[*]}"  # 打印准备安装的包列表
-
-                                                                   local to_install=()  # 需要安装的包列表
-                                                                   for p in "${pkgs[@]}"; do  # 遍历每个包
-                                                                       if pkg_is_installed "$p"; then  # 如果已安装则跳过
-                                                                           info "已存在: $p，跳过安装"
-                                                                       else
-                                                                           to_install+=("$p")  # 否则加入待安装列表
-                                                                       fi
-                                                                   done
-
-                                                                   if [ ${#to_install[@]} -eq 0 ]; then  # 若无新包则直接返回
-                                                                       info "没有需要安装的新包"
-                                                                       return 0
-                                                                   fi
-
-                                                                   local pkgstr=$(escape_pkg_list to_install)  # 将包列表转义拼接为字符串
-
-                                                                   case "$PKG_MGR" in  # 根据包管理器选择安装命令，并尽量使用 --allowerasing 处理冲突
-                                                                       dnf)
-                                                                           run_cmd_with_retry "dnf -y install --allowerasing $pkgstr" "安装软件包" || return 1  # dnf 使用 --allowerasing
-                                                                           INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-                                                                           mark_rollback "卸载脚本新安装的软件包" "dnf -y remove --noautoremove ${pkgstr} || true"  # 回滚命令
-                                                                           ;;
-                                                                       yum)
-                                                                           run_cmd_with_retry "yum -y install --allowerasing $pkgstr" "安装软件包" || return 1  # yum 使用 --allowerasing
-                                                                           INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-                                                                           mark_rollback "卸载脚本新安装的软件包" "yum -y remove ${pkgstr} || true"  # 回滚命令
-                                                                           ;;
-                                                                       apt)
-                                                                           run_cmd_with_retry "DEBIAN_FRONTEND=noninteractive apt-get -y install ${pkgstr}" "安装软件包" || return 1  # apt 安装
-                                                                           INSTALLED_PKGS+=("${to_install[@]}")  # 记录新安装包
-                                                                           mark_rollback "卸载脚本新安装的软件包" "DEBIAN_FRONTEND=noninteractive apt-get -y remove --purge ${pkgstr} || true; apt-get -y autoremove || true"  # 回滚命令
-                                                                           ;;
-                                                                   esac
-
-                                                                   success "安装软件包完成: ${to_install[*]}"  # 安装成功提示
-                                                               }
-
-                                                               # --------------- 备份配置文件（修改前） ----------------
-                                                               safe_backup_file() {  # 备份指定文件以便回滚恢复
-                                                                   local file="$1"  # 目标文件
-                                                                   if [ -f "$file" ]; then  # 仅对存在的文件进行备份
-                                                                       local bak="${file}.bak.$(date +%s)"  # 生成唯一备份名
-                                                                       cp -a "$file" "$bak"  # 复制备份
-                                                                       BACKUP_FILES+=("$file:$bak")  # 记录备份映射
-                                                                       mark_rollback "恢复配置文件 $file" "if [ -f '$bak' ]; then mv -f '$bak' '$file' || true; fi"  # 回滚命令
-                                                                       log "备份配置文件: $file -> $bak"  # 记录日志
-                                                                   fi
-                                                               }
-
-                                                               # --------------- 错误/中断处理 ----------------
-                                                               # 处理错误：记录信息并触发回滚
-                                                               handle_error() {  # 全局错误处理函数
-                                                                   local lineno="${1:-?}"  # 失败发生的行号
-                                                                   local cmd="${2:-?}"  # 失败时正在执行的命令
-                                                                   local code="${3:-1}"  # 失败退出码
-
-                                                                   error "脚本在行 $lineno 执行命令 '$cmd' 时失败 (退出码: $code)"  # 打印错误摘要
-                                                                   error "详细日志请查看: $ERROR_LOG_FILE"  # 指引错误日志位置
-                                                                   error "完整安装日志请查看: $LOG_FILE"  # 指引安装日志位置
-
-                                                                   # 输出错误日志末尾若干行以便快速定位
-                                                                   if [ -f "$ERROR_LOG_FILE" ]; then  # 如果错误日志存在则打印部分内容
-                                                                       error "---- 最近的错误输出（最多 200 行） ----"  # 分隔线
-                                                                       tail -n 200 "$ERROR_LOG_FILE" | sed 's/^/  /' >&2 || true  # 打印尾部错误信息
-                                                                       error "---- 错误输出结束 ----"  # 分隔线结束
-                                                                   fi
-
-                                                                   # 执行回滚
-                                                                   warn "开始执行回滚操作..."  # 回滚提示
-                                                                   rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"  # 尝试回滚并提示可能的失败
-
-                                                                   error "安装被中止 (行 $lineno, 命令: $cmd, 退出码: $code)"  # 最终错误信息
-                                                                   exit "$code"  # 退出脚本并返回错误码
-                                                               }
-
-                                                               # 处理中断信号（Ctrl-C 等）
-                                                               on_interrupt() {  # 处理中断信号，触发回滚
-                                                                   warn "检测到中断信号，开始回滚并退出..."  # 中断提示
-                                                                   rollback_all || warn "回滚过程中发生错误，请检查 $ROLLBACK_LOG_FILE"  # 尝试回滚
-                                                                   exit 1  # 退出
-                                                               }
-
-                                                               trap 'handle_error ${LINENO} "${BASH_COMMAND}" $?' ERR  # 捕获错误并调用 handle_error
-                                                               trap 'on_interrupt' INT TERM  # 捕获中断/终止信号并调用 on_interrupt
-
-                                                               # ----------------- 各步骤实现（与原脚本逻辑类似，但增加备份和回滚） -----------------
-
-
-
-                                                               install_dependencies() {  # 安装系统依赖的主函数
-                                                                   local start=$(date +%s)  # 记录开始时间
-                                                                   info "安装系统依赖..."  # 输出信息
-
-                                                                   case "$PKG_MGR" in  # 根据不同包管理器采用不同策略
-                                                                       dnf)
-                                                                           run_cmd_with_retry "dnf -y update" "更新系统"  # 更新系统包
-                                                                           # 优先尝试通过包管理器安装 epel-release，如果失败则使用远端 rpm 包回退安装
-                                                                           if ! run_cmd_with_retry "dnf -y install --allowerasing epel-release" "安装 EPEL 通过 dnf" 3 2; then  # 使用 --allowerasing 处理冲突
-                                                                               warn "通过 dnf 安装 epel-release 失败，尝试备用方式安装 EPEL..."  # 警告
-                                                                               if run_cmd_with_retry "yum -y install --allowerasing epel-release" "安装 EPEL 通过 yum" 3 2; then  # 尝试 yum
-                                                                                   success "通过 yum 安装 epel-release 成功"  # 成功提示
-                                                                               else
-                                                                                   warn "yum 也失败，尝试从 Fedora 官方下载 epel rpm 并安装"  # 再次备选方案
-                                                                                   local epel_rpm="/tmp/epel-release-latest.rpm"  # 临时 rpm 路径
-                                                                                   if command -v rpm >/dev/null 2>&1; then  # 若存在 rpm
-                                                                                       local rhelver="$(rpm -E '%{?rhel}' 2>/dev/null || echo '')"  # 尝试获取 rhel 宏
-                                                                                       if [ -n "$rhelver" ]; then  # 若拿到 rhel 版本号则尽量下载对应版本
-                                                                                           run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-$rhelver.noarch.rpm'" "下载 epel rpm" 3 2 || true
-                                                                                       fi
-                                                                                       # 如果没有 rhel 变量或下载失败，再尝试通用路径
-                                                                                       run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'" "下载 epel rpm 备用" 3 2 || true
-                                                                                       if [ -f "$epel_rpm" ]; then  # 如果下载到 rpm 则尝试安装
-                                                                                           run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 epel rpm" 3 2 || warn "使用 rpm 安装 epel-release 失败"  # 使用 --replacepkgs 提高成功率
-                                                                                           register_tmp_file "$epel_rpm"  # 注册临时文件以便清理
-                                                                                       else
-                                                                                           warn "未能下载到 epel rpm，EPEL 安装被跳过，请手动处理"  # 最终失败提示
-                                                                                       fi
-                                                                                   else
-                                                                                       warn "系统无 rpm 命令，无法用 rpm 安装 epel-release，EPEL 安装被跳过"  # 无 rpm 时的提示
-                                                                                   fi
-                                                                               fi
-                                                                           fi
-                                                                           ;;
-                                                                       yum)
-                                                                           run_cmd_with_retry "yum -y update" "更新系统"  # 更新系统
-                                                                           if ! run_cmd_with_retry "yum -y install --allowerasing epel-release" "安装 EPEL 通过 yum" 3 2; then  # 使用 --allowerasing
-                                                                               warn "yum 安装 epel-release 失败，尝试从 Fedora 官方下载并安装 rpm 包"  # 失败后备用方案
-                                                                               local epel_rpm="/tmp/epel-release-latest.rpm"  # rpm 临时路径
-                                                                               run_cmd_with_retry "wget -qO '$epel_rpm' 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'" "下载 epel rpm 备用" 3 2 || true
-                                                                               if [ -f "$epel_rpm" ]; then  # 如果下载到则安装
-                                                                                   run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 epel rpm" 3 2 || warn "使用 rpm 安装 epel-release 失败"  # 使用 --replacepkgs
-                                                                                   register_tmp_file "$epel_rpm"  # 注册临时文件
-                                                                               else
-                                                                                   warn "未能下载到 epel rpm，EPEL 安装被跳过，请手动处理"  # 无法下载提示
-                                                                               fi
-                                                                           fi
-                                                                           ;;
-                                                                       apt)
-                                                                           run_cmd_with_retry "apt-get -y update" "更新包列表"  # apt-get 更新
-                                                                           run_cmd_with_retry "apt-get -y upgrade" "升级系统"  # apt-get 升级
-                                                                           ;;
-                                                                   esac
-
-                                                                   # 尝试安装一些常用工具（示例，按需添加）
-                                                                   local common=(yum-utils gcc gcc-c++ autoconf libtool perl perl-devel libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel openldap openldap-devel openldap-clients freetype freetype-devel libxml2 libxml2-devel sqlite-devel zlib zlib-devel curl curl-devel pcre pcre-devel gd gd-devel expat-devel libicu-devel bzip2 bzip2-devel python3 python3-devel libwebp-devel make libzstd-devel wget oniguruma oniguruma-devel zstd glibc-headers krb5-devel libzip libzip-devel libxslt libxslt-devel openssl openssl-devel libsodium-devel glib2-devel cairo-devel gmp-devel libevent-devel readline-devel net-snmp-devel aspell-devel unixODBC-devel libc-client-devel libXpm-devel enchant-devel php-ldap automake kernel keyutils patch tidy epel-release libtidy libtidy-devel)  # 常用工具清单
-                                                                   pkg_install "${common[@]}"  # 安装这些工具
-
-                                                                   success "系统依赖安装完成 (耗时: $(($(date +%s) - start)) 秒)"  # 完成提示并显示耗时
-                                                               }
-
-                                                               # ----------------- PHP 源码下载/解压/编译（保留原逻辑，但改进错误处理） -----------------（保留原逻辑，但改进错误处理） -----------------
-
-                                                               download_php() {  # 下载 PHP 源码函数
-                                                                   local start=$(date +%s)  # 记录开始时间
-                                                                   info "下载 PHP 源码..."  # 信息提示
-                                                                   mkdir -p "$SRC_DIR" && cd "$SRC_DIR"  # 确保源码目录并切换
-                                                                   local php_archive="php-${PHP_VERSION}.tar.gz"  # 源码包名
-
-                                                                   for mirror in "${PHP_MIRRORS[@]}"; do  # 遍历镜像
-                                                                       info "尝试从镜像下载: $mirror"  # 输出当前尝试的镜像
-                                                                       if command -v wget >/dev/null 2>&1; then  # 优先使用 wget
-                                                                           if run_cmd_with_retry "wget -c --tries=$DOWNLOAD_RETRIES --timeout=30 '$mirror' -O '$php_archive'" "下载 PHP ($mirror)" 3 3; then  # 使用 DOWNLOAD_RETRIES
-                                                                               [ -s "$php_archive" ] && { success "PHP 下载成功"; register_tmp_file "$SRC_DIR/$php_archive"; return 0; }  # 若下载成功则注册临时文件并返回
-                                                                           fi
-                                                                       else  # 否则使用 curl
-                                                                           if run_cmd_with_retry "curl -L --retry $DOWNLOAD_RETRIES --connect-timeout 30 '$mirror' -o '$php_archive'" "下载 PHP ($mirror)" 3 3; then  # 使用 DOWNLOAD_RETRIES
-                                                                               [ -s "$php_archive" ] && { success "PHP 下载成功"; register_tmp_file "$SRC_DIR/$php_archive"; return 0; }
-                                                                           fi
-                                                                       fi
-                                                                       warn "下载失败: $mirror"  # 当前镜像失败提示
-                                                                       rm -f "$php_archive" 2>/dev/null || true  # 清理残留文件
-                                                                   done
-
-                                                                   return 1  # 所有镜像尝试失败返回 1
-                                                               }
-
-                                                               extract_php() {  # 解压 PHP 源码
-                                                                   info "解压 PHP 源码..."  # 信息提示
-                                                                   cd "$SRC_DIR"  # 切换到源码目录
-                                                                   local php_archive="php-${PHP_VERSION}.tar.gz"  # 源码包名
-                                                                   if [ ! -s "$php_archive" ]; then  # 校验文件是否存在且非空
-                                                                       error "PHP 源码包不存在: $php_archive"  # 错误提示
-                                                                       return 1  # 返回失败
-                                                                   fi
-
-                                                                   run_cmd "tar -xzf '$php_archive'" "解压 PHP 源码"  # 解压命令
-
-                                                                   PHP_SRC_DIR="$SRC_DIR/php-${PHP_VERSION}"  # 预期解压目录
-                                                                   if [ ! -d "$PHP_SRC_DIR" ]; then  # 若默认目录不存在则从归档中解析实际目录
-                                                                       local actual_dir
-                                                                       actual_dir=$(tar -tf "$php_archive" | head -n1 | cut -d/ -f1)  # 取归档第一行目录名
-                                                                       PHP_SRC_DIR="$SRC_DIR/$actual_dir"  # 设置实际目录
-                                                                   fi
-
-                                                                   if [ ! -d "$PHP_SRC_DIR" ]; then  # 最终检查是否存在源码目录
-                                                                       error "无法找到 PHP 源码目录"  # 错误提示
-                                                                       return 1  # 返回失败
-                                                                   fi
-
-                                                                   success "PHP 源码解压完成"  # 成功提示
-                                                               }
-
-                                                               configure_php() {  # 配置 PHP 编译选项
-                                                                   info "配置 PHP 编译选项..."  # 信息提示
-                                                                   cd "$PHP_SRC_DIR"  # 切换到源码目录
-
-                                                                   if [ -f buildconf ]; then  # 若存在 buildconf 则运行
-                                                                       run_cmd "./buildconf --force" "运行 buildconf" || warn "buildconf 运行失败"  # 运行并在失败时给出警告
-                                                                   fi
-
-                                                                   local CONFIGURE_OPTS=(  # 配置数组
-                                                                       "--prefix=$PHP_PREFIX"  # 编译安装前缀
-                                                                       "--with-config-file-path=$PHP_PREFIX/lib"  # php.ini 路径
-                                                                       "--with-config-file-scan-dir=$PHP_PREFIX/lib/conf.d"  # 扫描扩展配置目录
-                                                                       "--enable-fpm"  # 启用 fpm
-                                                                       "--with-fpm-user=$WWW_USER"  # fpm 用户
-                                                                       "--with-fpm-group=$WWW_USER"  # fpm 用户组
-                                                                       "--with-libxml"  # 启用 libxml
-                                                                       "--with-openssl"  # 启用 openssl
-                                                                       # "--with-mysqli=mysqlnd"  # mysqli 使用 mysqlnd
-                                                                       "--with-mysqli"
-                                                                       "--with-mysql-sock"
-                                                                       "--enable-pdo"  # 启用 pdo
-                                                                       "--enable-pdo"
-                                                                       "--with-pdo-sqlite"
-                                                                       "--with-pdo-mysql"
-                                                                       "--with-pdo-sqlite"
-                                                                       "--with-pdo-sqlite"
-                                                                       "--with-zlib"  # 启用 zlib
-                                                                       "--enable-mbstring"  # 启用 mbstring
-                                                                       "--enable-opcache"  # 启用 opcache
-                                                                       "--enable-cli"  # 启用 cli
-                                                                       # 根据实际需求添加/删除配置项
-                                                                       "--with-kerberos"
-                                                                       "--with-system-ciphers"
-                                                                       "--enable-bcmath"
-                                                                       "--with-bz2"
-                                                                       "--enable-calendar"
-                                                                       "--with-curl"
-                                                                       "--enable-exif"
-                                                                       "--enable-fileinfo"
-                                                                       "--enable-gd"
-                                                                       "--with-freetype"
-                                                                       "--with-gettext"
-                                                                       "--with-mhash"
-                                                                       "--with-iconv"
-                                                                       "--with-imap-ssl"
-                                                                       "--enable-intl"
-                                                                       "--with-ldap"
-                                                                       "--with-ldap-sasl"
-                                                                       "--enable-mbregex"
-                                                                       "--enable-pcntl"
-                                                                       "--enable-session"
-                                                                       "--enable-simplexml"
-                                                                       "--enable-shmop"
-                                                                       "--enable-soap"
-                                                                       "--enable-sockets"
-                                                                       "--with-sodium"
-                                                                       "--enable-sysvmsg"
-                                                                       "--enable-sysvsem"
-                                                                       "--with-tidy"
-                                                                       "--enable-tokenizer"
-                                                                       "--enable-xml"
-                                                                       "--with-xsl"
-                                                                       "--with-zip"
-                                                                       "--with-bz2"
-                                                                       "--enable-mysqlnd"
-                                                                       "--with-pear"
-                                                                       "--with-jpeg"
-                                                                       "--with-libdir=lib64"
-                                                                       "--enable-static"
-                                                                   )
-                                                                   # 将数组拼接为字符串;彻底移除所有换行符（即使有也清除）
-                                                                   local opts_str=$(printf '%s ' "${CONFIGURE_OPTS[@]}" | tr -d '\n\r' | sed 's/ $//')
-
-                                                                   local attempt=1  # 初始尝试次数
-                                                                   while [ $attempt -le $MAX_RETRIES ]; do  # 重试配置直到 MAX_RETRIES
-                                                                       info "PHP 配置尝试 $attempt/$MAX_RETRIES"  # 提示当前尝试次数
-                                                                       if run_cmd "./configure $opts_str" "配置 PHP"; then  # 尝试运行 configure
-                                                                           success "PHP 配置成功"  # 成功提示
-                                                                           # 记录 configure 成功，可在回滚时删除 PHP 前缀目录
-                                                                           mark_rollback "删除已安装的 PHP 文件夹 $PHP_PREFIX" "rm -rf '$PHP_PREFIX' || true"  # 回滚命令
-                                                                           return 0  # 返回成功
-                                                                       fi
-                                                                       warn "PHP 配置失败，尝试安装缺失依赖并重试"  # 配置失败时警告并尝试修复依赖
-                                                                       install_missing_dependencies || true  # 尝试安装缺失依赖
-                                                                       attempt=$((attempt+1))  # 增加尝试计数
-                                                                       sleep 3  # 等待后重试
-                                                                   done
-
-                                                                   return 1  # 配置最终失败返回 1
-                                                               }
-
-                                                               install_missing_dependencies() {  # 根据常见依赖尝试安装
-                                                                   info "根据日志尝试安装缺失的依赖（若有）..."  # 信息提示
-                                                                   # 这里简单示例，生产脚本可根据 configure 日志精确解析缺失库
-                                                                   if [ "$PKG_MGR" = "apt" ]; then  # apt 系统常用 dev 包
-                                                                       pkg_install libxml2-dev libssl-dev libcurl4-openssl-dev libjpeg-dev libpng-dev zlib1g-dev
-                                                                   else  # rpm 系统常用 dev 包
-                                                                       pkg_install libxml2-devel openssl-devel curl-devel libjpeg-turbo-devel zlib-devel
-                                                                   fi
-                                                               }
-
-                                                               build_php() {  # 编译 PHP
-                                                                   info "编译 PHP..."  # 信息提示
-                                                                   cd "$PHP_SRC_DIR"  # 切换到源码目录
-                                                                   # 清理
-                                                                   run_cmd "make clean || true" "清理上次编译"  # 清理上次编译残留
-                                                                   # 编译
-                                                                   run_cmd_with_retry "make -j $MAKE_JOBS" "编译 PHP" 2 || return 1  # make -j 使用并行编译
-                                                                   run_cmd "make install" "安装 PHP" || return 1  # make install
-                                                                   success "PHP 编译安装完成"  # 成功提示
-                                                               }
-
-                                                               setup_php_config() {  # 生成并写入 php.ini 及 fpm 配置
-                                                                   info "配置 PHP..."  # 信息提示
-                                                                   mkdir -p "$PHP_PREFIX/lib" "$PHP_PREFIX/etc" "$PHP_PREFIX/var/log" "$PHP_PREFIX/var/run" "$PHP_PREFIX/lib/conf.d" "$PHP_PREFIX/var/session"  # 创建必要目录
-                                                                   PHP_INI_FILE="$PHP_PREFIX/lib/php.ini"  # php.ini 路径
-
-                                                                   if [ -f "$PHP_INI_FILE" ]; then  # 若已存在 php.ini 则备份
-                                                                       safe_backup_file "$PHP_INI_FILE"  # 备份原有 php.ini
-                                                                   fi
-
-                                                                   cat > "$PHP_INI_FILE" <<EOF  # 写入基础 php.ini
-                                                               [PHP]
-                                                               engine = On
-                                                               short_open_tag = Off
-                                                               error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
-                                                               display_errors = Off
-                                                               log_errors = On
-                                                               error_log = $PHP_PREFIX/var/log/php_errors.log
-                                                               memory_limit = $PHP_MEMORY_LIMIT
-                                                               max_execution_time = $PHP_MAX_EXECUTION_TIME
-                                                               post_max_size = $PHP_POST_MAX_SIZE
-                                                               upload_max_filesize = $PHP_UPLOAD_MAX_FILESIZE
-                                                               extension_dir = "$PHP_PREFIX/lib/php/extensions/no-debug-non-zts-20200930"
-                                                               EOF
-
-                                                                   mark_rollback "删除生成的 php.ini" "rm -f '$PHP_INI_FILE' || true"  # 回滚时删除生成的 php.ini
-
-                                                                   # php-fpm 配置
-                                                                   local fpm_conf="$PHP_PREFIX/etc/php-fpm.conf"  # fpm 配置路径
-                                                                   if [ -f "$fpm_conf" ]; then  # 若存在则备份
-                                                                       safe_backup_file "$fpm_conf"  # 备份 fpm 配置
-                                                                   fi
-                                                                   cat > "$fpm_conf" <<EOF  # 写入基础 php-fpm 配置
-                                                               [global]
-                                                               pid = $PHP_PREFIX/var/run/php-fpm.pid
-                                                               error_log = $PHP_PREFIX/var/log/php-fpm.log
-                                                               [www]
-                                                               user = $WWW_USER
-                                                               group = $WWW_USER
-                                                               listen = 127.0.0.1:9000
-                                                               pm = dynamic
-                                                               pm.max_children = 50
-                                                               EOF
-
-                                                                   mark_rollback "删除生成的 php-fpm 配置" "rm -f '$fpm_conf' || true"  # 回滚时删除 fpm 配置
-
-                                                                   # 创建符号链接
-                                                                   for binary in php phpize pear pecl phar; do  # 遍历常用二进制并创建全局软链
-                                                                       if [ -f "$PHP_PREFIX/bin/$binary" ]; then  # 若二进制存在则创建软链
-                                                                           ln -sf "$PHP_PREFIX/bin/$binary" "/usr/local/bin/$binary" || warn "创建 $binary 符号链接失败"  # 创建软链
-                                                                           mark_rollback "移除符号链接 /usr/local/bin/$binary" "rm -f '/usr/local/bin/$binary' || true"  # 回滚命令
-                                                                       fi
-                                                                   done
-
-                                                                   # 将 PHP 添加到 PATH（仅在 /etc/profile 中添加一次）
-                                                                   if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE" 2>/dev/null; then  # 若 profile 中没有则追加
-                                                                       safe_backup_file "$PROFILE_FILE"  # 备份 profile
-                                                                       echo "" >> "$PROFILE_FILE"  # 添加空行以便分隔
-                                                                       echo "# PHP $PHP_VERSION" >> "$PROFILE_FILE"  # 标识
-                                                                       echo "export PATH=$PHP_PREFIX/bin:\$PATH" >> "$PROFILE_FILE"  # 添加 PATH
-                                                                       echo "export PHP_HOME=$PHP_PREFIX" >> "$PROFILE_FILE"  # 添加 PHP_HOME
-                                                                       mark_rollback "恢复 $PROFILE_FILE" "if [ -f '${PROFILE_FILE}.bak.' ]; then true; fi; # 手动恢复请参考备份"  # 回滚提示（保守策略）
-                                                                   fi
-
-                                                                   export PATH="$PHP_PREFIX/bin:$PATH"  # 临时将 PHP 置入 PATH
-                                                                   export PHP_HOME="$PHP_PREFIX"  # 导出 PHP_HOME
-
-                                                                   success "PHP 基本配置完成"  # 成功提示
-                                                               }
-
-                                                               create_phpfpm_service() {  # 创建 systemd unit 文件并启动 php-fpm
-                                                                   info "创建 PHP-FPM systemd 服务..."  # 信息提示
-                                                                   local service_file="/etc/systemd/system/php-fpm.service"  # unit 文件路径
-                                                                   safe_backup_file "$service_file"  # 备份原有 unit 文件（如有）
-
-                                                                   cat > "$service_file" <<EOF  # 写入 unit 文件内容
-                                                               [Unit]
-                                                               Description=PHP-FPM (Custom)
-                                                               After=network.target
-
-                                                               [Service]
-                                                               Type=simple
-                                                               PIDFile=$PHP_PREFIX/var/run/php-fpm.pid
-                                                               ExecStart=$PHP_PREFIX/sbin/php-fpm --nodaemonize --fpm-config $PHP_PREFIX/etc/php-fpm.conf
-                                                               Restart=on-failure
-
-                                                               [Install]
-                                                               WantedBy=multi-user.target
-                                                               EOF
-
-                                                                   run_cmd "systemctl daemon-reload" "重载 systemd"  # 重载 systemd
-                                                                   if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则 enable + start
-                                                                       run_cmd "systemctl enable php-fpm.service" "启用 php-fpm.service" || warn "启用 php-fpm 失败"  # 启用服务
-                                                                       run_cmd "systemctl start php-fpm.service" "启动 php-fpm.service" || warn "启动 php-fpm 失败"  # 启动服务
-                                                                       mark_rollback "禁用并停止 php-fpm 服务" "systemctl stop php-fpm.service || true; systemctl disable php-fpm.service || true; rm -f '$service_file' || true; systemctl daemon-reload || true"  # 回滚命令
-                                                                   else
-                                                                       mark_rollback "删除 php-fpm unit 文件" "rm -f '$service_file' || true; systemctl daemon-reload || true"  # 若不自动启动则仅记录删除 unit 文件
-                                                                   fi
-
-                                                                   success "PHP-FPM 服务已创建（若设置自动启动则已启动）"  # 成功提示
-                                                               }
-
-                                                               # ----------------- PHP 扩展安装（示例） -----------------
-                                                               install_php_extensions() {  # 安装示例扩展（redis, imagick 等）
-                                                                   if [ "${INSTALL_PHP_EXTENSIONS,,}" != "yes" ]; then  # 按配置决定是否跳过
-                                                                       info "跳过 PHP 扩展安装"  # 跳过提示
-                                                                       return 0  # 返回成功
-                                                                   fi
-                                                                   info "安装一些常用 PHP 扩展（通过 pecl / 系统包）..."  # 信息提示
-                                                                   export PATH="$PHP_PREFIX/bin:$PATH"  # 确保 pecl/phpize 可用
-
-                                                                   if command -v pecl >/dev/null 2>&1; then  # 如果 pecl 可用则尝试安装 redis
-                                                                       if run_cmd_with_retry "pecl install redis" "安装 redis 扩展" 3 2; then  # pecl 安装，重试 3 次
-                                                                           echo "extension=redis.so" >> "$PHP_INI_FILE"  # 将扩展写入 php.ini
-                                                                           mark_rollback "从 php.ini 移除 redis 扩展配置" "sed -i '/extension=redis.so/d' '$PHP_INI_FILE' || true"  # 回滚命令
-                                                                           success "redis 扩展安装成功"  # 成功提示
-                                                                       else
-                                                                           warn "redis 扩展安装失败"  # 安装失败警告
-                                                                       fi
-                                                                   fi
-
-                                                                   # Imagick 示例（需要 ImageMagick 开发包）
-                                                                   if [ "$PKG_MGR" = "apt" ]; then  # apt 系统需要 dev 包
-                                                                       pkg_install libmagickwand-dev libmagickcore-dev || true  # 安装 ImageMagick 开发包
-                                                                   else
-                                                                       pkg_install ImageMagick ImageMagick-devel || true  # rpm 系统安装
-                                                                   fi
-                                                                   if command -v pecl >/dev/null 2>&1; then  # 安装 imagick
-                                                                       run_cmd_with_retry "pecl install imagick" "安装 imagick" 3 2 || warn "imagick 安装失败"  # 重试并警告
-                                                                   fi
-
-                                                                   success "PHP 扩展安装步骤完成（可能部分扩展需要手动调整）"  # 完成提示
-                                                               }
-
-                                                               # ----------------- Composer 安装 -----------------
-                                                               install_composer() {  # 安装 Composer
-                                                                   if [ "${INSTALL_COMPOSER,,}" != "yes" ]; then  # 按配置可跳过
-                                                                       info "跳过 Composer 安装"  # 跳过提示
-                                                                       return 0  # 返回成功
-                                                                   fi
-                                                                   info "安装 Composer..."  # 信息提示
-                                                                   if command -v curl >/dev/null 2>&1; then  # 需要 curl
-                                                                       run_cmd "curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php" "下载 Composer 安装脚本"  # 下载安装脚本
-                                                                       register_tmp_file "/tmp/composer-setup.php"  # 注册临时文件
-                                                                       run_cmd "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer" "安装 Composer" || warn "Composer 安装失败"  # 安装并警告
-                                                                       run_cmd "chmod +x /usr/local/bin/composer" "设置 composer 执行权限"  # 赋予可执行权限
-                                                                       mark_rollback "移除 /usr/local/bin/composer" "rm -f /usr/local/bin/composer || true"  # 回滚命令
-                                                                       run_cmd "composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/" "配置 Composer 镜像" || true  # 设置镜像
-                                                                       success "Composer 安装完成"  # 成功提示
-                                                                   else
-                                                                       warn "缺少 curl，无法安装 Composer"  # 缺少 curl 的提示
-                                                                   fi
-                                                               }
-
-                                                               # ----------------- MySQL 安装（可回滚） -----------------
-                                                               install_mysql() {  # 安装 MySQL
-                                                                   if [ "${INSTALL_MYSQL,,}" != "yes" ]; then  # 按配置可跳过
-                                                                       info "跳过 MySQL 安装"  # 跳过提示
-                                                                       return 0  # 返回
-                                                                   fi
-                                                                   info "安装 MySQL..."  # 信息提示
-                                                                   case "$PKG_MGR" in  # 根据包管理器执行不同安装逻辑
-                                                                       apt)
-                                                                           run_cmd "apt-get install -y lsb-release gnupg" "安装依赖"  # 安装依赖
-                                                                           run_cmd "wget -O /tmp/mysql-apt-config.deb https://dev.mysql.com/get/mysql-apt-config_0.8.28-1_all.deb" "下载 MySQL apt 配置"  # 下载 apt config
-                                                                           register_tmp_file "/tmp/mysql-apt-config.deb"  # 注册临时文件
-                                                                           echo "mysql-apt-config mysql-apt-config/select-server select mysql-8.0" | debconf-set-selections || true  # 预设 debconf 选项
-                                                                           run_cmd "DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/mysql-apt-config.deb || true" "安装 MySQL apt 源"  # 安装 deb 包
-                                                                           run_cmd "apt-get update -y" "更新包列表"  # 更新
-                                                                           run_cmd_with_retry "DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server mysql-client" "安装 MySQL" 3 3 || warn "MySQL 安装可能失败"  # 安装 mysql-server
-                                                                           # 记录回滚：移除 mysql-server
-                                                                           mark_rollback "移除 MySQL" "DEBIAN_FRONTEND=noninteractive apt-get -y remove --purge mysql-server mysql-client || true; apt-get -y autoremove || true"  # 回滚回退命令
-                                                                           ;;
-                                                                       *)
-                                                                           run_cmd "rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm" "添加 MySQL 仓库" || warn "添加 MySQL 仓库失败"  # 添加 rpm 仓库
-                                                                           run_cmd_with_retry "$PKG_MGR -y install --allowerasing mysql-community-server mysql-community-client" "安装 MySQL" 3 3 || warn "MySQL 安装可能失败"  # 使用 --allowerasing 避免冲突
-                                                                           mark_rollback "移除 MySQL" "$PKG_MGR -y remove mysql-community-server mysql-community-client || true"  # 回滚命令
-                                                                           ;;
-                                                                   esac
-
-                                                                   if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则 enable + start
-                                                                       run_cmd "systemctl enable mysqld || true" "启用 MySQL 服务" || true  # 启用
-                                                                       run_cmd "systemctl start mysqld || true" "启动 MySQL 服务" || true  # 启动
-
-                                                                       # 尝试设置 root 密码（如果能从日志获取临时密码）
-                                                                       local temp_pass=""  # 临时密码变量
-                                                                       if [ -f /var/log/mysqld.log ]; then  # 从 mysqld.log 尝试提取临时密码
-                                                                           temp_pass=$(grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}' | tail -1 || true)  # 解析临时密码
-                                                                       fi
-                                                                       if [ -n "$temp_pass" ]; then  # 如果能找到则设置 root 密码
-                                                                           run_cmd "mysql -uroot -p'${temp_pass}' --connect-expired-password -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASS}'; FLUSH PRIVILEGES;\"" "设置 MySQL root 密码" || warn "设置 root 密码失败"  # 设置密码
-                                                                       else
-                                                                           warn "未检索到 MySQL 临时密码，建议手动运行 mysql_secure_installation"  # 提示手动安全配置
-                                                                       fi
-
-                                                                       run_cmd "mysql -uroot -p'${MYSQL_ROOT_PASS}' -e \"CREATE USER IF NOT EXISTS '${REMOTE_ADMIN_USER}'@'%' IDENTIFIED BY '${REMOTE_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON *.* TO '${REMOTE_ADMIN_USER}'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\"" "创建远程管理用户" || warn "创建 MySQL 远程用户失败"  # 创建远程管理用户
-                                                                   fi
-
-                                                                   success "MySQL 安装完成（如有错误请查看日志）"  # 成功提示
-                                                               }
-
-                                                               # ----------------- Redis 安装 -----------------
-                                                               install_redis() {  # 安装 Redis
-                                                                   if [ "${INSTALL_REDIS,,}" != "yes" ]; then  # 按配置可跳过
-                                                                       info "跳过 Redis 安装"  # 跳过提示
-                                                                       return 0  # 返回
-                                                                   fi
-                                                                   info "安装 Redis..."  # 信息提示
-                                                                   if [ "$PKG_MGR" = "apt" ]; then  # apt 系统安装 redis-server
-                                                                       pkg_install redis-server redis-tools || true  # 安装并忽略错误
-                                                                   else
-                                                                       pkg_install redis || true  # rpm 系统安装 redis
-                                                                   fi
-
-                                                                   local redis_conf=""  # redis 配置文件路径变量
-                                                                   if [ -f /etc/redis/redis.conf ]; then  # 常见配置路径
-                                                                       redis_conf="/etc/redis/redis.conf"  # 设置路径
-                                                                   elif [ -f /etc/redis.conf ]; then  # 另一种路径
-                                                                       redis_conf="/etc/redis.conf"  # 设置路径
-                                                                   fi
-
-                                                                   if [ -n "$redis_conf" ]; then  # 若找到配置文件则备份并修改
-                                                                       safe_backup_file "$redis_conf"  # 备份原始配置
-                                                                       run_cmd "sed -i 's/^bind 127.0.0.1/bind 0.0.0.0/' '$redis_conf'" "允许远程访问"  # 修改 bind
-                                                                       run_cmd "sed -i 's/^protected-mode yes/protected-mode no/' '$redis_conf'" "关闭 protected-mode"  # 修改 protected-mode
-                                                                       run_cmd "grep -q '^requirepass' '$redis_conf' || echo 'requirepass $REMOTE_ADMIN_PASS' >> '$redis_conf'" "设置 Redis 密码"  # 添加密码配置
-                                                                       mark_rollback "恢复 Redis 配置" "if [ -f '${redis_conf}.bak.' ]; then true; fi; # 参考备份文件恢复"  # 回滚提示（保守）
-                                                                   fi
-
-                                                                   if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则启用并启动
-                                                                       run_cmd "systemctl enable redis || true" "启用 Redis"  # 启用
-                                                                       run_cmd "systemctl start redis || true" "启动 Redis"  # 启动
-                                                                       mark_rollback "停止并禁用 redis" "systemctl stop redis || true; systemctl disable redis || true"  # 回滚命令
-                                                                   fi
-
-                                                                   success "Redis 安装完成"  # 成功提示
-                                                               }
-
-                                                               # ----------------- Nginx 安装 -----------------
-                                                               install_nginx() {  # 安装 Nginx
-                                                                   if [ "${INSTALL_NGINX,,}" != "yes" ]; then  # 按配置可跳过
-                                                                       info "跳过 Nginx 安装"  # 跳过提示
-                                                                       return 0  # 返回
-                                                                   fi
-                                                                   info "安装 Nginx..."  # 信息提示
-                                                                   if [ "$PKG_MGR" = "apt" ]; then  # apt 系统安装 nginx
-                                                                       pkg_install nginx nginx-extras || true  # 安装 nginx
-                                                                   else
-                                                                       pkg_install nginx || true  # rpm 系统安装 nginx
-                                                                   fi
-
-                                                                   if [ -d /etc/nginx/conf.d ]; then  # 若存在 conf.d 目录则写入 php-fpm 配置
-                                                                       safe_backup_file "/etc/nginx/conf.d/php-fpm.conf" || true  # 备份可能存在的文件
-                                                                       cat > /etc/nginx/conf.d/php-fpm.conf <<'EOF'  # 写入示例 server 配置
-                                                               server {
-                                                                   listen 80 default_server;
-                                                                   listen [::]:80 default_server;
-                                                                   server_name _;
-                                                                   root /usr/share/nginx/html;
-                                                                   index index.php index.html index.htm;
-
-                                                                   location / {
-                                                                       try_files $uri $uri/ =404;
-                                                                   }
-
-                                                                   location ~ \.php$ {
-                                                                       fastcgi_pass 127.0.0.1:9000;
-                                                                       fastcgi_index index.php;
-                                                                       include fastcgi_params;
-                                                                   }
-                                                               }
-                                                               EOF
-                                                                       mark_rollback "移除 nginx php-fpm.conf" "rm -f /etc/nginx/conf.d/php-fpm.conf || true"  # 回滚命令
-                                                                   fi
-
-                                                                   run_cmd "nginx -t || true" "测试 Nginx 配置" || warn "nginx -t 出错"  # 测试 nginx 配置
-                                                                   if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 自动启动
-                                                                       run_cmd "systemctl enable nginx || true" "启用 Nginx"  # 启用
-                                                                       run_cmd "systemctl start nginx || true" "启动 Nginx"  # 启动
-                                                                       mark_rollback "停止并禁用 Nginx" "systemctl stop nginx || true; systemctl disable nginx || true"  # 回滚命令
-                                                                   fi
-
-                                                                   success "Nginx 安装完成"  # 成功提示
-                                                               }
-
-                                                               # ----------------- 创建用户 -----------------
-                                                               create_users() {  # 创建网站运行用户并准备网站目录
-                                                                   info "创建系统用户..."  # 信息提示
-                                                                   if ! id "$WWW_USER" >/dev/null 2>&1; then  # 如果用户不存在则创建
-                                                                       run_cmd "useradd -r -m -s /bin/bash -U '$WWW_USER'" "创建用户 $WWW_USER"  # 创建系统用户
-                                                                       run_cmd "echo '$WWW_USER:$WWW_PASS' | chpasswd" "设置 $WWW_USER 密码"  # 设置密码
-                                                                       CREATED_USERS+=("$WWW_USER")  # 记录已创建用户
-                                                                       mark_rollback "删除创建的用户 $WWW_USER" "userdel -r '$WWW_USER' || true"  # 回滚命令
-                                                                   else
-                                                                       info "用户 $WWW_USER 已存在，跳过创建"  # 已存在提示
-                                                                   fi
-                                                                   run_cmd "mkdir -p /var/www/html" "创建网站目录"  # 创建网站根目录
-                                                                   run_cmd "chown -R $WWW_USER:$WWW_USER /var/www/html" "设置网站目录权限"  # 设置权限
-                                                                   success "用户 / 网站目录 准备就绪"  # 成功提示
-                                                               }
-
-                                                               # ----------------- 清理工作 -----------------
-                                                               cleanup() {  # 清理临时文件和包缓存
-                                                                   if [ "${CLEAN_TEMP,,}" = "yes" ]; then  # 根据配置决定是否清理
-                                                                       info "清理临时文件..."  # 信息提示
-                                                                       cleanup_tmpfiles  # 清理临时文件
-                                                                       case "$PKG_MGR" in  # 清理包管理器缓存
-                                                                           dnf|yum)
-                                                                               run_cmd "$PKG_MGR clean all || true" "清理包缓存" || true  # 清理 dnf/yum 缓存
-                                                                               ;;
-                                                                           apt)
-                                                                               run_cmd "apt-get autoremove -y || true" "清理无用包" || true  # apt 自动移除
-                                                                               run_cmd "apt-get clean || true" "清理 apt 缓存" || true  # apt 清理缓存
-                                                                               ;;
-                                                                       esac
-                                                                       success "清理完成"  # 完成提示
-                                                                   else
-                                                                       info "跳过清理（CLEAN_TEMP=no）"  # 跳过清理提示
-                                                                   fi
-                                                               }
-
-                                                               # ----------------- 安装总结 -----------------
-                                                               installation_summary() {  # 输出安装总结到配置文件
-                                                                   local end_time=$(date +%s)  # 记录结束时间
-                                                                   local total_time=$((end_time - START_TIME))  # 计算耗时
-
-                                                                   cat > "$INSTALL_SUMMARY" <<EOF  # 写入安装总结
-                                                               # 安装总结
-                                                               开始时间: $(date -d @$START_TIME '+%Y-%m-%d %H:%M:%S')
-                                                               总耗时: ${total_time}s
-                                                               PHP: ${PHP_VERSION} (安装: ${INSTALL_PHP})
-                                                               MySQL: ${MYSQL_VERSION} (安装: ${INSTALL_MYSQL})
-                                                               Redis: ${REDIS_VERSION} (安装: ${INSTALL_REDIS})
-                                                               Nginx: ${NGINX_VERSION} (安装: ${INSTALL_NGINX})
-                                                               安装日志: $LOG_FILE
-                                                               错误日志: $ERROR_LOG_FILE
-                                                               回滚日志: $ROLLBACK_LOG_FILE
-                                                               EOF
-                                                                   chmod 600 "$INSTALL_SUMMARY" || true  # 设置文件权限为 600
-                                                                   success "安装完成！总耗时: ${total_time}s。安装总结已写入 $INSTALL_SUMMARY"  # 成功提示
-                                                               }
-
-                                                               # ----------------- 主流程 -----------------
-                                                               main() {  # 主入口函数
-                                                                   clear  # 清屏
-                                                                   _bold "🚀 工业级 PHP 环境安装脚本（改进版）"  # 标题
-                                                                   _bold "开始时间: $(date '+%Y-%m-%d %H:%M:%S')"  # 开始时间
-
-                                                                   if [ "$EUID" -ne 0 ]; then  # 检查是否以 root 运行
-                                                                       error "请使用 root 权限运行此脚本"  # 错误提示
-                                                                       exit 1  # 退出
-                                                                   fi
-
-                                                                   detect_system  # 检测系统
-                                                                   install_dependencies  # 安装依赖
-                                                                   create_users  # 创建用户
-
-                                                                   if [ "${INSTALL_PHP,,}" = "yes" ]; then  # 若需安装 PHP 则执行以下步骤
-                                                                       download_php  # 下载源码
-                                                                       extract_php  # 解压源码
-                                                                       configure_php  # configure
-                                                                       build_php  # 编译安装
-                                                                       setup_php_config  # 写入配置
-                                                                       create_phpfpm_service  # 创建服务
-                                                                       install_php_extensions  # 安装扩展
-                                                                   fi
-
-                                                                   install_composer  # 安装 Composer
-                                                                   install_mysql  # 安装 MySQL
-                                                                   install_redis  # 安装 Redis
-                                                                   install_nginx  # 安装 Nginx
-
-                                                                   cleanup  # 清理
-                                                                   installation_summary  # 输出安装总结
-                                                               }
-
-                                                               # 启动脚本
-                                                               main "$@"  # 调用 main 并传递所有参数
-ES
-        info "PHP 配置尝试 $attempt/$MAX_RETRIES"  # 提示当前尝试次数
-        if run_cmd "./configure $opts_str" "配置 PHP"; then  # 尝试运行 configure
-            success "PHP 配置成功"  # 成功提示
-            # 记录 configure 成功，可在回滚时删除 PHP 前缀目录
-            mark_rollback "删除已安装的 PHP 文件夹 $PHP_PREFIX" "rm -rf '$PHP_PREFIX' || true"  # 回滚命令
-            return 0  # 返回成功
+    local opts_str=$(printf '%s ' "${PHP_CONFIGURE_OPTS[@]}" | tr -d '\n\r' | sed 's/ $//')
+    local attempt=1
+
+    while [ $attempt -le $MAX_RETRIES ]; do
+        info "PHP 配置尝试 $attempt/$MAX_RETRIES"
+        if run_cmd "./configure $opts_str" "配置 PHP"; then
+            success "PHP 配置成功"
+            # 删除？瞎搞嘛！！！
+            # mark_rollback "删除已安装的 PHP 文件夹 $PHP_PREFIX" "rm -rf '$PHP_PREFIX' || true"
+            return 0
         fi
-        warn "PHP 配置失败，尝试安装缺失依赖并重试"  # 配置失败时警告并尝试修复依赖
-        install_missing_dependencies || true  # 尝试安装缺失依赖
-        attempt=$((attempt+1))  # 增加尝试计数
-        sleep 3  # 等待后重试
+        warn "PHP 配置失败，尝试安装缺失依赖并重试"
+        install_missing_dependencies || true
+        attempt=$((attempt+1))
+        sleep 3
     done
 
-    return 1  # 配置最终失败返回 1
+    return 1
 }
 
-install_missing_dependencies() {  # 根据常见依赖尝试安装
-    info "根据日志尝试安装缺失的依赖（若有）..."  # 信息提示
-    # 这里简单示例，生产脚本可根据 configure 日志精确解析缺失库
-    if [ "$PKG_MGR" = "apt" ]; then  # apt 系统常用 dev 包
-        pkg_install libxml2-dev libssl-dev libcurl4-openssl-dev libjpeg-dev libpng-dev zlib1g-dev
-    else  # rpm 系统常用 dev 包
-        pkg_install libxml2-devel openssl-devel curl-devel libjpeg-turbo-devel zlib-devel
+install_missing_dependencies() {
+    info "根据日志尝试安装缺失的依赖（若有）..."
+    if [ "$PKG_MGR" = "apt" ]; then
+        pkg_install libxml2-dev libssl-dev libcurl4-openssl-dev libjpeg-dev libpng-dev zlib1g-dev \
+                   libonig-dev libsqlite3-dev libreadline-dev libzip-dev
+    else
+        pkg_install libxml2-devel openssl-devel curl-devel libjpeg-turbo-devel zlib-devel \
+                   oniguruma-devel sqlite-devel readline-devel libzip-devel
     fi
 }
 
-build_php() {  # 编译 PHP
-    info "编译 PHP..."  # 信息提示
-    cd "$PHP_SRC_DIR"  # 切换到源码目录
-    # 清理
-    run_cmd "make clean || true" "清理上次编译"  # 清理上次编译残留
-    # 编译
-    run_cmd_with_retry "make -j $MAKE_JOBS" "编译 PHP" 2 || return 1  # make -j 使用并行编译
-    run_cmd "make install" "安装 PHP" || return 1  # make install
-    success "PHP 编译安装完成"  # 成功提示
+build_php() {
+    info "编译 PHP..."
+    cd "$PHP_SRC_DIR"
+
+    run_cmd "make clean || true" "清理上次编译"
+    run_cmd_with_retry "make -j $MAKE_JOBS" "编译 PHP" 2 || return 1
+    run_cmd "make install" "安装 PHP" || return 1
+
+    success "PHP 编译安装完成"
 }
 
-setup_php_config() {  # 生成并写入 php.ini 及 fpm 配置
-    info "配置 PHP..."  # 信息提示
-    mkdir -p "$PHP_PREFIX/lib" "$PHP_PREFIX/etc" "$PHP_PREFIX/var/log" "$PHP_PREFIX/var/run" "$PHP_PREFIX/lib/conf.d" "$PHP_PREFIX/var/session"  # 创建必要目录
-    PHP_INI_FILE="$PHP_PREFIX/lib/php.ini"  # php.ini 路径
+setup_php_config() {
+    info "配置 PHP..."
+    mkdir -p "$PHP_PREFIX/lib" "$PHP_PREFIX/etc" "$PHP_PREFIX/var/log" \
+           "$PHP_PREFIX/var/run" "$PHP_PREFIX/lib/conf.d" "$PHP_PREFIX/var/session"
 
-    if [ -f "$PHP_INI_FILE" ]; then  # 若已存在 php.ini 则备份
-        safe_backup_file "$PHP_INI_FILE"  # 备份原有 php.ini
+    PHP_INI_FILE="$PHP_PREFIX/lib/php.ini"
+
+    if [ -f "$PHP_INI_FILE" ]; then
+        safe_backup_file "$PHP_INI_FILE"
     fi
 
-    cat > "$PHP_INI_FILE" <<EOF  # 写入基础 php.ini
+    cat > "$PHP_INI_FILE" <<EOF
 [PHP]
 engine = On
 short_open_tag = Off
@@ -1627,59 +654,103 @@ max_execution_time = $PHP_MAX_EXECUTION_TIME
 post_max_size = $PHP_POST_MAX_SIZE
 upload_max_filesize = $PHP_UPLOAD_MAX_FILESIZE
 extension_dir = "$PHP_PREFIX/lib/php/extensions/no-debug-non-zts-20200930"
+
+[Date]
+date.timezone = Asia/Shanghai
+
+[opcache]
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=10000
+opcache.revalidate_freq=60
+opcache.fast_shutdown=1
 EOF
 
-    mark_rollback "删除生成的 php.ini" "rm -f '$PHP_INI_FILE' || true"  # 回滚时删除生成的 php.ini
+    mark_rollback "删除生成的 php.ini" "rm -f '$PHP_INI_FILE' || true"
 
-    # php-fpm 配置
-    local fpm_conf="$PHP_PREFIX/etc/php-fpm.conf"  # fpm 配置路径
-    if [ -f "$fpm_conf" ]; then  # 若存在则备份
-        safe_backup_file "$fpm_conf"  # 备份 fpm 配置
+    setup_php_fpm_config
+    create_php_symlinks
+    setup_php_path
+
+    export PATH="$PHP_PREFIX/bin:$PATH"
+    export PHP_HOME="$PHP_PREFIX"
+
+    success "PHP 基本配置完成"
+}
+
+setup_php_fpm_config() {
+    local fpm_conf="$PHP_PREFIX/etc/php-fpm.conf"
+    local fpm_pool_conf="$PHP_PREFIX/etc/php-fpm.d/www.conf"
+
+    if [ -f "$fpm_conf" ]; then
+        safe_backup_file "$fpm_conf"
     fi
-    cat > "$fpm_conf" <<EOF  # 写入基础 php-fpm 配置
+
+    mkdir -p "$PHP_PREFIX/etc/php-fpm.d"
+
+    cat > "$fpm_conf" <<EOF
 [global]
 pid = $PHP_PREFIX/var/run/php-fpm.pid
 error_log = $PHP_PREFIX/var/log/php-fpm.log
+log_level = notice
+emergency_restart_threshold = 10
+emergency_restart_interval = 1m
+process_control_timeout = 10s
+daemonize = no
+
+include=$PHP_PREFIX/etc/php-fpm.d/*.conf
+EOF
+
+    cat > "$fpm_pool_conf" <<EOF
 [www]
 user = $WWW_USER
 group = $WWW_USER
 listen = 127.0.0.1:9000
+listen.allowed_clients = 127.0.0.1
 pm = dynamic
 pm.max_children = 50
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 35
+pm.max_requests = 500
+slowlog = $PHP_PREFIX/var/log/php-fpm-slow.log
+request_slowlog_timeout = 10s
+request_terminate_timeout = 300s
 EOF
 
-    mark_rollback "删除生成的 php-fpm 配置" "rm -f '$fpm_conf' || true"  # 回滚时删除 fpm 配置
-
-    # 创建符号链接
-    for binary in php phpize pear pecl phar; do  # 遍历常用二进制并创建全局软链
-        if [ -f "$PHP_PREFIX/bin/$binary" ]; then  # 若二进制存在则创建软链
-            ln -sf "$PHP_PREFIX/bin/$binary" "/usr/local/bin/$binary" || warn "创建 $binary 符号链接失败"  # 创建软链
-            mark_rollback "移除符号链接 /usr/local/bin/$binary" "rm -f '/usr/local/bin/$binary' || true"  # 回滚命令
-        fi
-    done
-
-    # 将 PHP 添加到 PATH（仅在 /etc/profile 中添加一次）
-    if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE" 2>/dev/null; then  # 若 profile 中没有则追加
-        safe_backup_file "$PROFILE_FILE"  # 备份 profile
-        echo "" >> "$PROFILE_FILE"  # 添加空行以便分隔
-        echo "# PHP $PHP_VERSION" >> "$PROFILE_FILE"  # 标识
-        echo "export PATH=$PHP_PREFIX/bin:\$PATH" >> "$PROFILE_FILE"  # 添加 PATH
-        echo "export PHP_HOME=$PHP_PREFIX" >> "$PROFILE_FILE"  # 添加 PHP_HOME
-        mark_rollback "恢复 $PROFILE_FILE" "if [ -f '${PROFILE_FILE}.bak.' ]; then true; fi; # 手动恢复请参考备份"  # 回滚提示（保守策略）
-    fi
-
-    export PATH="$PHP_PREFIX/bin:$PATH"  # 临时将 PHP 置入 PATH
-    export PHP_HOME="$PHP_PREFIX"  # 导出 PHP_HOME
-
-    success "PHP 基本配置完成"  # 成功提示
+    mark_rollback "删除生成的 php-fpm 配置" "rm -f '$fpm_conf' '$fpm_pool_conf' || true"
 }
 
-create_phpfpm_service() {  # 创建 systemd unit 文件并启动 php-fpm
-    info "创建 PHP-FPM systemd 服务..."  # 信息提示
-    local service_file="/etc/systemd/system/php-fpm.service"  # unit 文件路径
-    safe_backup_file "$service_file"  # 备份原有 unit 文件（如有）
+create_php_symlinks() {
+    for binary in php phpize pear pecl phar; do
+        if [ -f "$PHP_PREFIX/bin/$binary" ]; then
+            ln -sf "$PHP_PREFIX/bin/$binary" "/usr/local/bin/$binary" || warn "创建 $binary 符号链接失败"
+            mark_rollback "移除符号链接 /usr/local/bin/$binary" "rm -f '/usr/local/bin/$binary' || true"
+        fi
+    done
+}
 
-    cat > "$service_file" <<EOF  # 写入 unit 文件内容
+setup_php_path() {
+    if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE" 2>/dev/null; then
+        safe_backup_file "$PROFILE_FILE"
+        cat >> "$PROFILE_FILE" <<EOF
+
+# PHP $PHP_VERSION
+export PATH=$PHP_PREFIX/bin:\$PATH
+export PHP_HOME=$PHP_PREFIX
+export LD_LIBRARY_PATH=$PHP_PREFIX/lib:\$LD_LIBRARY_PATH
+EOF
+        mark_rollback "恢复 $PROFILE_FILE" "if [ -f '${PROFILE_FILE}.bak.' ]; then true; fi;"
+    fi
+}
+
+create_phpfpm_service() {
+    info "创建 PHP-FPM systemd 服务..."
+    local service_file="/etc/systemd/system/php-fpm.service"
+    safe_backup_file "$service_file"
+
+    cat > "$service_file" <<EOF
 [Unit]
 Description=PHP-FPM (Custom)
 After=network.target
@@ -1688,297 +759,560 @@ After=network.target
 Type=simple
 PIDFile=$PHP_PREFIX/var/run/php-fpm.pid
 ExecStart=$PHP_PREFIX/sbin/php-fpm --nodaemonize --fpm-config $PHP_PREFIX/etc/php-fpm.conf
+ExecReload=/bin/kill -USR2 \$MAINPID
+ExecStop=/bin/kill -SIGINT \$MAINPID
 Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    run_cmd "systemctl daemon-reload" "重载 systemd"  # 重载 systemd
-    if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则 enable + start
-        run_cmd "systemctl enable php-fpm.service" "启用 php-fpm.service" || warn "启用 php-fpm 失败"  # 启用服务
-        run_cmd "systemctl start php-fpm.service" "启动 php-fpm.service" || warn "启动 php-fpm 失败"  # 启动服务
-        mark_rollback "禁用并停止 php-fpm 服务" "systemctl stop php-fpm.service || true; systemctl disable php-fpm.service || true; rm -f '$service_file' || true; systemctl daemon-reload || true"  # 回滚命令
+    run_cmd "systemctl daemon-reload" "重载 systemd"
+
+    if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then
+        run_cmd "systemctl enable php-fpm.service" "启用 php-fpm.service" || warn "启用 php-fpm 失败"
+        run_cmd "systemctl start php-fpm.service" "启动 php-fpm.service" || warn "启动 php-fpm 失败"
+        mark_rollback "禁用并停止 php-fpm 服务" "systemctl stop php-fpm.service || true; systemctl disable php-fpm.service || true; rm -f '$service_file' || true; systemctl daemon-reload || true"
     else
-        mark_rollback "删除 php-fpm unit 文件" "rm -f '$service_file' || true; systemctl daemon-reload || true"  # 若不自动启动则仅记录删除 unit 文件
+        mark_rollback "删除 php-fpm unit 文件" "rm -f '$service_file' || true; systemctl daemon-reload || true"
     fi
 
-    success "PHP-FPM 服务已创建（若设置自动启动则已启动）"  # 成功提示
+    success "PHP-FPM 服务已创建（若设置自动启动则已启动）"
 }
 
-# ----------------- PHP 扩展安装（示例） -----------------
-install_php_extensions() {  # 安装示例扩展（redis, imagick 等）
-    if [ "${INSTALL_PHP_EXTENSIONS,,}" != "yes" ]; then  # 按配置决定是否跳过
-        info "跳过 PHP 扩展安装"  # 跳过提示
-        return 0  # 返回成功
+# ----------------- PHP 扩展安装 -----------------
+install_php_extensions() {
+    if [ "${INSTALL_PHP_EXTENSIONS,,}" != "yes" ]; then
+        info "跳过 PHP 扩展安装"
+        return 0
     fi
-    info "安装一些常用 PHP 扩展（通过 pecl / 系统包）..."  # 信息提示
-    export PATH="$PHP_PREFIX/bin:$PATH"  # 确保 pecl/phpize 可用
+    info "安装一些常用 PHP 扩展（通过 pecl / 系统包）..."
+    export PATH="$PHP_PREFIX/bin:$PATH"
 
-    if command -v pecl >/dev/null 2>&1; then  # 如果 pecl 可用则尝试安装 redis
-        if run_cmd_with_retry "pecl install redis" "安装 redis 扩展" 3 2; then  # pecl 安装，重试 3 次
-            echo "extension=redis.so" >> "$PHP_INI_FILE"  # 将扩展写入 php.ini
-            mark_rollback "从 php.ini 移除 redis 扩展配置" "sed -i '/extension=redis.so/d' '$PHP_INI_FILE' || true"  # 回滚命令
-            success "redis 扩展安装成功"  # 成功提示
+    install_pecl_extension "redis" "redis 扩展"
+    # install_pecl_extension "mongodb" "mongodb 扩展"
+    # install_pecl_extension "xdebug" "xdebug 扩展"
+    install_imagick_extension
+
+    success "PHP 扩展安装步骤完成"
+}
+
+install_pecl_extension() {
+    local extension="$1"
+    local desc="$2"
+
+    if command -v pecl >/dev/null 2>&1; then
+        if run_cmd_with_retry "pecl install $extension" "安装 $desc" 3 2; then
+            echo "extension=$extension.so" >> "$PHP_INI_FILE"
+            success "已安装 $desc"
         else
-            warn "redis 扩展安装失败"  # 安装失败警告
+            warn "安装 $desc 失败，跳过"
         fi
-    fi
-
-    # Imagick 示例（需要 ImageMagick 开发包）
-    if [ "$PKG_MGR" = "apt" ]; then  # apt 系统需要 dev 包
-        pkg_install libmagickwand-dev libmagickcore-dev || true  # 安装 ImageMagick 开发包
     else
-        pkg_install ImageMagick ImageMagick-devel || true  # rpm 系统安装
-    fi
-    if command -v pecl >/dev/null 2>&1; then  # 安装 imagick
-        run_cmd_with_retry "pecl install imagick" "安装 imagick" 3 2 || warn "imagick 安装失败"  # 重试并警告
-    fi
-
-    success "PHP 扩展安装步骤完成（可能部分扩展需要手动调整）"  # 完成提示
-}
-
-# ----------------- Composer 安装 -----------------
-install_composer() {  # 安装 Composer
-    if [ "${INSTALL_COMPOSER,,}" != "yes" ]; then  # 按配置可跳过
-        info "跳过 Composer 安装"  # 跳过提示
-        return 0  # 返回成功
-    fi
-    info "安装 Composer..."  # 信息提示
-    if command -v curl >/dev/null 2>&1; then  # 需要 curl
-        run_cmd "curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php" "下载 Composer 安装脚本"  # 下载安装脚本
-        register_tmp_file "/tmp/composer-setup.php"  # 注册临时文件
-        run_cmd "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer" "安装 Composer" || warn "Composer 安装失败"  # 安装并警告
-        run_cmd "chmod +x /usr/local/bin/composer" "设置 composer 执行权限"  # 赋予可执行权限
-        mark_rollback "移除 /usr/local/bin/composer" "rm -f /usr/local/bin/composer || true"  # 回滚命令
-        run_cmd "composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/" "配置 Composer 镜像" || true  # 设置镜像
-        success "Composer 安装完成"  # 成功提示
-    else
-        warn "缺少 curl，无法安装 Composer"  # 缺少 curl 的提示
+        warn "pecl 命令未找到，无法安装 $desc"
     fi
 }
 
-# ----------------- MySQL 安装（可回滚） -----------------
-install_mysql() {  # 安装 MySQL
-    if [ "${INSTALL_MYSQL,,}" != "yes" ]; then  # 按配置可跳过
-        info "跳过 MySQL 安装"  # 跳过提示
-        return 0  # 返回
+install_imagick_extension() {
+    if pkg_install "ImageMagick-devel" "ImageMagick"; then
+        install_pecl_extension "imagick" "imagick 扩展"
+    else
+        warn "ImageMagick 安装失败，跳过 imagick 扩展"
     fi
-    info "安装 MySQL..."  # 信息提示
-    case "$PKG_MGR" in  # 根据包管理器执行不同安装逻辑
-        apt)
-            run_cmd "apt-get install -y lsb-release gnupg" "安装依赖"  # 安装依赖
-            run_cmd "wget -O /tmp/mysql-apt-config.deb https://dev.mysql.com/get/mysql-apt-config_0.8.28-1_all.deb" "下载 MySQL apt 配置"  # 下载 apt config
-            register_tmp_file "/tmp/mysql-apt-config.deb"  # 注册临时文件
-            echo "mysql-apt-config mysql-apt-config/select-server select mysql-8.0" | debconf-set-selections || true  # 预设 debconf 选项
-            run_cmd "DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/mysql-apt-config.deb || true" "安装 MySQL apt 源"  # 安装 deb 包
-            run_cmd "apt-get update -y" "更新包列表"  # 更新
-            run_cmd_with_retry "DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server mysql-client" "安装 MySQL" 3 3 || warn "MySQL 安装可能失败"  # 安装 mysql-server
-            # 记录回滚：移除 mysql-server
-            mark_rollback "移除 MySQL" "DEBIAN_FRONTEND=noninteractive apt-get -y remove --purge mysql-server mysql-client || true; apt-get -y autoremove || true"  # 回滚回退命令
+}
+
+# ----------------- MySQL 安装 -----------------
+install_mysql() {
+    if [ "${INSTALL_MYSQL,,}" != "yes" ]; then
+        info "跳过 MySQL 安装"
+        return 0
+    fi
+    info "安装 MySQL $MYSQL_VERSION..."
+
+    case "$PKG_MGR" in
+        dnf|yum)
+            pkg_install "mysql-server" "mysql" "mysql-devel"
             ;;
-        *)
-            run_cmd "rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm" "添加 MySQL 仓库" || warn "添加 MySQL 仓库失败"  # 添加 rpm 仓库
-            run_cmd_with_retry "$PKG_MGR -y install --allowerasing mysql-community-server mysql-community-client" "安装 MySQL" 3 3 || warn "MySQL 安装可能失败"  # 使用 --allowerasing 避免冲突
-            mark_rollback "移除 MySQL" "$PKG_MGR -y remove mysql-community-server mysql-community-client || true"  # 回滚命令
+        apt)
+            pkg_install "mysql-server" "mysql-client" "libmysqlclient-dev"
             ;;
     esac
 
-    if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则 enable + start
-        run_cmd "systemctl enable mysqld || true" "启用 MySQL 服务" || true  # 启用
-        run_cmd "systemctl start mysqld || true" "启动 MySQL 服务" || true  # 启动
+    setup_mysql_config
+    start_mysql_service
+    secure_mysql_installation
 
-        # 尝试设置 root 密码（如果能从日志获取临时密码）
-        local temp_pass=""  # 临时密码变量
-        if [ -f /var/log/mysqld.log ]; then  # 从 mysqld.log 尝试提取临时密码
-            temp_pass=$(grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}' | tail -1 || true)  # 解析临时密码
-        fi
-        if [ -n "$temp_pass" ]; then  # 如果能找到则设置 root 密码
-            run_cmd "mysql -uroot -p'${temp_pass}' --connect-expired-password -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASS}'; FLUSH PRIVILEGES;\"" "设置 MySQL root 密码" || warn "设置 root 密码失败"  # 设置密码
-        else
-            warn "未检索到 MySQL 临时密码，建议手动运行 mysql_secure_installation"  # 提示手动安全配置
-        fi
-
-        run_cmd "mysql -uroot -p'${MYSQL_ROOT_PASS}' -e \"CREATE USER IF NOT EXISTS '${REMOTE_ADMIN_USER}'@'%' IDENTIFIED BY '${REMOTE_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON *.* TO '${REMOTE_ADMIN_USER}'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\"" "创建远程管理用户" || warn "创建 MySQL 远程用户失败"  # 创建远程管理用户
-    fi
-
-    success "MySQL 安装完成（如有错误请查看日志）"  # 成功提示
+    success "MySQL 安装完成"
 }
 
-# ----------------- Redis 安装 -----------------
-install_redis() {  # 安装 Redis
-    if [ "${INSTALL_REDIS,,}" != "yes" ]; then  # 按配置可跳过
-        info "跳过 Redis 安装"  # 跳过提示
-        return 0  # 返回
-    fi
-    info "安装 Redis..."  # 信息提示
-    if [ "$PKG_MGR" = "apt" ]; then  # apt 系统安装 redis-server
-        pkg_install redis-server redis-tools || true  # 安装并忽略错误
-    else
-        pkg_install redis || true  # rpm 系统安装 redis
+setup_mysql_config() {
+    info "配置 MySQL..."
+    local mysql_conf_dir="/etc/mysql"
+    local mysql_conf_file="/etc/my.cnf"
+
+    if [ -f "$mysql_conf_file" ]; then
+        safe_backup_file "$mysql_conf_file"
     fi
 
-    local redis_conf=""  # redis 配置文件路径变量
-    if [ -f /etc/redis/redis.conf ]; then  # 常见配置路径
-        redis_conf="/etc/redis/redis.conf"  # 设置路径
-    elif [ -f /etc/redis.conf ]; then  # 另一种路径
-        redis_conf="/etc/redis.conf"  # 设置路径
+    if [ -d "$mysql_conf_dir" ]; then
+        safe_backup_file "$mysql_conf_dir/my.cnf"
     fi
 
-    if [ -n "$redis_conf" ]; then  # 若找到配置文件则备份并修改
-        safe_backup_file "$redis_conf"  # 备份原始配置
-        run_cmd "sed -i 's/^bind 127.0.0.1/bind 0.0.0.0/' '$redis_conf'" "允许远程访问"  # 修改 bind
-        run_cmd "sed -i 's/^protected-mode yes/protected-mode no/' '$redis_conf'" "关闭 protected-mode"  # 修改 protected-mode
-        run_cmd "grep -q '^requirepass' '$redis_conf' || echo 'requirepass $REMOTE_ADMIN_PASS' >> '$redis_conf'" "设置 Redis 密码"  # 添加密码配置
-        mark_rollback "恢复 Redis 配置" "if [ -f '${redis_conf}.bak.' ]; then true; fi; # 参考备份文件恢复"  # 回滚提示（保守）
+    cat > "$mysql_conf_file" <<EOF
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+bind-address=0.0.0.0
+default-authentication-plugin=mysql_native_password
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+max_connections=1000
+max_allowed_packet=256M
+innodb_buffer_pool_size=256M
+
+[client]
+default-character-set=utf8mb4
+EOF
+
+    mark_rollback "恢复 MySQL 配置" "if [ -f '${mysql_conf_file}.bak.' ]; then true; fi;"
+}
+
+start_mysql_service() {
+    info "启动 MySQL 服务..."
+    run_cmd "systemctl start mysqld.service || systemctl start mysql.service" "启动 MySQL 服务" || return 1
+    run_cmd "systemctl enable mysqld.service || systemctl enable mysql.service" "启用 MySQL 自启动" || warn "启用 MySQL 自启动失败"
+    mark_rollback "停止并禁用 MySQL 服务" "systemctl stop mysqld.service || systemctl stop mysql.service || true; systemctl disable mysqld.service || systemctl disable mysql.service || true"
+}
+
+secure_mysql_installation() {
+    info "执行 MySQL 安全初始化..."
+    local temp_pass=$(grep 'temporary password' /var/log/mysqld.log 2>/dev/null | tail -n1 | awk '{print $NF}' || true)
+    temp_pass="${temp_pass:-}"
+
+    if [ -n "$temp_pass" ]; then
+        info "检测到 MySQL 临时密码: $temp_pass"
+        mysql --connect-expired-password -u root -p"$temp_pass" -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" 2>/dev/null || true
     fi
 
-    if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 若允许自动启动则启用并启动
-        run_cmd "systemctl enable redis || true" "启用 Redis"  # 启用
-        run_cmd "systemctl start redis || true" "启动 Redis"  # 启动
-        mark_rollback "停止并禁用 redis" "systemctl stop redis || true; systemctl disable redis || true"  # 回滚命令
-    fi
+    mysql -u root -p"$MYSQL_ROOT_PASS" -e "CREATE USER IF NOT EXISTS '$REMOTE_ADMIN_USER'@'%' IDENTIFIED BY '$REMOTE_ADMIN_PASS'; GRANT ALL PRIVILEGES ON *.* TO '$REMOTE_ADMIN_USER'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null || true
 
-    success "Redis 安装完成"  # 成功提示
+    success "MySQL 安全配置完成"
 }
 
 # ----------------- Nginx 安装 -----------------
-install_nginx() {  # 安装 Nginx
-    if [ "${INSTALL_NGINX,,}" != "yes" ]; then  # 按配置可跳过
-        info "跳过 Nginx 安装"  # 跳过提示
-        return 0  # 返回
+install_nginx() {
+    if [ "${INSTALL_NGINX,,}" != "yes" ]; then
+        info "跳过 Nginx 安装"
+        return 0
     fi
-    info "安装 Nginx..."  # 信息提示
-    if [ "$PKG_MGR" = "apt" ]; then  # apt 系统安装 nginx
-        pkg_install nginx nginx-extras || true  # 安装 nginx
-    else
-        pkg_install nginx || true  # rpm 系统安装 nginx
+    info "安装 Nginx $NGINX_VERSION..."
+
+    case "$PKG_MGR" in
+        dnf|yum)
+            pkg_install "nginx"
+            ;;
+        apt)
+            pkg_install "nginx"
+            ;;
+    esac
+
+    setup_nginx_config
+    start_nginx_service
+
+    success "Nginx 安装完成"
+}
+
+setup_nginx_config() {
+    info "配置 Nginx..."
+    local nginx_conf_dir="/etc/nginx"
+    local nginx_conf_file="/etc/nginx/nginx.conf"
+
+    if [ -f "$nginx_conf_file" ]; then
+        safe_backup_file "$nginx_conf_file"
     fi
 
-    if [ -d /etc/nginx/conf.d ]; then  # 若存在 conf.d 目录则写入 php-fpm 配置
-        safe_backup_file "/etc/nginx/conf.d/php-fpm.conf" || true  # 备份可能存在的文件
-        cat > /etc/nginx/conf.d/php-fpm.conf <<'EOF'  # 写入示例 server 配置
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.php index.html index.htm;
+    cat > "$nginx_conf_file" <<EOF
+user $WWW_USER;
+worker_processes auto;
+pid /run/nginx.pid;
 
-    location / {
-        try_files $uri $uri/ =404;
-    }
+events {
+    worker_connections 1024;
+    use epoll;
+    multi_accept on;
+}
 
-    location ~ \.php$ {
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-    }
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_tokens off;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    gzip on;
+    gzip_disable "msie6";
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
 }
 EOF
-        mark_rollback "移除 nginx php-fpm.conf" "rm -f /etc/nginx/conf.d/php-fpm.conf || true"  # 回滚命令
-    fi
 
-    run_cmd "nginx -t || true" "测试 Nginx 配置" || warn "nginx -t 出错"  # 测试 nginx 配置
-    if [ "${AUTO_START_SERVICES,,}" = "yes" ]; then  # 自动启动
-        run_cmd "systemctl enable nginx || true" "启用 Nginx"  # 启用
-        run_cmd "systemctl start nginx || true" "启动 Nginx"  # 启动
-        mark_rollback "停止并禁用 Nginx" "systemctl stop nginx || true; systemctl disable nginx || true"  # 回滚命令
-    fi
-
-    success "Nginx 安装完成"  # 成功提示
+    mark_rollback "恢复 Nginx 配置" "if [ -f '${nginx_conf_file}.bak.' ]; then true; fi;"
 }
 
-# ----------------- 创建用户 -----------------
-create_users() {  # 创建网站运行用户并准备网站目录
-    info "创建系统用户..."  # 信息提示
-    if ! id "$WWW_USER" >/dev/null 2>&1; then  # 如果用户不存在则创建
-        run_cmd "useradd -r -m -s /bin/bash -U '$WWW_USER'" "创建用户 $WWW_USER"  # 创建系统用户
-        run_cmd "echo '$WWW_USER:$WWW_PASS' | chpasswd" "设置 $WWW_USER 密码"  # 设置密码
-        CREATED_USERS+=("$WWW_USER")  # 记录已创建用户
-        mark_rollback "删除创建的用户 $WWW_USER" "userdel -r '$WWW_USER' || true"  # 回滚命令
+start_nginx_service() {
+    info "启动 Nginx 服务..."
+    run_cmd "systemctl start nginx.service" "启动 Nginx 服务" || return 1
+    run_cmd "systemctl enable nginx.service" "启用 Nginx 自启动" || warn "启用 Nginx 自启动失败"
+    mark_rollback "停止并禁用 Nginx 服务" "systemctl stop nginx.service || true; systemctl disable nginx.service || true"
+}
+
+# ----------------- Redis 安装 -----------------
+install_redis() {
+    if [ "${INSTALL_REDIS,,}" != "yes" ]; then
+        info "跳过 Redis 安装"
+        return 0
+    fi
+    info "安装 Redis $REDIS_VERSION..."
+
+    case "$PKG_MGR" in
+        dnf|yum)
+            pkg_install "redis"
+            ;;
+        apt)
+            pkg_install "redis-server"
+            ;;
+    esac
+
+    setup_redis_config
+    start_redis_service
+
+    success "Redis 安装完成"
+}
+
+setup_redis_config() {
+    info "配置 Redis..."
+    local redis_conf_file="/etc/redis/redis.conf"
+    local redis_conf_dir="/etc/redis"
+
+    if [ -f "$redis_conf_file" ]; then
+        safe_backup_file "$redis_conf_file"
+    fi
+
+    cat > "$redis_conf_file" <<EOF
+bind 0.0.0.0
+protected-mode no
+port 6379
+tcp-backlog 511
+timeout 0
+tcp-keepalive 300
+daemonize yes
+supervised systemd
+pidfile /var/run/redis/redis.pid
+loglevel notice
+logfile /var/log/redis/redis.log
+databases 16
+always-show-logo yes
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+dir /var/lib/redis
+requirepass $REMOTE_ADMIN_PASS
+maxclients 10000
+maxmemory 1gb
+maxmemory-policy allkeys-lru
+appendonly yes
+appendfilename "appendonly.aof"
+appendfsync everysec
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+aof-use-rdb-preamble yes
+lua-time-limit 5000
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events ""
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-size -2
+list-compress-depth 0
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+stream-node-max-bytes 4096
+stream-node-max-entries 100
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit replica 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+dynamic-hz yes
+aof-rewrite-incremental-fsync yes
+rdb-save-incremental-fsync yes
+EOF
+
+    mark_rollback "恢复 Redis 配置" "if [ -f '${redis_conf_file}.bak.' ]; then true; fi;"
+}
+
+start_redis_service() {
+    info "启动 Redis 服务..."
+    run_cmd "systemctl start redis.service" "启动 Redis 服务" || return 1
+    run_cmd "systemctl enable redis.service" "启用 Redis 自启动" || warn "启用 Redis 自启动失败"
+    mark_rollback "停止并禁用 Redis 服务" "systemctl stop redis.service || true; systemctl disable redis.service || true"
+}
+
+# ----------------- Composer 安装 -----------------
+install_composer() {
+    if [ "${INSTALL_COMPOSER,,}" != "yes" ]; then
+        info "跳过 Composer 安装"
+        return 0
+    fi
+    info "安装 Composer..."
+
+    local composer_installer="/tmp/composer-setup.php"
+    register_tmp_file "$composer_installer"
+
+    run_cmd_with_retry "curl -sS https://getcomposer.org/installer -o '$composer_installer'" "下载 Composer 安装器" || return 1
+    run_cmd "php '$composer_installer' --install-dir=/usr/local/bin --filename=composer" "安装 Composer" || return 1
+    run_cmd "chmod +x /usr/local/bin/composer" "设置 Composer 可执行权限" || return 1
+
+    mark_rollback "移除 Composer" "rm -f /usr/local/bin/composer || true"
+
+    success "Composer 安装完成"
+}
+
+# ----------------- 系统用户创建 -----------------
+create_system_users() {
+    info "创建系统用户..."
+    if ! id "$WWW_USER" >/dev/null 2>&1; then
+        run_cmd "useradd -r -s /sbin/nologin -d /nonexistent -c 'Web Application' '$WWW_USER'" "创建用户 $WWW_USER" || return 1
+        CREATED_USERS+=("$WWW_USER")
+        mark_rollback "删除用户 $WWW_USER" "userdel '$WWW_USER' || true"
     else
-        info "用户 $WWW_USER 已存在，跳过创建"  # 已存在提示
+        info "用户 $WWW_USER 已存在，跳过创建"
     fi
-    run_cmd "mkdir -p /var/www/html" "创建网站目录"  # 创建网站根目录
-    run_cmd "chown -R $WWW_USER:$WWW_USER /var/www/html" "设置网站目录权限"  # 设置权限
-    success "用户 / 网站目录 准备就绪"  # 成功提示
+
+    success "系统用户创建完成"
 }
 
-# ----------------- 清理工作 -----------------
-cleanup() {  # 清理临时文件和包缓存
-    if [ "${CLEAN_TEMP,,}" = "yes" ]; then  # 根据配置决定是否清理
-        info "清理临时文件..."  # 信息提示
-        cleanup_tmpfiles  # 清理临时文件
-        case "$PKG_MGR" in  # 清理包管理器缓存
-            dnf|yum)
-                run_cmd "$PKG_MGR clean all || true" "清理包缓存" || true  # 清理 dnf/yum 缓存
-                ;;
-            apt)
-                run_cmd "apt-get autoremove -y || true" "清理无用包" || true  # apt 自动移除
-                run_cmd "apt-get clean || true" "清理 apt 缓存" || true  # apt 清理缓存
-                ;;
-        esac
-        success "清理完成"  # 完成提示
+# ----------------- 防火墙配置 -----------------
+configure_firewall() {
+    info "配置防火墙..."
+    if command -v firewall-cmd >/dev/null 2>&1; then
+        run_cmd "firewall-cmd --permanent --add-service=http" "开放 HTTP 端口" || true
+        run_cmd "firewall-cmd --permanent --add-service=https" "开放 HTTPS 端口" || true
+        run_cmd "firewall-cmd --permanent --add-port=9000/tcp" "开放 PHP-FPM 端口" || true
+        run_cmd "firewall-cmd --reload" "重载防火墙" || true
+        success "防火墙配置完成"
+    elif command -v ufw >/dev/null 2>&1; then
+        run_cmd "ufw allow http" "开放 HTTP 端口" || true
+        run_cmd "ufw allow https" "开放 HTTPS 端口" || true
+        run_cmd "ufw allow 9000/tcp" "开放 PHP-FPM 端口" || true
+        success "UFW 防火墙配置完成"
     else
-        info "跳过清理（CLEAN_TEMP=no）"  # 跳过清理提示
+        warn "未找到支持的防火墙工具，跳过防火墙配置"
     fi
 }
 
-# ----------------- 安装总结 -----------------
-installation_summary() {  # 输出安装总结到配置文件
-    local end_time=$(date +%s)  # 记录结束时间
-    local total_time=$((end_time - START_TIME))  # 计算耗时
+# ----------------- 安装总结与信息输出 -----------------
+generate_install_summary() {
+    local end_time=$(date +%s)
+    local duration=$((end_time - START_TIME))
 
-    cat > "$INSTALL_SUMMARY" <<EOF  # 写入安装总结
-# 安装总结
-开始时间: $(date -d @$START_TIME '+%Y-%m-%d %H:%M:%S')
-总耗时: ${total_time}s
-PHP: ${PHP_VERSION} (安装: ${INSTALL_PHP})
-MySQL: ${MYSQL_VERSION} (安装: ${INSTALL_MYSQL})
-Redis: ${REDIS_VERSION} (安装: ${INSTALL_REDIS})
-Nginx: ${NGINX_VERSION} (安装: ${INSTALL_NGINX})
+    cat > "$INSTALL_SUMMARY" <<EOF
+# ==================== PHP 环境安装配置摘要 ====================
+# 生成时间: $(date '+%F %T')
+# 安装耗时: ${duration} 秒
+# 系统信息: $OS_NAME $OS_VERSION ($OS_ARCH)
+
+# -------------------- 安装路径信息 --------------------
+PHP 安装路径: $PHP_PREFIX
+MySQL 安装路径: $MYSQL_PREFIX
+Nginx 安装路径: $NGINX_PREFIX
+Redis 安装路径: $REDIS_PREFIX
+源码目录: $SRC_DIR
+
+# -------------------- 安全凭证信息 --------------------
+MySQL root 密码: $MYSQL_ROOT_PASS
+远程管理用户: $REMOTE_ADMIN_USER
+远程管理密码: $REMOTE_ADMIN_PASS
+Web 服务用户: $WWW_USER
+Web 服务密码: $WWW_PASS
+
+# -------------------- 服务状态 --------------------
+PHP-FPM: $(systemctl is-active php-fpm.service 2>/dev/null || echo "未安装")
+MySQL: $(systemctl is-active mysqld.service 2>/dev/null || systemctl is-active mysql.service 2>/dev/null || echo "未安装")
+Nginx: $(systemctl is-active nginx.service 2>/dev/null || echo "未安装")
+Redis: $(systemctl is-active redis.service 2>/dev/null || echo "未安装")
+
+# -------------------- 连接信息 --------------------
+PHP-FPM 监听: 127.0.0.1:9000
+MySQL 监听: 0.0.0.0:3306
+Redis 监听: 0.0.0.0:6379
+Nginx 监听: 0.0.0.0:80, 0.0.0.0:443
+
+# -------------------- 重要文件路径 --------------------
+PHP 配置文件: $PHP_INI_FILE
+PHP-FPM 配置文件: $PHP_PREFIX/etc/php-fpm.conf
+MySQL 配置文件: /etc/my.cnf
+Nginx 配置文件: /etc/nginx/nginx.conf
+Redis 配置文件: /etc/redis/redis.conf
+
+# -------------------- 环境变量 --------------------
+PHP_HOME: $PHP_PREFIX
+PATH: 已添加 $PHP_PREFIX/bin
+
+# -------------------- 使用说明 --------------------
+1. 启动所有服务: systemctl start php-fpm mysql nginx redis
+2. 设置开机启动: systemctl enable php-fpm mysql nginx redis
+3. 测试 PHP: php -v
+4. 测试 MySQL: mysql -u root -p'$MYSQL_ROOT_PASS'
+5. 测试 Redis: redis-cli -a '$REMOTE_ADMIN_PASS'
+
+# -------------------- 安全建议 --------------------
+1. 请立即修改上述所有密码
+2. 配置适当的防火墙规则
+3. 定期备份重要数据
+4. 监控系统日志和安全事件
+
+# -------------------- 日志文件位置 --------------------
 安装日志: $LOG_FILE
 错误日志: $ERROR_LOG_FILE
 回滚日志: $ROLLBACK_LOG_FILE
+PHP 错误日志: $PHP_PREFIX/var/log/php_errors.log
+PHP-FPM 日志: $PHP_PREFIX/var/log/php-fpm.log
+MySQL 日志: /var/log/mysqld.log
+Nginx 访问日志: /var/log/nginx/access.log
+Nginx 错误日志: /var/log/nginx/error.log
+Redis 日志: /var/log/redis/redis.log
 EOF
-    chmod 600 "$INSTALL_SUMMARY" || true  # 设置文件权限为 600
-    success "安装完成！总耗时: ${total_time}s。安装总结已写入 $INSTALL_SUMMARY"  # 成功提示
+
+    chmod 600 "$INSTALL_SUMMARY"
+    success "安装配置摘要已保存到: $INSTALL_SUMMARY"
+    warn "请妥善保管此文件，特别是其中的密码信息！"
 }
 
-# ----------------- 主流程 -----------------
-main() {  # 主入口函数
-    clear  # 清屏
-    _bold "🚀 工业级 PHP 环境安装脚本（改进版）"  # 标题
-    _bold "开始时间: $(date '+%Y-%m-%d %H:%M:%S')"  # 开始时间
-
-    if [ "$EUID" -ne 0 ]; then  # 检查是否以 root 运行
-        error "请使用 root 权限运行此脚本"  # 错误提示
-        exit 1  # 退出
-    fi
-
-    detect_system  # 检测系统
-    install_dependencies  # 安装依赖
-    create_users  # 创建用户
-
-    if [ "${INSTALL_PHP,,}" = "yes" ]; then  # 若需安装 PHP 则执行以下步骤
-        download_php  # 下载源码
-        extract_php  # 解压源码
-        configure_php  # configure
-        build_php  # 编译安装
-        setup_php_config  # 写入配置
-        create_phpfpm_service  # 创建服务
-        install_php_extensions  # 安装扩展
-    fi
-
-    install_composer  # 安装 Composer
-    install_mysql  # 安装 MySQL
-    install_redis  # 安装 Redis
-    install_nginx  # 安装 Nginx
-
-    cleanup  # 清理
-    installation_summary  # 输出安装总结
+show_final_message() {
+    echo ""
+    echo "================================================================"
+    echo "✅ PHP 环境安装完成！"
+    echo "================================================================"
+    echo "📋 安装摘要已保存到: $INSTALL_SUMMARY"
+    echo "📝 安装日志: $LOG_FILE"
+    echo "❌ 错误日志: $ERROR_LOG_FILE"
+    echo "↩️  回滚日志: $ROLLBACK_LOG_FILE"
+    echo ""
+    echo "🔐 重要安全信息:"
+    echo "   - MySQL root 密码: $MYSQL_ROOT_PASS"
+    echo "   - 远程管理账号: $REMOTE_ADMIN_USER / $REMOTE_ADMIN_PASS"
+    echo "   - 请立即修改这些密码！"
+    echo ""
+    echo "🚀 下一步操作:"
+    echo "   1. 查看安装摘要文件获取详细信息"
+    echo "   2. 测试各服务是否正常运行"
+    echo "   3. 配置您的应用程序"
+    echo "   4. 设置适当的防火墙规则"
+    echo ""
+    echo "💡 提示: 所有服务已配置为开机自动启动（如设置）"
+    echo "================================================================"
 }
 
-# 启动脚本
-main "$@"  # 调用 main 并传递所有参数
+# ----------------- 主安装流程 -----------------
+main() {
+    clear
+    echo ""
+    echo "================================================================"
+    echo "🚀 开始安装 PHP $PHP_VERSION 环境栈"
+    echo "================================================================"
+    echo "📝 安装选项:"
+    echo "   - PHP: $INSTALL_PHP"
+    echo "   - MySQL: $INSTALL_MYSQL"
+    echo "   - Redis: $INSTALL_REDIS"
+    echo "   - Nginx: $INSTALL_NGINX"
+    echo "   - Composer: $INSTALL_COMPOSER"
+    echo "   - PHP 扩展: $INSTALL_PHP_EXTENSIONS"
+    echo ""
+    echo "⚙️  配置参数:"
+    echo "   - PHP 路径: $PHP_PREFIX"
+    echo "   - Web 用户: $WWW_USER"
+    echo "   - 并发编译: $MAKE_JOBS 线程"
+    echo "================================================================"
+
+    # 安装前检查
+    if [ "$(id -u)" -ne 0 ]; then
+        error "此脚本必须以 root 用户身份运行"
+        exit 1
+    fi
+
+    detect_system || exit 1
+
+    # 主安装流程
+    install_dependencies || handle_error ${LINENO} "安装依赖失败" $?
+    create_system_users || handle_error ${LINENO} "创建用户失败" $?
+
+    if [ "${INSTALL_PHP,,}" = "yes" ]; then
+        download_php || handle_error ${LINENO} "下载 PHP 失败" $?
+        extract_php || handle_error ${LINENO} "解压 PHP 失败" $?
+        configure_php || handle_error ${LINENO} "配置 PHP 失败" $?
+        build_php || handle_error ${LINENO} "编译 PHP 失败" $?
+        setup_php_config || handle_error ${LINENO} "配置 PHP 失败" $?
+        create_phpfpm_service || handle_error ${LINENO} "创建 PHP-FPM 服务失败" $?
+        install_php_extensions || warn "PHP 扩展安装有部分失败"
+    fi
+
+    if [ "${INSTALL_MYSQL,,}" = "yes" ]; then
+        install_mysql || handle_error ${LINENO} "安装 MySQL 失败" $?
+    fi
+
+    if [ "${INSTALL_NGINX,,}" = "yes" ]; then
+        install_nginx || handle_error ${LINENO} "安装 Nginx 失败" $?
+    fi
+
+    if [ "${INSTALL_REDIS,,}" = "yes" ]; then
+        install_redis || handle_error ${LINENO} "安装 Redis 失败" $?
+    fi
+
+    if [ "${INSTALL_COMPOSER,,}" = "yes" ]; then
+        install_composer || handle_error ${LINENO} "安装 Composer 失败" $?
+    fi
+
+    configure_firewall || warn "防火墙配置有部分失败"
+
+    # 清理和总结
+    if [ "${CLEAN_TEMP,,}" = "yes" ]; then
+        cleanup_tmpfiles || warn "临时文件清理失败"
+    fi
+
+    generate_install_summary
+    show_final_message
+
+    local end_time=$(date +%s)
+    local duration=$((end_time - START_TIME))
+    success "✅ 全部安装完成！总耗时: ${duration} 秒"
+}
+
+# 执行主函数
+main "$@"
