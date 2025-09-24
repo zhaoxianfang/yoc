@@ -706,29 +706,125 @@ install_epel_repository() {
 
 # EPEL 备用安装方式
 install_epel_fallback() {
-    warn "尝试从 Fedora 官方下载 epel rpm 包安装"
-    local epel_rpm="/tmp/epel-release-latest.rpm"
-    register_tmp_file "$epel_rpm"
-
-    if command -v rpm >/dev/null 2>&1; then
-        local rhelver="$(rpm -E '%{?rhel}' 2>/dev/null || echo '')"
-        local download_url=""
-
-        if [ -n "$rhelver" ]; then
-            download_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-$rhelver.noarch.rpm"
-        else
-            download_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm"
-        fi
-
-        if run_cmd_with_retry "wget -qO '$epel_rpm' '$download_url'" "下载 EPEL rpm 包" 3 2; then
-            run_cmd_with_retry "rpm -Uvh '$epel_rpm' --replacepkgs" "安装 EPEL rpm 包" 3 2 ||
-                warn "使用 rpm 安装 EPEL 失败"
-        else
-            warn "未能下载到 EPEL rpm 包，请手动处理"
-        fi
-    else
-        warn "系统无 rpm 命令，无法安装 EPEL"
+    local el_ver pkg_url
+    el_ver=$(get_el_version)
+    if ! [[ "$el_ver" =~ ^(7|8|9)$ ]]; then
+        echo "错误：无法检测EL版本。" >&2
+        exit 1
     fi
+
+    # ✅ 优先使用国内镜像（阿里云 + 清华 双保险）
+    case "$el_ver" in
+        7) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm" ;;
+        8) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm" ;;
+        9) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-9.noarch.rpm" ;;
+    esac
+
+    # 检测是否能访问阿里云，否则 fallback 到清华源
+    if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+        case "$el_ver" in
+            7) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm" ;;
+            8) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-8.noarch.rpm" ;;
+            9) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-9.noarch.rpm" ;;
+        esac
+        # 再次检测清华源是否可达
+        if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+            echo "错误：阿里云和Tuna镜像都无法访问。请检查网络。" >&2
+            exit 1
+        fi
+    fi
+
+    # 安装命令（自动选择 dnf/yum）
+    if command -v dnf >/dev/null 2>&1; then
+        dnf install -y "$pkg_url" >/dev/null
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y "$pkg_url" >/dev/null
+    else
+        echo "错误：找不到包管理器。" >&2
+        exit 1
+    fi
+
+    # 验证
+    if rpm -q epel-release >/dev/null 2>&1; then
+        echo "EPEL for EL $el_ver 已从镜像成功安装。"
+    else
+        echo "错误：EPEL安装失败。" >&2
+        exit 1
+    fi
+}
+
+# 判断 系统中的 epel-release EL版本
+get_el_version() {
+    local v f c g s k r
+    # 1. PLATFORM_ID
+    [ -f /etc/os-release ] && v=$(grep -oP 'PLATFORM_ID="?platform:el\K[789]' /etc/os-release 2>/dev/null) && echo "$v" && return
+
+    # 2. *-release files
+    for f in redhat alinux anolis tencentos opencloudos centos system; do
+        [ -f "/etc/${f}-release" ] && c=$(cat "/etc/${f}-release" 2>/dev/null) && {
+            [[ $c =~ [^0-9]9([^0-9]|$) ]] && echo 9 && return
+            [[ $c =~ [^0-9]8([^0-9]|$) ]] && echo 8 && return
+            [[ $c =~ [^0-9]7([^0-9]|$) ]] && echo 7 && return
+        }
+    done
+
+    # 3. os-release mapping
+    if [ -f /etc/os-release ]; then
+        c=$(grep -E '^(NAME|VERSION_ID)=' /etc/os-release 2>/dev/null | sed -E 's/^[^=]*="?(.*)"?$/\1/' 2>/dev/null)
+        read -r n id <<<"$c"
+        case "$n $id" in
+            *"Alibaba Cloud Linux 2"*|*"Anolis OS 7"*|*"OpenAnolis 7"*|*"TencentOS Server 2.4"*|*"OpenCloudOS 7"*|*"CentOS Linux 7"*|*"Rocky Linux 7"*|*"AlmaLinux 7"*|*"Red Hat Enterprise Linux 7"*|*"Oracle Linux 7"*) echo 7 && return ;;
+            *"Alibaba Cloud Linux 3"*|*"Anolis OS 8"*|*"OpenAnolis 8"*|*"TencentOS Server 3.1"*|*"OpenCloudOS 8"*|*"CentOS Linux 8"*|*"CentOS Stream 8"*|*"Rocky Linux 8"*|*"AlmaLinux 8"*|*"RHEL 8"*|*"Oracle Linux 8"*) echo 8 && return ;;
+            *"Alibaba Cloud Linux 4"*|*"Alibaba Cloud Linux 5"*|*"Anolis OS 23"*|*"OpenAnolis 23"*|*"TencentOS Server 3.2"*|*"TencentOS Server 4.0"*|*"OpenCloudOS 9"*|*"CentOS Stream 9"*|*"Rocky Linux 9"*|*"AlmaLinux 9"*|*"RHEL 9"*|*"Oracle Linux 9"*|*"Kylin V10"*|*"Kylin Linux Advanced Server V10"*|*"UnionTech OS Server 20"*|*"UOS Server 20"*) echo 9 && return ;;
+        esac
+        case "$id" in 7*|8*|9*) echo "${id%%.*}" && return ;; esac
+    fi
+
+    # 4. glibc
+    g=$(ldd --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null)
+    [ -z "$g" ] && for lib in /lib64/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 /lib/libc.so.6; do
+        [ -f "$lib" ] && g=$("$lib" --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null) && break
+    done
+    [ -n "$g" ] && {
+        case "$g" in
+            2.1[7-9]|2.2[0-7]) echo 7 && return ;;
+            2.2[8-9]|2.3[0-3]) echo 8 && return ;;
+            2.3[4-9]|2.[4-9]*|[3-9].*) echo 9 && return ;;
+        esac
+    }
+
+    # 5. systemd
+    s=$(systemctl --version 2>/dev/null | head -n1 | grep -o '[0-9]\+' | head -n1 2>/dev/null)
+    [ -n "$s" ] && {
+        [ "$s" -ge 250 ] && echo 9 && return
+        [ "$s" -ge 230 ] && echo 8 && return
+        [ "$s" -ge 210 ] && echo 7 && return
+    }
+
+    # 6. kernel
+    k=$(uname -r 2>/dev/null)
+    [ -n "$k" ] && {
+        [[ $k =~ ^5\.1[4-9]\. ]] || [[ $k =~ ^[6-9]\. ]] && echo 9 && return
+        [[ $k =~ ^4\.18\. ]] && echo 8 && return
+        [[ $k =~ ^3\.10\. ]] && echo 7 && return
+    }
+
+    # 7. yum repos
+    [ -d /etc/yum.repos.d/ ] && {
+        grep -r '\.el9\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 9 && return
+        grep -r '\.el8\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 8 && return
+        grep -r '\.el7\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 7 && return
+    }
+
+    # 8. installed RPMs
+    command -v rpm >/dev/null 2>&1 && {
+        rpm -qa 2>/dev/null | grep -q '\.el9\.' && echo 9 && return
+        rpm -qa 2>/dev/null | grep -q '\.el8\.' && echo 8 && return
+        rpm -qa 2>/dev/null | grep -q '\.el7\.' && echo 7 && return
+    }
+
+    # fallback: none
+    return 1
 }
 
 # ==================== SWAP 配置函数 ====================
