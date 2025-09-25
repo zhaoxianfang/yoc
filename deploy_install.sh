@@ -44,11 +44,20 @@ REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
 SRC_DIR="${SRC_DIR:-/usr/local/src}"
 
 # ---------------- 安全凭证配置 ----------------
-MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-$(openssl rand -base64 24)}"
-REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-phpadmin}"
-REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-$(openssl rand -base64 24)}"
+#MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-$(openssl rand -base64 24)}"
+#REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-phpadmin}"
+#REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-$(openssl rand -base64 24)}"
+#GROUP_NAME="${GROUP_NAME:-www}"
+#WWW_USER="${WWW_USER:-www}"
+#WWW_PASS="${WWW_PASS:-$(openssl rand -base64 24)}"
+#REDIS_PASS="${REDIS_PASS:-$(openssl rand -base64 24)}"
+MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-zhaoXfMysql001.}"
+REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-zhaoxianfang}"
+REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-zxfMysql001.}"
+GROUP_NAME="${GROUP_NAME:-www}"
 WWW_USER="${WWW_USER:-www}"
-WWW_PASS="${WWW_PASS:-$(openssl rand -base64 24)}"
+WWW_PASS="${WWW_PASS:-CdOs491592.}"
+REDIS_PASS="${REDIS_PASS:-zxfRedis001.}"
 
 # ---------------- 日志和临时文件配置 ----------------
 LOG_DIR="${LOG_DIR:-/var/log/php-stack-install}"
@@ -59,7 +68,7 @@ INSTALL_SUMMARY="${INSTALL_SUMMARY:-/data/install_config.log}"
 INSTALLED_PACKAGES_LOG="${INSTALLED_PACKAGES_LOG:-$LOG_DIR/installed_packages.log}"
 
 # ---------------- 性能配置 ----------------
-MAKE_JOBS="${MAKE_JOBS:-$(nproc 2>/dev/null || echo 1)}"
+MAKE_JOBS="${MAKE_JOBS:-$(nproc 1>/dev/null || echo 1)}"
 AUTO_START_SERVICES="${AUTO_START_SERVICES:-yes}"
 MAX_RETRIES="${MAX_RETRIES:-3}"
 DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"
@@ -89,7 +98,7 @@ PHP_CONFIGURE_OPTS=(
     "--enable-fpm"
     "--with-libxml"
     "--with-openssl"
-    "--with-kerberos"
+    # "--with-kerberos" 弃用
     "--with-system-ciphers"
     "--with-mysqli"
     "--with-mysql-sock"
@@ -108,9 +117,9 @@ PHP_CONFIGURE_OPTS=(
     "--enable-gd"
     "--with-freetype"
     "--with-gettext"
-    "--with-mhash"
+    # "--with-mhash" 弃用
     "--with-iconv"
-    "--with-imap-ssl"
+    # "--with-imap-ssl" 弃用
     "--enable-intl"
     "--with-ldap"
     "--with-ldap-sasl"
@@ -133,7 +142,7 @@ PHP_CONFIGURE_OPTS=(
     "--with-zip"
     "--with-bz2"
     "--enable-mysqlnd"
-    "--with-pear"
+    # "--with-pear" 弃用
     "--with-jpeg"
     "--with-libdir=lib64"
     "--enable-cli"
@@ -180,7 +189,8 @@ ICON_WARN="🟡"
 ICON_ERROR="🔴"
 
 log() {
-    echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
+    # echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
+    echo "$*" | tee -a "$LOG_FILE"
 }
 
 info() {
@@ -209,7 +219,7 @@ mark_rollback() {
     local desc="$1"
     local cmd="$2"
     ROLLBACK_CMDS+=("# $desc\n$cmd")
-    log "[ROLLBACK MARK] $desc -> $cmd"
+    # log "[ROLLBACK MARK] $desc -> $cmd"
 }
 
 rollback_all() {
@@ -245,6 +255,81 @@ rollback_all() {
     echo "[$(date '+%F %T')] 回滚完成" | tee -a "$ROLLBACK_LOG_FILE"
 }
 
+# 高级文件修改函数 - 支持批量多位置查找替换
+# 参数:
+#   $1: file_path - 要处理的文件路径
+#   $2: operations - 操作数组（查找字符串:替换字符串:模式）
+#   $3: global_mode - 全局模式 (默认: false) - true时所有操作使用相同模式
+modify_file() {
+    [[ $# -lt 2 ]] && { echo "错误: 参数不足"; return 1; }
+    local f="$1" t b o=("${@:2}") g="false"
+    [[ "${o[-1]}" == "global_mode=true" ]] && { g="true"; o=("${o[@]:0:${#o[@]}-1}"); }
+    [[ ! -f "$f" ]] && { echo "错误: 文件不存在"; return 1; }
+    [[ ! -w "$f" ]] && { echo "错误: 文件不可写"; return 1; }
+    t=$(mktemp) || { echo "错误: 创建临时文件失败"; return 1; }
+    cp "$f" "$t" || { echo "错误: 复制文件失败"; rm -f "$t"; return 1; }
+
+    local c=0 s=0
+    for op in "${o[@]}"; do
+        ((c++))
+        IFS=':' read -r fs ss m <<< "$op"
+        m=${m:-insert}; [[ "$g" == "true" && "$m" == "insert" ]] && m="insert"
+        fs=$(echo "$fs" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        ss=$(echo "$ss" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        m=$(echo "$m" | tr '[:upper:]' '[:lower:]')
+        [[ -z "$fs" ]] && { echo "警告: 操作 $c 跳过"; continue; }
+
+        echo "操作 $c: $m"
+        local r=0
+        case "$m" in
+            "insert"|"i"|"false") awk -i inplace -v f="$fs" -v i="$ss" '
+                BEGIN { split(f,a,"\n"); split(i,b,"\n"); x=length(a); y=length(b); z=""; w=0; p=0; }
+                { if (p>0) { p--; next } if (w>0&&w<x) { z=z"\n"$0; w++;
+                    if (w==x) { print z; for(j=1;j<=y;j++) print b[j]; z=""; w=0; p=x-1; } next }
+                if (w==0) { if ($0~"^"a[1]) { z=$0; w=1;
+                    if (x==1) { print $0; for(j=1;j<=y;j++) print b[j]; w=0; } } else print $0 } }
+                END { if (z!="") print z }' "$t"; r=$? ;;
+
+            "replace"|"r"|"true"|"cover") awk -i inplace -v f="$fs" -v r="$ss" '
+                BEGIN { split(f,a,"\n"); split(r,b,"\n"); x=length(a); y=length(b); z=""; w=0; }
+                { if (w>0&&w<x) { z=z"\n"$0; w++;
+                    if (w==x) { for(j=1;j<=y;j++) print b[j]; z=""; w=0; } next }
+                if (w==0) { if ($0~"^"a[1]) { z=$0; w=1;
+                    if (x==1) { for(j=1;j<=y;j++) print b[j]; z=""; w=0; } } else print $0 } }
+                END { if (z!="") print z }' "$t"; r=$? ;;
+
+            "delete"|"d") awk -i inplace -v f="$fs" '
+                BEGIN { split(f,a,"\n"); x=length(a); z=""; w=0; s=0; }
+                { if (s>0) { s--; next } if (w>0&&w<x) { z=z"\n"$0; w++;
+                    if (w==x) { z=""; w=0; s=x-1; } next }
+                if (w==0) { if ($0~"^"a[1]) { z=$0; w=1;
+                    if (x==1) { z=""; w=0; s=0; } } else print $0 } }
+                END { if (z!="") print z }' "$t"; r=$? ;;
+
+            "comment"|"c") [[ $(echo "$fs" | wc -l) -eq 1 ]] && {
+                    sed -i "/^${fs//\//\\/}/s/^/# /" "$t"; r=$?;
+                } || { echo "警告: 多行注释不支持"; r=1; } ;;
+            "uncomment"|"u") [[ $(echo "$fs" | wc -l) -eq 1 ]] && {
+                    sed -i "/^# *${fs//\//\\/}/s/^# *//" "$t"; r=$?;
+                } || { echo "警告: 多行取消注释不支持"; r=1; } ;;
+            *) sed -i "/^${fs//\//\\/}/a\\${ss//\//\\/}" "$t"; r=$? ;;
+        esac
+        [[ $r -eq 0 ]] && { ((s++)); echo "成功 $c"; } || echo "失败 $c"
+    done
+
+    if [[ $s -gt 0 ]]; then
+        b="${f}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$f" "$b" 2>/dev/null && echo "备份: $b"
+        mv "$t" "$f"
+        echo "完成: $s/$c"
+        return 0
+    else
+        echo "错误: 全部失败"
+        rm -f "$t"
+        return 1
+    fi
+}
+
 # --------------- 临时文件管理 ----------------
 register_tmp_file() {
     TMP_FILES+=("$1")
@@ -258,41 +343,57 @@ cleanup_tmpfiles() {
 
 # ----------------- 运行命令的通用函数（支持多行） -----------------
 run_cmd() {
-    local cmd="$1"
-    local desc="${2:-执行命令}"
-    local log_output="${3:-yes}"
+    local cmd="$1"                         # 要执行的命令
+    local desc="${2:-执行命令}"            # 命令描述
+    local log_output="${3:-yes}"           # 是否输出到日志
 
-    log "[CMD] $desc : $cmd"
+    # 定义动画 frames（你原来的进度条+符号组合）
+    local frames=("▰▱▱▱▱▱▱ -" "▰▰▱▱▱▱▱ \\"
+                  "▰▰▰▱▱▱▱ |" "▰▰▰▰▱▱▱ /"
+                  "▰▰▰▰▰▱▱ -" "▰▰▰▰▰▰▱ \\"
+                  "▰▰▰▰▰▰▰ |" "▰▰▰▰▰▰▱ /"
+                  "▰▰▰▰▰▱▱ -" "▰▰▰▰▱▱▱ \\"
+                  "▰▰▰▱▱▱▱ |" "▰▰▱▱▱▱▱ /")
 
+    # 输出命令日志
+    log "[CMD-START] $desc : $cmd"
+
+    # 根据 log_output 决定是否写日志文件
     if [ "$log_output" = "yes" ]; then
         bash -lc "$cmd" >>"$LOG_FILE" 2>>"$ERROR_LOG_FILE" &
     else
         bash -lc "$cmd" >/dev/null 2>&1 &
     fi
 
-    local pid=$!
+    local pid=$!   # 记录后台进程 PID
     local i=0
-    local frames=("-" "\\" "|" "/")
 
+    # 显示进度动画
     printf "⏳ %s " "$desc"
     while kill -0 "$pid" 2>/dev/null; do
         i=$(((i+1) % ${#frames[@]}))
         printf "\r⏳ %s %s" "$desc" "${frames[i]}"
-        sleep 0.08
+        sleep 0.1
     done
 
+    # 等待命令完成
     wait "$pid"
     local rc=$?
 
+    # 清理 spinner 行
+    printf "\r%*s\r" "$(tput cols)" ""
+
     if [ $rc -ne 0 ]; then
+        printf "❌ %s 失败（退出码:%s，详情见日志）\n" "$desc" "$rc"
         log "[CMD-FAIL] $desc (退出码:$rc)"
         return $rc
+    else
+        printf "✅ %s 完成\n" "$desc"
+        log "[CMD-OK] $desc"
+        return 0
     fi
-
-    printf "\r✅ %s 完成\n" "$desc"
-    log "[CMD-OK] $desc"
-    return 0
 }
+
 
 run_cmd_with_retry() {
     local cmd="$1"
@@ -315,7 +416,7 @@ run_cmd_with_retry() {
     return 1
 }
 
-# ----------------- 系统检测 -----------------
+# ----------------- 01、系统检测 -----------------
 detect_system() {
     info "检测系统环境..."
 
@@ -345,6 +446,7 @@ detect_system() {
 
     success "系统: $OS_NAME $OS_VERSION ($OS_ARCH), 包管理器: $PKG_MGR"
     log "系统信息: ID=$OS_ID, NAME=$OS_NAME, VERSION=$OS_VERSION, ARCH=$OS_ARCH"
+    echo "-----------------------------------------------------------------"
 }
 
 # ----------------- 软件包安装工具 -----------------
@@ -377,19 +479,19 @@ escape_pkg_list() {
 
 pkg_install() {
     local pkgs=("$@")
-    info "准备安装软件包: ${pkgs[*]}"
+    # info "准备安装软件包: ${pkgs[*]}"
 
     local to_install=()
     for p in "${pkgs[@]}"; do
-        if pkg_is_installed "$p"; then
-            info "已存在: $p，跳过安装"
-        else
+        if ! pkg_is_installed "$p"; then
             to_install+=("$p")
+        # else
+        #    info "已存在: $p，跳过安装"
         fi
     done
 
     if [ ${#to_install[@]} -eq 0 ]; then
-        info "没有需要安装的新包"
+        # info "没有需要安装的新包"
         return 0
     fi
 
@@ -414,7 +516,8 @@ pkg_install() {
             ;;
     esac
 
-    success "安装软件包完成: ${to_install[*]}"
+    # success "安装软件包完成: ${to_install[*]}"
+     success "安装软件包完成"
 }
 
 # --------------- 备份配置文件 ----------------
@@ -461,7 +564,7 @@ on_interrupt() {
 trap 'handle_error ${LINENO} "${BASH_COMMAND}" $?' ERR
 trap 'on_interrupt' INT TERM
 
-# ----------------- 系统依赖安装 -----------------
+# ----------------- 02、系统依赖安装 -----------------
 install_dependencies() {
     local start=$(date +%s)
     info "安装系统依赖..."
@@ -486,6 +589,7 @@ install_dependencies() {
             ;;
     esac
 
+    # 通用依赖
     local common_packages=(
         yum-utils gcc gcc-c++ autoconf libtool perl perl-devel
         libpng libpng-devel libjpeg libjpeg-devel libcurl libcurl-devel
@@ -596,7 +700,7 @@ configure_php() {
         if run_cmd "./configure $opts_str" "配置 PHP"; then
             success "PHP 配置成功"
             # 删除？瞎搞嘛！！！
-            # mark_rollback "删除已安装的 PHP 文件夹 $PHP_PREFIX" "rm -rf '$PHP_PREFIX' || true"
+            mark_rollback "删除已安装的 PHP 文件夹 $PHP_PREFIX" "rm -rf '$PHP_PREFIX' || true"
             return 0
         fi
         warn "PHP 配置失败，尝试安装缺失依赖并重试"
@@ -630,96 +734,87 @@ build_php() {
     success "PHP 编译安装完成"
 }
 
+setup_swap() {
+    # 检查是否已有足够的SWAP空间
+    local current_swap=$(free -m | awk '/Swap:/{print $2}')
+    if [ "$current_swap" -lt 2048 ]; then  # 如果SWAP小于2GB
+        info "配置SWAP空间(2GB)以防止编译内存不足..."
+        local swap_file="/var/cache/swap/swap0"
+
+        # 创建SWAP文件
+        mkdir -p /var/cache/swap/
+        if [ ! -f "$swap_file" ]; then
+            run_cmd "dd if=/dev/zero of=$swap_file bs=64M count=128" "创建SWAP文件"
+            run_cmd "chmod 600 $swap_file" "设置SWAP文件权限"
+            run_cmd "mkswap $swap_file" "初始化SWAP"
+        fi
+
+        # 启用SWAP
+        if ! swapon -s | grep -q "$swap_file"; then
+            run_cmd "swapon $swap_file" "启用SWAP"
+            # 添加到fstab永久生效
+            if ! grep -q "$swap_file" /etc/fstab; then
+                echo "$swap_file swap swap defaults 0 0" >> /etc/fstab
+            fi
+            mark_rollback "移除SWAP配置" "swapoff $swap_file 2>/dev/null || true; sed -i '\|$swap_file|d' /etc/fstab || true"
+        fi
+
+        # 显示内存信息
+        run_cmd "free -h" "检查内存状态"
+        success "SWAP配置完成"
+    else
+        info "现有SWAP空间充足(${current_swap}MB)，跳过配置"
+    fi
+}
+
 setup_php_config() {
     info "配置 PHP..."
+
     mkdir -p "$PHP_PREFIX/lib" "$PHP_PREFIX/etc" "$PHP_PREFIX/var/log" \
            "$PHP_PREFIX/var/run" "$PHP_PREFIX/lib/conf.d" "$PHP_PREFIX/var/session"
 
     PHP_INI_FILE="$PHP_PREFIX/lib/php.ini"
 
+    cd "$PHP_SRC_DIR"
+    cp php.ini-production "$PHP_INI_FILE"
+    cp "$PHP_PREFIX/etc/php-fpm.conf.default" "$PHP_PREFIX/etc/php-fpm.conf"
+    cp "$PHP_PREFIX/etc/php-fpm.d/www.conf.default"  "$PHP_PREFIX/etc/php-fpm.d/www.conf"
+
     if [ -f "$PHP_INI_FILE" ]; then
         safe_backup_file "$PHP_INI_FILE"
     fi
 
-    cat > "$PHP_INI_FILE" <<EOF
-[PHP]
-engine = On
-short_open_tag = Off
-error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
-display_errors = Off
-log_errors = On
-error_log = $PHP_PREFIX/var/log/php_errors.log
-memory_limit = $PHP_MEMORY_LIMIT
-max_execution_time = $PHP_MAX_EXECUTION_TIME
-post_max_size = $PHP_POST_MAX_SIZE
-upload_max_filesize = $PHP_UPLOAD_MAX_FILESIZE
-extension_dir = "$PHP_PREFIX/lib/php/extensions/no-debug-non-zts-20200930"
-
-[Date]
-date.timezone = Asia/Shanghai
-
-[opcache]
-opcache.enable=1
-opcache.memory_consumption=128
-opcache.interned_strings_buffer=8
-opcache.max_accelerated_files=10000
-opcache.revalidate_freq=60
-opcache.fast_shutdown=1
-EOF
-
-    mark_rollback "删除生成的 php.ini" "rm -f '$PHP_INI_FILE' || true"
+    # 修改php.ini配置 暂不配置 [opcache]
+    modify_file "$PHP_INI_FILE" \
+            "upload_max_filesize.*:upload_max_filesize = 100M:replace" \
+            "max_file_uploads.*:max_file_uploads = 100:replace" \
+            "post_max_size.*:post_max_size = 150M:replace" \
+            "memory_limit.*:memory_limit = 256M:replace" \
+            "max_execution_time.*:max_execution_time = 300:replace" \
+            "max_input_time.*:max_input_time = 300:replace" \
+            ";date.timezone.*:date.timezone = Asia/Shanghai:insert" \
 
     setup_php_fpm_config
     create_php_symlinks
     setup_php_path
 
-    export PATH="$PHP_PREFIX/bin:$PATH"
-    export PHP_HOME="$PHP_PREFIX"
+    # 让其他用户组可以执行 php
+    run_cmd "sudo chown -R '$GROUP_NAME':'$WWW_USER' /usr/local/php8 '$PHP_PREFIX'" "修改 php 目录权限"
+    run_cmd "sudo chmod -R 755 '$PHP_PREFIX'" "修改 php 目录权限"
 
     success "PHP 基本配置完成"
 }
 
 setup_php_fpm_config() {
-    local fpm_conf="$PHP_PREFIX/etc/php-fpm.conf"
-    local fpm_pool_conf="$PHP_PREFIX/etc/php-fpm.d/www.conf"
-
-    if [ -f "$fpm_conf" ]; then
+    if [ -f "$PHP_PREFIX/etc/php-fpm.conf" ]; then
         safe_backup_file "$fpm_conf"
     fi
 
-    mkdir -p "$PHP_PREFIX/etc/php-fpm.d"
+    # 修改php-fpm.conf配置
+    modify_file "$PHP_PREFIX/etc/php-fpm.conf" \
+        ";pid = run/php-fpm.pid:pid = $PHP_PREFIX/var/run/php-fpm.pid:insert" \
+        ";error_log = log/php-fpm.log:error_log = $PHP_PREFIX/var/php-fpm.log:insert"
 
-    cat > "$fpm_conf" <<EOF
-[global]
-pid = $PHP_PREFIX/var/run/php-fpm.pid
-error_log = $PHP_PREFIX/var/log/php-fpm.log
-log_level = notice
-emergency_restart_threshold = 10
-emergency_restart_interval = 1m
-process_control_timeout = 10s
-daemonize = no
-
-include=$PHP_PREFIX/etc/php-fpm.d/*.conf
-EOF
-
-    cat > "$fpm_pool_conf" <<EOF
-[www]
-user = $WWW_USER
-group = $WWW_USER
-listen = 127.0.0.1:9000
-listen.allowed_clients = 127.0.0.1
-pm = dynamic
-pm.max_children = 50
-pm.start_servers = 5
-pm.min_spare_servers = 5
-pm.max_spare_servers = 35
-pm.max_requests = 500
-slowlog = $PHP_PREFIX/var/log/php-fpm-slow.log
-request_slowlog_timeout = 10s
-request_terminate_timeout = 300s
-EOF
-
-    mark_rollback "删除生成的 php-fpm 配置" "rm -f '$fpm_conf' '$fpm_pool_conf' || true"
 }
 
 create_php_symlinks() {
@@ -734,38 +829,36 @@ create_php_symlinks() {
 setup_php_path() {
     if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE" 2>/dev/null; then
         safe_backup_file "$PROFILE_FILE"
-        cat >> "$PROFILE_FILE" <<EOF
+        modify_file "$PROFILE_FILE" \
+            "export PATH.*:export PATH=$PHP_PREFIX/bin:\$PATH:insert"
 
-# PHP $PHP_VERSION
-export PATH=$PHP_PREFIX/bin:\$PATH
-export PHP_HOME=$PHP_PREFIX
-export LD_LIBRARY_PATH=$PHP_PREFIX/lib:\$LD_LIBRARY_PATH
-EOF
+
+        run_cmd "source $PROFILE_FILE" "保存配置..."
+
         mark_rollback "恢复 $PROFILE_FILE" "if [ -f '${PROFILE_FILE}.bak.' ]; then true; fi;"
     fi
 }
 
 create_phpfpm_service() {
     info "创建 PHP-FPM systemd 服务..."
-    local service_file="/etc/systemd/system/php-fpm.service"
+    local service_file="/usr/lib/systemd/system/php-fpm.service"
     safe_backup_file "$service_file"
 
     cat > "$service_file" <<EOF
 [Unit]
-Description=PHP-FPM (Custom)
-After=network.target
+Description=The PHP FastCGI Process Manager
+After=syslog.target network.target
 
 [Service]
-Type=simple
+Type=forking
 PIDFile=$PHP_PREFIX/var/run/php-fpm.pid
-ExecStart=$PHP_PREFIX/sbin/php-fpm --nodaemonize --fpm-config $PHP_PREFIX/etc/php-fpm.conf
-ExecReload=/bin/kill -USR2 \$MAINPID
-ExecStop=/bin/kill -SIGINT \$MAINPID
-Restart=on-failure
-RestartSec=5s
+ExecStart=$PHP_PREFIX/sbin/php-fpm
+ExecReload=/bin/kill -USR2 $MAINPID
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 
     run_cmd "systemctl daemon-reload" "重载 systemd"
@@ -839,7 +932,7 @@ install_mysql() {
             ;;
     esac
 
-    setup_mysql_config
+    # setup_mysql_config
     start_mysql_service
     secure_mysql_installation
 
@@ -897,7 +990,7 @@ secure_mysql_installation() {
         mysql --connect-expired-password -u root -p"$temp_pass" -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" 2>/dev/null || true
     fi
 
-    mysql -u root -p"$MYSQL_ROOT_PASS" -e "CREATE USER IF NOT EXISTS '$REMOTE_ADMIN_USER'@'%' IDENTIFIED BY '$REMOTE_ADMIN_PASS'; GRANT ALL PRIVILEGES ON *.* TO '$REMOTE_ADMIN_USER'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null || true
+    mysql -u root -p"$MYSQL_ROOT_PASS" -e "CREATE USER IF NOT EXISTS '$REMOTE_ADMIN_USER'@'%' IDENTIFIED BY '$REMOTE_ADMIN_PASS'; GRANT ALL PRIVILEGES ON *.* TO '$REMOTE_ADMIN_USER'@'%'; FLUSH PRIVILEGES;" 2>/dev/null || true
 
     success "MySQL 安全配置完成"
 }
@@ -909,6 +1002,7 @@ install_nginx() {
         return 0
     fi
     info "安装 Nginx $NGINX_VERSION..."
+    run_cmd "rpm -Uvh http://nginx.org/packages/centos/8/x86_64/RPMS/nginx-$NGINX_VERSION-1.el8.ngx.x86_64.rpm" "安装 Nginx"
 
     case "$PKG_MGR" in
         dnf|yum)
@@ -935,42 +1029,129 @@ setup_nginx_config() {
     fi
 
     cat > "$nginx_conf_file" <<EOF
-user $WWW_USER;
-worker_processes auto;
-pid /run/nginx.pid;
+user  nginx;
+# user $WWW_USER;
+# 自动根据CPU核心数调整Worker进程数量
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+
 
 events {
-    worker_connections 1024;
-    use epoll;
-    multi_accept on;
+    worker_connections  1024;
 }
+
 
 http {
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+
+    # 开启高效传输模式
+    sendfile        on;
+    # 保持连接的时间，也叫超时时间，单位秒
+    keepalive_timeout  65;
+
+    # 新增配置
+    tcp_nopush          on;   # 减少网络报文段的数量
+    tcp_nodelay         on;
     types_hash_max_size 2048;
-    server_tokens off;
 
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
+    ######################## 大文件上传处理 ########################
+    # 上传文件的大小限制  默认1m
+    client_max_body_size 500m;
+    # 读取客户端请求头数据的超时时间 默认秒 默认60秒
+    client_header_timeout 120;
 
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-
+    ######################## 压缩 ########################
+    # 默认off，是否开启gzip
     gzip on;
-    gzip_disable "msie6";
+    # 要采用 gzip 压缩的 MIME 文件类型，其中 text/html 被系统强制启用；
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+
+    # ---- 以上两个参数开启就可以支持Gzip压缩了 ---- #
+
+    # 默认 off，该模块启用后，Nginx 首先检查是否存在请求静态文件的 gz 结尾的文件，如果有则直接返回该 .gz 文件内容；
+    gzip_static on;
+
+    # 默认 off，nginx做为反向代理时启用，用于设置启用或禁用从代理服务器上收到相应内容 gzip 压缩；
+    # off：关闭Nginx对后台服务器的响应结果进行压缩。
+    # expired：如果响应头中包含Expires信息，则开启压缩。
+    # no-cache：如果响应头中包含Cache-Control:no-cache信息，则开启压缩。
+    # no-store：如果响应头中包含Cache-Control:no-store信息，则开启压缩。
+    # private：如果响应头中包含Cache-Control:private信息，则开启压缩。
+    # no_last_modified：如果响应头中不包含Last-Modified信息，则开启压缩。
+    # no_etag：如果响应头中不包含ETag信息，则开启压缩。
+    # auth：如果响应头中包含Authorization信息，则开启压缩。
+    # any：无条件对后端的响应结果开启压缩机制。
+    gzip_proxied off;
+
+    # 用于在响应消息头中添加 Vary：Accept-Encoding，使代理服务器根据请求头中的 Accept-Encoding 识别是否启用 gzip 压缩；
     gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 6;
+
+    # gzip 压缩比，压缩级别是 1-9，1 压缩级别最低，9 最高，级别越高压缩率越大，压缩时间越长，建议 4-6；
+    gzip_comp_level 5;
+
+    # 获取多少内存用于缓存压缩结果，16 8k 表示以 8k*16 为单位获得；
     gzip_buffers 16 8k;
+
+    # 允许压缩的页面最小字节数，页面字节数从header头中的 Content-Length 中进行获取。默认值是 0，不管页面多大都压缩。建议设置成大于 1k 的字节数，小于 1k 可能会越压越大；
+    # gzip_min_length 2k;
+
+    # 默认 1.1，启用 gzip 所需的 HTTP 最低版本；
     gzip_http_version 1.1;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # 禁用IE 6 gzip
+    gzip_disable "MSIE [1-6]\.";
+
+
+    ######################## Nginx缓冲区 ########################
+
+    # 设置与后端服务器建立连接时的超时时间。默认为60s
+    proxy_connect_timeout 600s;
+    # 设置从后端服务器读取响应数据的超时时间 默认为60s
+    proxy_read_timeout 600s;
+    # 设置向后端服务器传输请求数据的超时时间 默认为60s
+    proxy_send_timeout 600s;
+    # 是否启用缓冲机制，默认为on关闭状态。
+    proxy_buffering on;
+    # 设置缓冲客户端请求数据的内存大小。
+    client_body_buffer_size 512k;
+    # 为每个请求/连接设置缓冲区的数量和大小，默认4 4k/8k。
+    proxy_buffers 4 512k;
+    # 设置用于存储响应头的缓冲区大小。
+    proxy_buffer_size 512k;
+    # 在后端数据没有完全接收完成时，Nginx可以将busy状态的缓冲返回给客户端，该参数用来设置busy状态的buffer具体有多大，默认为proxy_buffer_size*2
+    proxy_busy_buffers_size 512k;
+    # 设置每次写数据到临时文件的大小限制。
+    proxy_temp_file_write_size 2m;
+    # path是临时目录的路径
+    proxy_temp_path /var/temp_buffer;
+
+
+    ######################## Nginx缓存 ########################
+    # 设置缓存路径并且使用一块最大100M的共享内存，用于硬盘上的文件索引，包括文件名和请求次数，每个文件在1天内若不活跃（无请求）则从硬盘上淘汰，硬盘缓存最大5G，满了则根据LRU算法自动清除缓存。
+    proxy_cache_path /var/cache/nginx/cache levels=1:2 use_temp_path=on keys_zone=imgcache:100m inactive=1d max_size=5g;
+    # 对于相同的请求，是否开启锁机制，只允许一个请求发往后端。on | off;
+    # proxy_cache_lock on;
+    # 配置锁超时机制，超出规定时间后会释放请求。默认为5s。
+    # proxy_cache_lock_timeout 5;
+
+    # 当上游响应的响应码'大于等于'300[常见"404"、"500"等]时; 按error_page指令处理
+    proxy_intercept_errors on;
+    # 创建自己的404.html页面 需要放在 nginx 的html路径下
+    fastcgi_intercept_errors on;
 
     include /etc/nginx/conf.d/*.conf;
-    include /etc/nginx/sites-enabled/*;
 }
+
 EOF
 
     mark_rollback "恢复 Nginx 配置" "if [ -f '${nginx_conf_file}.bak.' ]; then true; fi;"
@@ -1008,71 +1189,16 @@ install_redis() {
 
 setup_redis_config() {
     info "配置 Redis..."
-    local redis_conf_file="/etc/redis/redis.conf"
-    local redis_conf_dir="/etc/redis"
+    local redis_conf_file="/etc/redis.conf"
 
     if [ -f "$redis_conf_file" ]; then
         safe_backup_file "$redis_conf_file"
     fi
 
-    cat > "$redis_conf_file" <<EOF
-bind 0.0.0.0
-protected-mode no
-port 6379
-tcp-backlog 511
-timeout 0
-tcp-keepalive 300
-daemonize yes
-supervised systemd
-pidfile /var/run/redis/redis.pid
-loglevel notice
-logfile /var/log/redis/redis.log
-databases 16
-always-show-logo yes
-save 900 1
-save 300 10
-save 60 10000
-stop-writes-on-bgsave-error yes
-rdbcompression yes
-rdbchecksum yes
-dbfilename dump.rdb
-dir /var/lib/redis
-requirepass $REMOTE_ADMIN_PASS
-maxclients 10000
-maxmemory 1gb
-maxmemory-policy allkeys-lru
-appendonly yes
-appendfilename "appendonly.aof"
-appendfsync everysec
-no-appendfsync-on-rewrite no
-auto-aof-rewrite-percentage 100
-auto-aof-rewrite-min-size 64mb
-aof-load-truncated yes
-aof-use-rdb-preamble yes
-lua-time-limit 5000
-slowlog-log-slower-than 10000
-slowlog-max-len 128
-latency-monitor-threshold 0
-notify-keyspace-events ""
-hash-max-ziplist-entries 512
-hash-max-ziplist-value 64
-list-max-ziplist-size -2
-list-compress-depth 0
-set-max-intset-entries 512
-zset-max-ziplist-entries 128
-zset-max-ziplist-value 64
-hll-sparse-max-bytes 3000
-stream-node-max-bytes 4096
-stream-node-max-entries 100
-activerehashing yes
-client-output-buffer-limit normal 0 0 0
-client-output-buffer-limit replica 256mb 64mb 60
-client-output-buffer-limit pubsub 32mb 8mb 60
-hz 10
-dynamic-hz yes
-aof-rewrite-incremental-fsync yes
-rdb-save-incremental-fsync yes
-EOF
+    modify_file "$redis_conf_file" \
+        "daemonize.*:daemonize yes:replace" \
+        "# requirepass.*:requirepass $REDIS_PASS:insert" \
+        "bind.*:bind 0.0.0.0:replace"
 
     mark_rollback "恢复 Redis 配置" "if [ -f '${redis_conf_file}.bak.' ]; then true; fi;"
 }
@@ -1104,15 +1230,23 @@ install_composer() {
     success "Composer 安装完成"
 }
 
-# ----------------- 系统用户创建 -----------------
+# ----------------- 03、系统用户创建 -----------------
 create_system_users() {
-    info "创建系统用户..."
+    info "创建系统用户和组..."
+
+    # 如果用户组不存在，则创建
+    if ! getent group "$GROUP_NAME" >/dev/null 2>&1; then
+        run_cmd "sudo groupadd $GROUP_NAME" "创建用户组 $GROUP_NAME" || return 1
+    fi
+
+    # 如果用户不存在，则创建
     if ! id "$WWW_USER" >/dev/null 2>&1; then
-        run_cmd "useradd -r -s /sbin/nologin -d /nonexistent -c 'Web Application' '$WWW_USER'" "创建用户 $WWW_USER" || return 1
+        # 创建用户并将其加入用户组
+        run_cmd "sudo useradd -g '$GROUP_NAME' '$WWW_USER'" "创建用户到组下 $WWW_USER" || return 1
+        # 设置密码
+        echo "${WWW_USER}:${WWW_PASS}" | chpasswd
         CREATED_USERS+=("$WWW_USER")
         mark_rollback "删除用户 $WWW_USER" "userdel '$WWW_USER' || true"
-    else
-        info "用户 $WWW_USER 已存在，跳过创建"
     fi
 
     success "系统用户创建完成"
@@ -1159,8 +1293,10 @@ Redis 安装路径: $REDIS_PREFIX
 MySQL root 密码: $MYSQL_ROOT_PASS
 远程管理用户: $REMOTE_ADMIN_USER
 远程管理密码: $REMOTE_ADMIN_PASS
+Web服务用户组: $GROUP_NAME
 Web 服务用户: $WWW_USER
 Web 服务密码: $WWW_PASS
+Redis密码: $REDIS_PASS
 
 # -------------------- 服务状态 --------------------
 PHP-FPM: $(systemctl is-active php-fpm.service 2>/dev/null || echo "未安装")
@@ -1267,11 +1403,15 @@ main() {
         exit 1
     fi
 
+    # 系统检测
     detect_system || exit 1
 
     # 主安装流程
     install_dependencies || handle_error ${LINENO} "安装依赖失败" $?
     create_system_users || handle_error ${LINENO} "创建用户失败" $?
+
+    # 为了防止虚拟内存不足:先配置SWAP
+    setup_swap
 
     if [ "${INSTALL_PHP,,}" = "yes" ]; then
         download_php || handle_error ${LINENO} "下载 PHP 失败" $?
@@ -1299,7 +1439,7 @@ main() {
         install_composer || handle_error ${LINENO} "安装 Composer 失败" $?
     fi
 
-    configure_firewall || warn "防火墙配置有部分失败"
+    # configure_firewall || warn "防火墙配置有部分失败"
 
     # 清理和总结
     if [ "${CLEAN_TEMP,,}" = "yes" ]; then

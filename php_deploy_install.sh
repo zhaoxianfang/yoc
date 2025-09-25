@@ -45,14 +45,14 @@ NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
 REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
 SRC_DIR="${SRC_DIR:-/usr/local/src}"
 
-# 安全凭证配置（生产环境建议使用随机密码）
-MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-zhaoXfMysql001.}"
-REMOTE_ADMIN_USER="${REMOTE_ADMIN_USER:-zhaoxianfang}"
-REMOTE_ADMIN_PASS="${REMOTE_ADMIN_PASS:-zxfMysql001.}"
-GROUP_NAME="${GROUP_NAME:-www}"
-WWW_USER="${WWW_USER:-www}"
-WWW_PASS="${WWW_PASS:-CdOs491592.}"
-REDIS_PASS="${REDIS_PASS:-zxfRedis001.}"
+# 安全凭证配置（生产环境建议使用随机密码 $(openssl rand -base64 24)} ）
+MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-zhaoXfMysql001.}" # mysql root用户密码
+MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-zhaoxianfang}" # mysql 远程连接用户
+MYSQL_REMOTE_ADMIN_PASS="${MYSQL_REMOTE_ADMIN_PASS:-zxfMysql001.}" # mysql 远程连接用户 密码
+GROUP_NAME="${GROUP_NAME:-www}" # www 用户组
+WWW_USER="${WWW_USER:-www}" # www 用户组的用户
+WWW_USER_PASS="${WWW_USER_PASS:-CdOs491592.}" # www 用户组的用户 密码
+REDIS_PASS="${REDIS_PASS:-zxfRedis001.}" #  redis 密码
 
 # 日志和临时文件配置
 LOG_DIR="${LOG_DIR:-/var/log/php-stack-install}"
@@ -62,7 +62,7 @@ ROLLBACK_LOG_FILE="${ROLLBACK_LOG_FILE:-$LOG_DIR/rollback.log}"
 INSTALL_SUMMARY="${INSTALL_SUMMARY:-/data/install_config.log}"
 INSTALLED_PACKAGES_LOG="${INSTALLED_PACKAGES_LOG:-$LOG_DIR/installed_packages.log}"
 
-# 性能配置（单线程执行，避免重复）
+# 性能配置（核心配置：单线程执行，避免重复）
 MAKE_JOBS="${MAKE_JOBS:-1}"
 AUTO_START_SERVICES="${AUTO_START_SERVICES:-yes}"
 MAX_RETRIES="${MAX_RETRIES:-3}"
@@ -659,20 +659,20 @@ install_dependencies() {
     # 根据包管理器更新系统
     case "$PKG_MGR" in
         dnf)
-            # run_cmd_with_retry "dnf -y update --allowerasing" "更新系统" 2 5
-            run_cmd_with_retry "dnf -y update --nobest" "更新系统" 2 5
+            run_cmd_with_retry "dnf -y update --allowerasing" "更新系统" 2 5
+            # run_cmd_with_retry "dnf -y update --nobest" "更新系统" 2 5
             install_epel_repository
             ;;
         yum)
-            # run_cmd_with_retry "yum -y update --allowerasing" "更新系统" 2 5
-            run_cmd_with_retry "yum -y update --nobest" "更新系统" 2 5
+            run_cmd_with_retry "yum -y update --allowerasing" "更新系统" 2 5
+            # run_cmd_with_retry "yum -y update --nobest" "更新系统" 2 5
             install_epel_repository
             ;;
         apt)
-            # run_cmd_with_retry "apt-get -y update --allowerasing" "更新包列表" 2 5
-            run_cmd_with_retry "apt-get -y update --nobest" "更新包列表" 2 5
-            # run_cmd_with_retry "apt-get -y upgrade --allowerasing" "升级系统" 2 5
-            run_cmd_with_retry "apt-get -y upgrade --nobest" "升级系统" 2 5
+            run_cmd_with_retry "apt-get -y update --allowerasing" "更新包列表" 2 5
+            # run_cmd_with_retry "apt-get -y update --nobest" "更新包列表" 2 5
+            run_cmd_with_retry "apt-get -y upgrade --allowerasing" "升级系统" 2 5
+            # run_cmd_with_retry "apt-get -y upgrade --nobest" "升级系统" 2 5
             ;;
     esac
 
@@ -709,30 +709,40 @@ install_epel_fallback() {
     local el_ver pkg_url
     el_ver=$(get_el_version)
     if ! [[ "$el_ver" =~ ^(7|8|9)$ ]]; then
-        echo "错误：无法检测EL版本。" >&2
+        echo "错误：无法检测EL版本。$el_ver" >&2
         exit 1
     fi
 
-    # ✅ 优先使用国内镜像（阿里云 + 清华 双保险）
-    case "$el_ver" in
-        7) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm" ;;
-        8) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm" ;;
-        9) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-9.noarch.rpm" ;;
-    esac
-
-    # 检测是否能访问阿里云，否则 fallback 到清华源
-    if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+    # ✅ 优先使用国内镜像（阿里云 + Fedora 官方 双保险）
         case "$el_ver" in
-            7) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm" ;;
-            8) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-8.noarch.rpm" ;;
-            9) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-9.noarch.rpm" ;;
+            7) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm" ;;
+            8) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm" ;;
+            9) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-9.noarch.rpm" ;;
         esac
-        # 再次检测清华源是否可达
+
+        # 检测是否能访问阿里云，否则 fallback 到清华源
         if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
-            echo "错误：阿里云和Tuna镜像都无法访问。请检查网络。" >&2
-            exit 1
+            debug "阿里云安装 EPEL 仓库 $el_ver 失败转为清华源..."
+            case "$el_ver" in
+                7) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm" ;;
+                8) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-8.noarch.rpm" ;;
+                9) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-9.noarch.rpm" ;;
+            esac
+            # 再次检测清华源是否可达，否则 fallback 到 Fedora 官方源
+            if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+                debug "清华源安装 EPEL 仓库 $el_ver 失败转为Fedora官方源..."
+                case "$el_ver" in
+                    7) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm" ;;
+                    8) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm" ;;
+                    9) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm" ;;
+                esac
+                # 再次检测 Fedora 官方源是否可达
+                if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+                    error "错误：阿里云、清华Tuna镜像和Fedora 官方都无法访问。请检查网络。" >&2
+                    exit 1
+                fi
+            fi
         fi
-    fi
 
     # 安装命令（自动选择 dnf/yum）
     if command -v dnf >/dev/null 2>&1; then
@@ -753,77 +763,266 @@ install_epel_fallback() {
     fi
 }
 
-# 判断 系统中的 epel-release EL版本
+# 判断 系统中的 epel-release EPEL 版本; 通过各种途径获取原生linux系统和魔改系统的 EPEL 源（注意：魔改系统中往往没有包含release的信息，需要通过其他配置进行判断）
+# ===========================================
+# 函数：get_el_version
+# 功能：自动检测系统底层兼容的 RHEL 主版本（返回 7, 8, 9, ...）
+# 输出：仅 stdout 打印版本号（如 "8"），失败则无输出
+# 兼容：所有主流及魔改系统（Alibaba Cloud Linux, Anolis, TencentOS, Kylin, UOS, CentOS, RHEL 等）
+# 调用方式：el_ver=$(get_el_version)
+# ===========================================
 get_el_version() {
-    local v f c g s k r
-    # 1. PLATFORM_ID
-    [ -f /etc/os-release ] && v=$(grep -oP 'PLATFORM_ID="?platform:el\K[789]' /etc/os-release 2>/dev/null) && echo "$v" && return
+    local os_name="" os_version_id="" os_version="" line key value content
 
-    # 2. *-release files
-    for f in redhat alinux anolis tencentos opencloudos centos system; do
-        [ -f "/etc/${f}-release" ] && c=$(cat "/etc/${f}-release" 2>/dev/null) && {
-            [[ $c =~ [^0-9]9([^0-9]|$) ]] && echo 9 && return
-            [[ $c =~ [^0-9]8([^0-9]|$) ]] && echo 8 && return
-            [[ $c =~ [^0-9]7([^0-9]|$) ]] && echo 7 && return
-        }
-    done
-
-    # 3. os-release mapping
+    # -------------------------------
+    # 1. 优先：检查 PLATFORM_ID
+    # -------------------------------
     if [ -f /etc/os-release ]; then
-        c=$(grep -E '^(NAME|VERSION_ID)=' /etc/os-release 2>/dev/null | sed -E 's/^[^=]*="?(.*)"?$/\1/' 2>/dev/null)
-        read -r n id <<<"$c"
-        case "$n $id" in
-            *"Alibaba Cloud Linux 2"*|*"Anolis OS 7"*|*"OpenAnolis 7"*|*"TencentOS Server 2.4"*|*"OpenCloudOS 7"*|*"CentOS Linux 7"*|*"Rocky Linux 7"*|*"AlmaLinux 7"*|*"Red Hat Enterprise Linux 7"*|*"Oracle Linux 7"*) echo 7 && return ;;
-            *"Alibaba Cloud Linux 3"*|*"Anolis OS 8"*|*"OpenAnolis 8"*|*"TencentOS Server 3.1"*|*"OpenCloudOS 8"*|*"CentOS Linux 8"*|*"CentOS Stream 8"*|*"Rocky Linux 8"*|*"AlmaLinux 8"*|*"RHEL 8"*|*"Oracle Linux 8"*) echo 8 && return ;;
-            *"Alibaba Cloud Linux 4"*|*"Alibaba Cloud Linux 5"*|*"Anolis OS 23"*|*"OpenAnolis 23"*|*"TencentOS Server 3.2"*|*"TencentOS Server 4.0"*|*"OpenCloudOS 9"*|*"CentOS Stream 9"*|*"Rocky Linux 9"*|*"AlmaLinux 9"*|*"RHEL 9"*|*"Oracle Linux 9"*|*"Kylin V10"*|*"Kylin Linux Advanced Server V10"*|*"UnionTech OS Server 20"*|*"UOS Server 20"*) echo 9 && return ;;
-        esac
-        case "$id" in 7*|8*|9*) echo "${id%%.*}" && return ;; esac
+        while IFS= read -r line; do
+            # 跳过空行和注释
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$line" ]] && continue
+
+            # 分割 KEY=VALUE（支持带引号）
+            if [[ "$line" == *=* ]]; then
+                key="${line%%=*}"
+                value="${line#*=}"
+
+                # 去除 key 两端空格
+                key="${key#"${key%%[![:space:]]*}"}"
+                key="${key%"${key##*[![:space:]]}"}"
+
+                # 去除 value 两端空格和引号
+                value="${value#"${value%%[![:space:]]*}"}"
+                value="${value%"${value##*[![:space:]]}"}"
+                if [[ $value == \"*\" ]]; then
+                    value="${value#\"}"
+                    value="${value%\"}"
+                elif [[ $value == \'*\' ]]; then
+                    value="${value#\'}"
+                    value="${value%\'}"
+                fi
+
+                case "$key" in
+                    NAME) os_name="$value" ;;
+                    VERSION_ID) os_version_id="$value" ;;
+                    VERSION) os_version="$value" ;;
+                    PLATFORM_ID)
+                        if [[ "$value" == platform:el[0-9]* ]]; then
+                            echo "${value#platform:el}"
+                            return 0
+                        fi
+                        ;;
+                esac
+            fi
+        done < /etc/os-release
     fi
 
-    # 4. glibc
-    g=$(ldd --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null)
-    [ -z "$g" ] && for lib in /lib64/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 /lib/libc.so.6; do
-        [ -f "$lib" ] && g=$("$lib" --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null) && break
+    # -------------------------------
+    # 2. 检查 /etc/*-release 文件
+    # -------------------------------
+    for release_file in \
+        /etc/redhat-release \
+        /etc/centos-release \
+        /etc/alinux-release \
+        /etc/anolis-release \
+        /etc/tencentos-release \
+        /etc/kylin-release \
+        /etc/uos-release; do
+
+        if [ -f "$release_file" ]; then
+            content=$(cat "$release_file" 2>/dev/null)
+            # 提取独立的数字（避免匹配 18 中的 8）
+            if [[ "$content" =~ [^0-9]7([^0-9]|$) ]]; then
+                echo "7"
+                return 0
+            elif [[ "$content" =~ [^0-9]8([^0-9]|$) ]]; then
+                echo "8"
+                return 0
+            elif [[ "$content" =~ [^0-9]9([^0-9]|$) ]]; then
+                echo "9"
+                return 0
+            fi
+        fi
     done
-    [ -n "$g" ] && {
-        case "$g" in
-            2.1[7-9]|2.2[0-7]) echo 7 && return ;;
-            2.2[8-9]|2.3[0-3]) echo 8 && return ;;
-            2.3[4-9]|2.[4-9]*|[3-9].*) echo 9 && return ;;
-        esac
-    }
 
-    # 5. systemd
-    s=$(systemctl --version 2>/dev/null | head -n1 | grep -o '[0-9]\+' | head -n1 2>/dev/null)
-    [ -n "$s" ] && {
-        [ "$s" -ge 250 ] && echo 9 && return
-        [ "$s" -ge 230 ] && echo 8 && return
-        [ "$s" -ge 210 ] && echo 7 && return
-    }
+    # -------------------------------
+    # 3. 发行版名称 + 版本映射表（支持别名）
+    # -------------------------------
+    local full_id=""
+    if [ -n "$os_name" ]; then
+        if [ -n "$os_version_id" ]; then
+            full_id="$os_name $os_version_id"
+        elif [ -n "$os_version" ]; then
+            full_id="$os_name $os_version"
+        else
+            full_id="$os_name"
+        fi
+    fi
 
-    # 6. kernel
-    k=$(uname -r 2>/dev/null)
-    [ -n "$k" ] && {
-        [[ $k =~ ^5\.1[4-9]\. ]] || [[ $k =~ ^[6-9]\. ]] && echo 9 && return
-        [[ $k =~ ^4\.18\. ]] && echo 8 && return
-        [[ $k =~ ^3\.10\. ]] && echo 7 && return
-    }
+    # 定义映射表（支持模糊匹配）
+    local -a distro_rules=(
+        "Alibaba Cloud Linux 3:8"
+        "Alibaba Cloud Linux 4:9"
+        "Alibaba Cloud Linux 5:9"
+        "Anolis OS 8:8"
+        "Anolis OS 23:9"
+        "OpenAnolis 8:8"
+        "OpenAnolis 23:9"
+        "TencentOS Server 3.1:8"
+        "TencentOS Server 3.2:9"
+        "TencentOS Server 4:9"
+        "Kylin V10:9"
+        "Kylin Linux Advanced Server V10:9"
+        "UnionTech OS Server 20:8"
+        "UOS Server 20:8"
+        "CentOS Linux 7:7"
+        "CentOS Linux 8:8"
+        "CentOS Stream 8:8"
+        "CentOS Stream 9:9"
+        "Rocky Linux 8:8"
+        "Rocky Linux 9:9"
+        "AlmaLinux 8:8"
+        "AlmaLinux 9:9"
+        "Red Hat Enterprise Linux 7:7"
+        "Red Hat Enterprise Linux 8:8"
+        "Red Hat Enterprise Linux 9:9"
+        "Oracle Linux 7:7"
+        "Oracle Linux 8:8"
+        "Oracle Linux 9:9"
+        "OpenCloudOS 8:8"
+        "OpenCloudOS 9:9"
+        "CloudOS 8:8"
+        "CloudOS 9:9"
+    )
 
-    # 7. yum repos
-    [ -d /etc/yum.repos.d/ ] && {
-        grep -r '\.el9\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 9 && return
-        grep -r '\.el8\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 8 && return
-        grep -r '\.el7\.' /etc/yum.repos.d/ >/dev/null 2>&1 && echo 7 && return
-    }
+    local rule distro ver
+    for rule in "${distro_rules[@]}"; do
+        distro="${rule%:*}"
+        ver="${rule#*:}"
+        if [[ "$full_id" == *"$distro"* ]]; then
+            echo "$ver"
+            return 0
+        fi
+    done
 
-    # 8. installed RPMs
-    command -v rpm >/dev/null 2>&1 && {
-        rpm -qa 2>/dev/null | grep -q '\.el9\.' && echo 9 && return
-        rpm -qa 2>/dev/null | grep -q '\.el8\.' && echo 8 && return
-        rpm -qa 2>/dev/null | grep -q '\.el7\.' && echo 7 && return
-    }
+    # 特殊处理：仅 VERSION_ID 是纯数字
+    if [[ "$os_version_id" =~ ^[0-9]+$ ]]; then
+        if [[ "$os_version_id" -ge 7 && "$os_version_id" -le 10 ]]; then
+            echo "$os_version_id"
+            return 0
+        fi
+    fi
 
-    # fallback: none
+    # -------------------------------
+    # 4. glibc 版本判断（极可靠）
+    # -------------------------------
+    local glibc_ver major minor
+    if glibc_ver=$(ldd --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null); then
+        :
+    else
+        for lib in /lib64/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 /lib/libc.so.6; do
+            if [ -f "$lib" ] && glibc_ver=$("$lib" --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1 2>/dev/null); then
+                break
+            fi
+        done
+    fi
+
+    if [ -n "$glibc_ver" ]; then
+        major="${glibc_ver%%.*}"
+        minor="${glibc_ver#*.}"
+        if [ "$major" -eq 2 ]; then
+            if [ "$minor" -ge 34 ]; then
+                echo "9"
+                return 0
+            elif [ "$minor" -ge 28 ]; then
+                echo "8"
+                return 0
+            elif [ "$minor" -ge 17 ]; then
+                # glibc 2.17 ~ 2.27 → RHEL 7
+                echo "7"
+                return 0
+            fi
+        fi
+    fi
+
+    # -------------------------------
+    # 5. systemd 版本
+    # -------------------------------
+    if command -v systemctl >/dev/null 2>&1; then
+        local systemd_ver
+        if systemd_ver=$(systemctl --version 2>/dev/null | head -n1 | grep -o '[0-9]\+' | head -n1); then
+            if [ -n "$systemd_ver" ]; then
+                if [ "$systemd_ver" -ge 250 ]; then
+                    echo "9"
+                    return 0
+                elif [ "$systemd_ver" -ge 230 ]; then
+                    echo "8"
+                    return 0
+                elif [ "$systemd_ver" -ge 200 ]; then
+                    echo "7"
+                    return 0
+                fi
+            fi
+        fi
+    fi
+
+    # -------------------------------
+    # 6. 内核版本启发式
+    # -------------------------------
+    local kernel
+    kernel=$(uname -r 2>/dev/null)
+    if [ -n "$kernel" ]; then
+        if [[ "$kernel" =~ ^6\. ]]; then
+            echo "9"  # RHEL 9+ 可能用 6.x
+            return 0
+        elif [[ "$kernel" =~ ^5\.1[4-9]\. ]] || [[ "$kernel" =~ ^5\.[2-9][0-9]*\. ]]; then
+            echo "9"
+            return 0
+        elif [[ "$kernel" =~ ^4\.18\. ]]; then
+            echo "8"
+            return 0
+        elif [[ "$kernel" =~ ^3\.10\. ]]; then
+            echo "7"
+            return 0
+        fi
+    fi
+
+    # -------------------------------
+    # 7. 检查已安装 RPM 包中的 .elX. 标识
+    # -------------------------------
+    if command -v rpm >/dev/null 2>&1; then
+        local rpm_list
+        rpm_list=$(rpm -qa 2>/dev/null)
+        if [[ "$rpm_list" == *".el9."* ]]; then
+            echo "9"
+            return 0
+        elif [[ "$rpm_list" == *".el8."* ]]; then
+            echo "8"
+            return 0
+        elif [[ "$rpm_list" == *".el7."* ]]; then
+            echo "7"
+            return 0
+        fi
+    fi
+
+    # -------------------------------
+    # 8. 检查 YUM repo 中的 elX 字符串
+    # -------------------------------
+    if [ -d /etc/yum.repos.d/ ]; then
+        if grep -r -q 'baseurl.*el9' /etc/yum.repos.d/ 2>/dev/null; then
+            echo "9"
+            return 0
+        elif grep -r -q 'baseurl.*el8' /etc/yum.repos.d/ 2>/dev/null; then
+            echo "8"
+            return 0
+        elif grep -r -q 'baseurl.*el7' /etc/yum.repos.d/ 2>/dev/null; then
+            echo "7"
+            return 0
+        fi
+    fi
+
+    # 所有方法失败
     return 1
 }
 
@@ -1006,6 +1205,7 @@ install_php_redis() {
     info "安装 PHP Redis 扩展..."
     cd "$SRC_DIR"
 
+    # 通过GitHub 获取最新版本
     local redis_ext_url="https://github.com/phpredis/phpredis/archive/refs/tags/${REDIS_EXT_VERSION}.tar.gz"
     local redis_ext_dir="phpredis-${REDIS_EXT_VERSION}"
     local redis_ext_archive="phpredis-${REDIS_EXT_VERSION}.tar.gz"
@@ -1040,6 +1240,7 @@ install_php_imagick() {
     info "安装 PHP Imagick 扩展..."
     cd "$SRC_DIR"
 
+    # 通过GitHub 获取最新版本
     local imagick_ext_url="https://github.com/Imagick/imagick/archive/refs/tags/${IMAGICK_EXT_VERSION}.tar.gz"
     local imagick_ext_dir="imagick-${IMAGICK_EXT_VERSION}"
     local imagick_ext_archive="imagick-${IMAGICK_EXT_VERSION}.tar.gz"
@@ -1278,7 +1479,7 @@ EOF
 # ==================== 主安装流程 ====================
 # 主安装函数
 main_install() {
-    clear
+    clear # 先清屏
     local start_time=$(date +%s)
 
     # 显示安装开始信息
@@ -1313,7 +1514,7 @@ main_install() {
     # 步骤 1: 系统检测
     detect_system || handle_error ${LINENO} "系统检测失败"
 
-    # 步骤 2: 安装依赖
+    # 步骤 2: 必须先安装依赖
     install_dependencies || handle_error ${LINENO} "依赖安装失败"
 
     # 步骤 3: 配置 SWAP
