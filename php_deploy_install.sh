@@ -690,6 +690,7 @@ install_dependencies() {
         readline-devel net-snmp-devel aspell-devel unixODBC-devel
         libc-client-devel libXpm-devel enchant-devel automake
         libtidy libtidy-devel ImageMagick ImageMagick-devel
+        cpp binutils glibc glibc-kernheaders glibc-common glibc-devel
     )
 
     pkg_install "${common_packages[@]}"
