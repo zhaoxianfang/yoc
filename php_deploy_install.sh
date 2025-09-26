@@ -223,7 +223,7 @@ acquire_lock() {
     if [ -f "$LOCK_FILE" ]; then
         local lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
         if [ -n "$lock_pid" ] && kill -0 "$lock_pid" 2>/dev/null; then
-            error "脚本正在运行中 (PID: $lock_pid)，请勿重复执行"
+            error "脚本正在运行中 (PID: $lock_pid)，请勿重复执行,可删除: rm -f '$LOCK_FILE'"
             exit 1
         else
             warn "发现陈旧的锁文件，清理后继续"
@@ -374,8 +374,9 @@ modify_file() {
     done
 
     # 如果有成功修改，则备份原文件并应用修改
-    if [[ $s -gt 0 ]]; then
-        b="${f}.bak.$(date +%Y%m%d_%H%M%S)"
+    if [[ $s -gt 0 ]]; then=
+        #b="${f}.modify_bak.$(date +%Y%m%d_%H%M%S)"
+        b="${f}.modify_bak.$(date +%Y%m%d)"
         cp "$f" "$b" 2>/dev/null && echo "备份原文件: $b"
         mv "$t" "$f"
         echo "文件修改完成: 成功 $s/$c 个操作"
@@ -698,7 +699,7 @@ install_dependencies() {
 
 # 安装 EPEL 仓库
 install_epel_repository() {
-    if ! run_cmd_with_retry "${PKG_MGR} -y install --allowerasing epel-release" "安装 EPEL 仓库" 3 2; then
+    if ! run_cmd "${PKG_MGR} -y install --allowerasing epel-release" "安装 EPEL 仓库"; then
         warn "通过包管理器安装 EPEL 失败，尝试备用方式..."
         install_epel_fallback
     fi
@@ -714,35 +715,35 @@ install_epel_fallback() {
     fi
 
     # ✅ 优先使用国内镜像（阿里云 + Fedora 官方 双保险）
-        case "$el_ver" in
-            7) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm" ;;
-            8) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm" ;;
-            9) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-9.noarch.rpm" ;;
-        esac
+    case "$el_ver" in
+        7) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm" ;;
+        8) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm" ;;
+        9) pkg_url="https://mirrors.aliyun.com/epel/epel-release-latest-9.noarch.rpm" ;;
+    esac
 
-        # 检测是否能访问阿里云，否则 fallback 到清华源
+    # 检测是否能访问阿里云，否则 fallback 到清华源
+    if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
+        debug "阿里云安装 EPEL 仓库 $el_ver 失败转为清华源..."
+        case "$el_ver" in
+            7) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm" ;;
+            8) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-8.noarch.rpm" ;;
+            9) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-9.noarch.rpm" ;;
+        esac
+        # 再次检测清华源是否可达，否则 fallback 到 Fedora 官方源
         if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
-            debug "阿里云安装 EPEL 仓库 $el_ver 失败转为清华源..."
+            debug "清华源安装 EPEL 仓库 $el_ver 失败转为Fedora官方源..."
             case "$el_ver" in
-                7) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm" ;;
-                8) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-8.noarch.rpm" ;;
-                9) pkg_url="https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-9.noarch.rpm" ;;
+                7) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm" ;;
+                8) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm" ;;
+                9) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm" ;;
             esac
-            # 再次检测清华源是否可达，否则 fallback 到 Fedora 官方源
+            # 再次检测 Fedora 官方源是否可达
             if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
-                debug "清华源安装 EPEL 仓库 $el_ver 失败转为Fedora官方源..."
-                case "$el_ver" in
-                    7) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm" ;;
-                    8) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm" ;;
-                    9) pkg_url="https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm" ;;
-                esac
-                # 再次检测 Fedora 官方源是否可达
-                if ! curl -sf --connect-timeout 5 --max-time 10 "$pkg_url" >/dev/null 2>&1; then
-                    error "错误：阿里云、清华Tuna镜像和Fedora 官方都无法访问。请检查网络。" >&2
-                    exit 1
-                fi
+                error "错误：阿里云、清华Tuna镜像和Fedora 官方都无法访问。请检查网络。" >&2
+                exit 1
             fi
         fi
+    fi
 
     # 安装命令（自动选择 dnf/yum）
     if command -v dnf >/dev/null 2>&1; then
@@ -1173,17 +1174,17 @@ modify_php_config() {
         "max_input_time.*:max_input_time = 300:replace"
         "upload_max_filesize = 2M:upload_max_filesize = $PHP_UPLOAD_MAX_FILESIZE:replace"
         "post_max_size = 8M:post_max_size = $PHP_POST_MAX_SIZE:replace"
-        "display_errors = Off:display_errors = On:replace"
-        "error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT:error_reporting = E_ALL:replace"
-        "opcache.enable=0:opcache.enable=1:replace"
-        ";opcache.memory_consumption=128:opcache.memory_consumption=256:replace"
-        ";opcache.interned_strings_buffer=8:opcache.interned_strings_buffer=16:replace"
-        ";opcache.max_accelerated_files=10000:opcache.max_accelerated_files=20000:replace"
-        ";opcache.revalidate_freq=2:opcache.revalidate_freq=60:replace"
-        ";opcache.enable_cli=0:opcache.enable_cli=1:replace"
+        ";date.timezone.*:date.timezone = Asia/Shanghai:insert"
+        # "display_errors = Off:display_errors = On:replace"
+        # "error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT:error_reporting = E_ALL:replace"
+        "opcache.enable=0:opcache.enable=1:replace" # 启用 OPcache
+        ";opcache.memory_consumption=128:opcache.memory_consumption=256:replace" # OPcache 共享内存大小，根据服务器内存调整
+        ";opcache.interned_strings_buffer=8:opcache.interned_strings_buffer=16:replace" # 存储临时字符串的内存大小
+        ";opcache.max_accelerated_files=10000:opcache.max_accelerated_files=20000:replace" # 最大缓存文件数量
+        ";opcache.revalidate_freq=2:opcache.revalidate_freq=60:replace" # 重新验证脚本的时间间隔（秒），0 表示每次请求都验证
+        ";opcache.enable_cli=0:opcache.enable_cli=1:replace" # 对于 CLI 环境也启用 OPcache（可选）
         ";opcache.jit_buffer_size=0:opcache.jit_buffer_size=100M:replace"
         ";opcache.jit=1235:opcache.jit=1255:replace"
-        ";date.timezone.*:date.timezone = Asia/Shanghai:insert"
     )
 
     # 应用 PHP 配置修改
@@ -1310,9 +1311,10 @@ After=network.target
 [Service]
 Type=simple
 PIDFile=$PHP_PREFIX/var/run/php-fpm.pid
-ExecStart=$PHP_PREFIX/sbin/php-fpm --nodaemonize --fpm-config $PHP_PREFIX/etc/php-fpm.conf
+ExecStart=$PHP_PREFIX/sbin/php-fpm
 ExecReload=/bin/kill -USR2 \$MAINPID
 ExecStop=/bin/kill -SIGINT \$MAINPID
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
@@ -1341,15 +1343,20 @@ setup_environment() {
     #modify_file "$PROFILE_FILE" "export PATH.*:export PATH=$PHP_PREFIX/bin:$PATH:insert"
 
     # 添加 PHP 到 PATH
-    if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE"; then
-        cat >> "$PROFILE_FILE" << EOF
+#    if ! grep -q "$PHP_PREFIX/bin" "$PROFILE_FILE"; then
+#        cat >> "$PROFILE_FILE" << EOF
+#
+## PHP Environment
+#export PATH=$PHP_PREFIX/bin:\$PATH
+#export PHP_HOME=$PHP_PREFIX
+#EOF
+#        success "环境变量已添加到 $PROFILE_FILE"
+#    fi
 
-# PHP Environment
-export PATH=$PHP_PREFIX/bin:\$PATH
-export PHP_HOME=$PHP_PREFIX
-EOF
-        success "环境变量已添加到 $PROFILE_FILE"
-    fi
+    modify_file "$PROFILE_FILE" \
+    "export PATH.*:export PATH=$PHP_PREFIX/bin:$PATH:insert" \
+    "export PHP_HOME=$PHP_PREFIX:insert"
+
     # 立即生效
     source "$PROFILE_FILE"
 
@@ -1491,10 +1498,10 @@ main_install() {
     _bold "============================================"
     _bold "  作者: yoc.cn , weisifang.com"
     _bold "============================================"
-    _bold "     PHP: V $PHP_VERSION"
-    _bold "   MySQL: V $MYSQL_VERSION"
-    _bold "   Redis: V $REDIS_VERSION"
-    _bold "   Nginx: V $NGINX_VERSION"
+    _bold "     PHP: v$PHP_VERSION"
+    _bold "   MySQL: v$MYSQL_VERSION"
+    _bold "   Redis: v$REDIS_VERSION"
+    _bold "   Nginx: v$NGINX_VERSION"
     _bold " 安装日志: $LOG_FILE"
     _bold " 错误日志: $ERROR_LOG_FILE"
     _bold "---------------------------------------------"
