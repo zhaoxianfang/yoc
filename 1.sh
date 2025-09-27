@@ -45,7 +45,7 @@ load_config() {
     REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
     REDIS_PHP_EXT_VERSION="${REDIS_PHP_EXT_VERSION:-6.1.0}"
     IMAGICK_PHP_EXT_VERSION="${IMAGICK_PHP_EXT_VERSION:-3.7.0}"
-    SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-5.1.1}"
+    SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-6.0.2}"
 
     # 安装路径
     PHP_PREFIX="${PHP_PREFIX:-/usr/local/php}"
@@ -56,15 +56,15 @@ load_config() {
     # 用户配置
     WWW_USER="${WWW_USER:-www}"
     WWW_GROUP="${WWW_GROUP:-www}"
-    WWW_PASSWORD="${WWW_PASSWORD:-CdOs491592.}"
+    WWW_PASSWORD="${WWW_PASSWORD:-$(openssl rand -base64 24)}"
 
     # MySQL配置
-    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-zhaoXfMysql001.}"
-    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-zhaoxianfang}"
-    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-zxfMysql001.}"
+    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$(openssl rand -base64 24)}"
+    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-remote_admin}"
+    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-$(openssl rand -base64 24)}"
 
     # Redis配置
-    REDIS_PASSWORD="${REDIS_PASSWORD:-zxfRedis001.}"
+    REDIS_PASSWORD="${REDIS_PASSWORD:-$(openssl rand -base64 24)}"
 
     # 系统配置
     SWAP_SIZE="${SWAP_SIZE:-2G}"
@@ -608,7 +608,7 @@ install_redis_extension() {
 install_imagick_extension() {
     info "安装PHP Imagick扩展..."
 
-    local ext_url="https://github.com/Imagick/imagick/archive/$IMAGICK_PHP_EXT_VERSION.tar.gz"
+    local ext_url="https://github.com/Imagick/imagick/archive/refs/tags/$IMAGICK_PHP_EXT_VERSION.tar.gz"
     local ext_dir="imagick-$IMAGICK_PHP_EXT_VERSION"
 
     cd "$INSTALL_DIR"
@@ -637,15 +637,19 @@ install_imagick_extension() {
 install_swoole_extension() {
     info "安装PHP Swoole扩展..."
 
+    local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/$SWOOLE_PHP_EXT_VERSION.tar.gz"
+    local ext_dir="swoole-$SWOOLE_PHP_EXT_VERSION"
+
     cd "$INSTALL_DIR"
 
-    git clone https://github.com/swoole/swoole-src.git >> "$LOG_FILE" 2>&1 &
-    spinner $! "克隆Swoole源码"
+    wget -c "$ext_url" -O swoole.tar.gz >> "$LOG_FILE" 2>&1 &
+    spinner $! "下载Swoole扩展"
 
-    cd swoole-src
+    tar -xzf swoole.tar.gz >> "$LOG_FILE" 2>&1
+    cd "$ext_dir"
 
     $PHP_PREFIX/bin/phpize >> "$LOG_FILE" 2>&1
-    ./configure --with-php-config=$PHP_PREFIX/bin/php-config >> "$LOG_FILE" 2>&1 &
+    ./configure --enable-openssl --enable-sockets --enable-mysqlnd --enable-swoole-curl --enable-cares --enable-swoole-pgsql >> "$LOG_FILE" 2>&1 &
     spinner $! "配置Swoole扩展"
 
     make -j$(nproc) >> "$LOG_FILE" 2>&1 &
