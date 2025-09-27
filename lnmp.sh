@@ -24,8 +24,10 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# 进度动画帧
-SPINNER_FRAMES=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+# 进度动画帧(文字之前)
+SPINNER_FRAMES_BEFORE=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+# 进度动画帧(文字之后)
+SPINNER_FRAMES_AFTER=("▰▱▱▱▱▱▱" "▰▰▱▱▱▱▱" "▰▰▰▱▱▱▱" "▰▰▰▰▱▱▱" "▰▰▰▰▰▱▱" "▰▰▰▰▰▰▱" "▰▰▰▰▰▰▰" "▰▰▰▰▰▱▱" "▰▰▰▰▱▱▱" "▰▰▰▱▱▱▱" "▰▰▱▱▱▱▱" "▰▱▱▱▱▱▱")
 
 # 回滚操作栈
 ROLLBACK_ACTIONS=()
@@ -163,11 +165,11 @@ spinner() {
     local i=0
 
     # 显示初始状态
-    printf "\r${SPINNER_FRAMES[i]} ${message}..."
+    printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message}..."
 
     while kill -0 "$pid" 2>/dev/null; do
-        i=$(( (i+1) % ${#SPINNER_FRAMES[@]} ))
-        printf "\r${SPINNER_FRAMES[i]} ${message}..."
+        i=$(( (i+1) % ${#SPINNER_FRAMES_BEFORE[@]} ))
+        printf "\r%s %s %s" ${SPINNER_FRAMES_BEFORE[i]} "$message" "${SPINNER_FRAMES_AFTER[i]}"
     done
 
     # 检查进程退出状态
