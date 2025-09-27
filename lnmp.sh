@@ -15,6 +15,12 @@ LOG_FILE="${SCRIPT_DIR}/install.log"
 COMMAND_FILE="${SCRIPT_DIR}/command.log" # 所有执行的命令日志
 CONFIG_FILE="${SCRIPT_DIR}/install.conf"
 
+# 控制安装开关
+#INSTALL_PHP="${INSTALL_PHP:-yes}"
+#if [ "${INSTALL_PHP,,}" = "yes" ]; then
+#    install_php
+#fi
+
 # 默认配置
 PHP_VERSION="${PHP_VERSION:-8.4.12}"
 MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
