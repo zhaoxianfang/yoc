@@ -649,7 +649,7 @@ install_imagick_extension() {
 install_swoole_extension() {
     info "安装PHP Swoole扩展..."
 
-    local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/$SWOOLE_PHP_EXT_VERSION.tar.gz"
+    local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/v$SWOOLE_PHP_EXT_VERSION.tar.gz"
     local ext_dir="swoole-$SWOOLE_PHP_EXT_VERSION"
 
     cd "$INSTALL_DIR"
