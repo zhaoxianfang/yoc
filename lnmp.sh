@@ -35,11 +35,53 @@ info() { echo -e "${BLUE}信息：$*${NC}" | tee -a "$LOG_FILE"; }
 success() { echo -e "${GREEN}成功：$*${NC}" | tee -a "$LOG_FILE"; }
 step() { echo -e "${PURPLE}步骤：$*${NC}" | tee -a "$LOG_FILE"; }
 
+
+# 安装配置
+load_config() {
+    # 默认配置
+    PHP_VERSION="${PHP_VERSION:-8.4.12}"
+    MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
+    NGINX_VERSION="${NGINX_VERSION:-1.28.0}"
+    REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
+    REDIS_PHP_EXT_VERSION="${REDIS_PHP_EXT_VERSION:-6.1.0}"
+    IMAGICK_PHP_EXT_VERSION="${IMAGICK_PHP_EXT_VERSION:-3.7.0}"
+    SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-6.0.2}"
+
+    # 安装路径
+    PHP_PREFIX="${PHP_PREFIX:-/usr/local/php}"
+    MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"
+    NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
+    REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
+
+    # 用户配置
+    WWW_USER="${WWW_USER:-www}"
+    WWW_GROUP="${WWW_GROUP:-www}"
+    WWW_PASSWORD="${WWW_PASSWORD:-CdOs491592.}"
+
+    # MySQL配置
+    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-zhaoXfMysql001.}"
+    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-zhaoxianfang}"
+    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-zxfMysql001.}"
+
+    # Redis配置
+    REDIS_PASSWORD="${REDIS_PASSWORD:-zxfRedis001.}"
+
+    # 系统配置
+    SWAP_SIZE="${SWAP_SIZE:-2G}"
+    INSTALL_DIR="${INSTALL_DIR:-/usr/local/src}"
+
+    # 如果存在配置文件，则加载
+    if [[ -f "$CONFIG_FILE" ]]; then
+        source "$CONFIG_FILE"
+        info "加载配置文件: $CONFIG_FILE"
+    fi
+}
+
 # 改进的spinner函数
 spinner() {
     local pid=$1
     local message=$2
-    local delay=0.1
+    # local delay=0.1
     local i=0
 
     # 显示初始状态
@@ -48,7 +90,7 @@ spinner() {
     while kill -0 $pid 2>/dev/null; do
         i=$(( (i+1) % ${#SPINNER_FRAMES[@]} ))
         printf "\r${SPINNER_FRAMES[i]} ${message}..."
-        sleep $delay
+        # sleep $delay
     done
 
     # 检查进程退出状态
@@ -103,47 +145,6 @@ add_rollback() {
     ROLLBACK_ACTIONS+=("$1")
 }
 
-# 安装配置
-load_config() {
-    # 默认配置
-    PHP_VERSION="${PHP_VERSION:-8.4.12}"
-    MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
-    NGINX_VERSION="${NGINX_VERSION:-1.28.0}"
-    REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
-    REDIS_PHP_EXT_VERSION="${REDIS_PHP_EXT_VERSION:-5.3.7}"
-    IMAGICK_PHP_EXT_VERSION="${IMAGICK_PHP_EXT_VERSION:-3.7.0}"
-    SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-5.1.1}"
-
-    # 安装路径
-    PHP_PREFIX="${PHP_PREFIX:-/usr/local/php}"
-    MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"
-    NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
-    REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
-
-    # 用户配置
-    WWW_USER="${WWW_USER:-www}"
-    WWW_GROUP="${WWW_GROUP:-www}"
-    WWW_PASSWORD="${WWW_PASSWORD:-www123456}"
-
-    # MySQL配置
-    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-Root123!@#}"
-    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-remote_admin}"
-    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-Remote123!@#}"
-
-    # Redis配置
-    REDIS_PASSWORD="${REDIS_PASSWORD:-Redis123!@#}"
-
-    # 系统配置
-    SWAP_SIZE="${SWAP_SIZE:-2G}"
-    INSTALL_DIR="${INSTALL_DIR:-/usr/local/src}"
-
-    # 如果存在配置文件，则加载
-    if [[ -f "$CONFIG_FILE" ]]; then
-        source "$CONFIG_FILE"
-        info "加载配置文件: $CONFIG_FILE"
-    fi
-}
-
 # 显示系统信息
 show_system_info() {
     step "检测系统信息..."
@@ -184,8 +185,10 @@ show_install_config() {
     echo "PHP Imagick扩展版本: $IMAGICK_PHP_EXT_VERSION"
     echo "PHP Swoole扩展版本: $SWOOLE_PHP_EXT_VERSION"
     echo "Web用户: $WWW_USER:$WWW_GROUP"
-    echo "MySQL Root密码: ******"
-    echo "Redis密码: ******"
+    echo "MySQL Root密码: $MYSQL_ROOT_PASSWORD"
+    echo "MySQL 远程用户: $MYSQL_REMOTE_ADMIN_USER"
+    echo "MySQL 远程用户密码: $MYSQL_REMOTE_ADMIN_PASSWORD"
+    echo "Redis密码: $REDIS_PASSWORD"
     echo "=========================================="
     echo
 
@@ -275,15 +278,18 @@ install_dependencies() {
 
     # 更新包管理器
     if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
-        $pkg_manager update -y >> "$LOG_FILE" 2>&1 &
+        $pkg_manager update -y --allowerasing >> "$LOG_FILE" 2>&1 &
         spinner $! "更新包管理器"
     fi
 
     # 安装依赖包
     for package in "${common_packages[@]}"; do
-        $pkg_manager install -y "$package" >> "$LOG_FILE" 2>&1 &
+        $pkg_manager install -y --allowerasing "$package" >> "$LOG_FILE" 2>&1 &
         spinner $! "安装$package" || warn "安装$package失败，继续..."
     done
+
+    $pkg_manager groupinstall -y "Development Tools" >> "$LOG_FILE" 2>&1 &
+        spinner $! "安装开发包"
 
     success "依赖包安装完成"
 }
@@ -604,7 +610,7 @@ install_redis_extension() {
 install_imagick_extension() {
     info "安装PHP Imagick扩展..."
 
-    local ext_url="https://github.com/Imagick/imagick/archive/$IMAGICK_PHP_EXT_VERSION.tar.gz"
+    local ext_url="https://github.com/Imagick/imagick/archive/refs/tags/$IMAGICK_PHP_EXT_VERSION.tar.gz"
     local ext_dir="imagick-$IMAGICK_PHP_EXT_VERSION"
 
     cd "$INSTALL_DIR"
@@ -633,15 +639,19 @@ install_imagick_extension() {
 install_swoole_extension() {
     info "安装PHP Swoole扩展..."
 
+    local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/$SWOOLE_PHP_EXT_VERSION.tar.gz"
+    local ext_dir="swoole-$SWOOLE_PHP_EXT_VERSION"
+
     cd "$INSTALL_DIR"
 
-    git clone https://github.com/swoole/swoole-src.git >> "$LOG_FILE" 2>&1 &
-    spinner $! "克隆Swoole源码"
+    wget -c "$ext_url" -O swoole.tar.gz >> "$LOG_FILE" 2>&1 &
+    spinner $! "下载Swoole扩展"
 
-    cd swoole-src
+    tar -xzf swoole.tar.gz >> "$LOG_FILE" 2>&1
+    cd "$ext_dir"
 
     $PHP_PREFIX/bin/phpize >> "$LOG_FILE" 2>&1
-    ./configure --with-php-config=$PHP_PREFIX/bin/php-config >> "$LOG_FILE" 2>&1 &
+    ./configure --enable-openssl --enable-sockets --enable-mysqlnd --enable-swoole-curl --enable-cares --enable-swoole-pgsql >> "$LOG_FILE" 2>&1 &
     spinner $! "配置Swoole扩展"
 
     make -j$(nproc) >> "$LOG_FILE" 2>&1 &
@@ -738,6 +748,8 @@ show_installation_summary() {
     echo "=========================================="
     echo "重要信息:"
     echo "• MySQL root密码: $MYSQL_ROOT_PASSWORD"
+    echo "  MySQL 远程用户: $MYSQL_REMOTE_ADMIN_USER"
+    echo "  MySQL 远程用户密码: $MYSQL_REMOTE_ADMIN_PASSWORD"
     echo "• Redis密码: $REDIS_PASSWORD"
     echo "• 详细安装日志: $LOG_FILE"
     echo "• 请及时修改默认密码！"
@@ -788,6 +800,8 @@ main_installation() {
 
 # 脚本入口
 main() {
+    clear
+
     echo -e "${GREEN}"
     echo "=========================================="
     echo "   企业级 Web 环境自动化安装脚本"
