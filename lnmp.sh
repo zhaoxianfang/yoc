@@ -8,10 +8,12 @@ set -euo pipefail
 # 脚本配置
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="${SCRIPT_DIR}/install.log"
+COMMAND_FILE="${SCRIPT_DIR}/command.log"
 CONFIG_FILE="${SCRIPT_DIR}/install.conf"
 
 # 初始化日志
 > "$LOG_FILE"
+> "$COMMAND_FILE"
 
 # 颜色定义
 RED='\033[0;31m'
@@ -56,15 +58,15 @@ load_config() {
     # 用户配置
     WWW_USER="${WWW_USER:-www}"
     WWW_GROUP="${WWW_GROUP:-www}"
-    WWW_PASSWORD="${WWW_PASSWORD:-CdOs491592.}"
+    WWW_PASSWORD="${WWW_PASSWORD:-$(openssl rand -base64 24)}"
 
     # MySQL配置
-    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-zhaoXfMysql001.}"
-    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-zhaoxianfang}"
-    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-zxfMysql001.}"
+    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$(openssl rand -base64 24)}"
+    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-remote_admin}"
+    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-$(openssl rand -base64 24)}"
 
     # Redis配置
-    REDIS_PASSWORD="${REDIS_PASSWORD:-zxfRedis001.}"
+    REDIS_PASSWORD="${REDIS_PASSWORD:-$(openssl rand -base64 24)}"
 
     # 系统配置
     SWAP_SIZE="${SWAP_SIZE:-2G}"
