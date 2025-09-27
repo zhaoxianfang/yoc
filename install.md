@@ -449,6 +449,8 @@ wget https://www.php.net/distributions/php-8.4.12.tar.gz
 ```
 /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
 /bin/bash -c "$(cat ./install.sh)"
+# 安装 lnmp php8.4 环境
+/bin/bash -c "$(curl -fsSL http://yoc.cn/install/linux/lnmp.sh)"
 ```
 
 ### 让任意用户可以使用 root 用户安装的 composer

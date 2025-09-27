@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# =================================================================
 # 企业级 PHP8.4 + MySQL8.4 + Nginx + Redis + Composer 自动化安装脚本
 # 兼容原生Linux系统和国产/云厂商魔改系统
+# 安装 lnmp php8.4 环境
+# /bin/bash -c "$(curl -fsSL http://yoc.cn/install/linux/lnmp.sh)"
+# =================================================================
 
 set -euo pipefail
 
@@ -10,6 +14,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="${SCRIPT_DIR}/install.log"
 COMMAND_FILE="${SCRIPT_DIR}/command.log" # 所有执行的命令日志
 CONFIG_FILE="${SCRIPT_DIR}/install.conf"
+
+# 默认配置
+PHP_VERSION="${PHP_VERSION:-8.4.12}"
+MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
+NGINX_VERSION="${NGINX_VERSION:-1.28.0}"
+REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
+REDIS_PHP_EXT_VERSION="${REDIS_PHP_EXT_VERSION:-6.1.0}"
+IMAGICK_PHP_EXT_VERSION="${IMAGICK_PHP_EXT_VERSION:-3.7.0}"
+SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-6.0.2}"
+
+# 安装路径
+PHP_PREFIX="${PHP_PREFIX:-/usr/local/php}"
+MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"
+NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
+REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
+
+# 用户配置
+WWW_USER="${WWW_USER:-www}"
+WWW_GROUP="${WWW_GROUP:-www}"
+WWW_PASSWORD="${WWW_PASSWORD:-$(openssl rand -base64 24)}"
+
+# MySQL配置
+MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$(openssl rand -base64 24)}"
+MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-remote_admin}"
+MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-$(openssl rand -base64 24)}"
+
+# Redis配置
+REDIS_PASSWORD="${REDIS_PASSWORD:-$(openssl rand -base64 24)}"
+
+# 系统配置
+SWAP_SIZE="${SWAP_SIZE:-2G}"
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/src}"
+PROFILE_FILE="${PROFILE_FILE:-/etc/profile}" # 环境变量配置
 
 # 初始化日志
 > "$LOG_FILE"
@@ -111,41 +148,9 @@ step() {
 load_config() {
     step "加载安装配置..."
 
-    # 默认配置
-    PHP_VERSION="${PHP_VERSION:-8.4.12}"
-    MYSQL_VERSION="${MYSQL_VERSION:-8.4.0}"
-    NGINX_VERSION="${NGINX_VERSION:-1.28.0}"
-    REDIS_VERSION="${REDIS_VERSION:-7.2.4}"
-    REDIS_PHP_EXT_VERSION="${REDIS_PHP_EXT_VERSION:-6.1.0}"
-    IMAGICK_PHP_EXT_VERSION="${IMAGICK_PHP_EXT_VERSION:-3.7.0}"
-    SWOOLE_PHP_EXT_VERSION="${SWOOLE_PHP_EXT_VERSION:-6.0.2}"
-
-    # 安装路径
-    PHP_PREFIX="${PHP_PREFIX:-/usr/local/php}"
-    MYSQL_PREFIX="${MYSQL_PREFIX:-/usr/local/mysql}"
-    NGINX_PREFIX="${NGINX_PREFIX:-/usr/local/nginx}"
-    REDIS_PREFIX="${REDIS_PREFIX:-/usr/local/redis}"
-
-    # 用户配置
-    WWW_USER="${WWW_USER:-www}"
-    WWW_GROUP="${WWW_GROUP:-www}"
-    WWW_PASSWORD="${WWW_PASSWORD:-$(openssl rand -base64 24)}"
-
-    # MySQL配置
-    MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$(openssl rand -base64 24)}"
-    MYSQL_REMOTE_ADMIN_USER="${MYSQL_REMOTE_ADMIN_USER:-remote_admin}"
-    MYSQL_REMOTE_ADMIN_PASSWORD="${MYSQL_REMOTE_ADMIN_PASSWORD:-$(openssl rand -base64 24)}"
-
-    # Redis配置
-    REDIS_PASSWORD="${REDIS_PASSWORD:-$(openssl rand -base64 24)}"
-
-    # 系统配置
-    SWAP_SIZE="${SWAP_SIZE:-2G}"
-    INSTALL_DIR="${INSTALL_DIR:-/usr/local/src}"
-
     # 如果存在配置文件，则加载
     if [[ -f "$CONFIG_FILE" ]]; then
-        info "加载配置文件: $CONFIG_FILE"
+        info "检查到配置文件: $CONFIG_FILE"
         # 使用source但限制权限
         if [[ $(stat -c %a "$CONFIG_FILE") -le 644 ]] && [[ $(stat -c %U "$CONFIG_FILE") == "root" ]]; then
             source "$CONFIG_FILE"
@@ -165,11 +170,12 @@ spinner() {
     local i=0
 
     # 显示初始状态
-    printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message}..."
+    printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message} ${SPINNER_FRAMES_AFTER[i]}"
 
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % ${#SPINNER_FRAMES_BEFORE[@]} ))
         printf "\r%s %s %s" ${SPINNER_FRAMES_BEFORE[i]} "$message" "${SPINNER_FRAMES_AFTER[i]}"
+        sleep 0.1 # 100毫秒/帧
     done
 
     # 检查进程退出状态
@@ -195,7 +201,7 @@ run_background_task() {
     echo "命令: $command" >> "$LOG_FILE"
 
     # 执行后台任务
-    eval "$command" &
+    eval "$command >> \"$LOG_FILE\" 2>&1 &"
     local pid=$!
 
     # 使用spinner显示进度
@@ -384,6 +390,8 @@ install_dependencies() {
         cpp binutils glibc glibc-kernheaders glibc-common glibc-devel
         ncurses-devel systemd-devel libffi libffi-devel python3-devel
         perl perl-devel tcl tcl-devel tk tk-devel
+        postgresql postgresql-devel
+        c-ares-devel
     )
 
     # 检测包管理器
@@ -553,6 +561,21 @@ EOF
 
     execute_command "chmod 644 /etc/systemd/system/php-fpm.service" "设置服务文件权限"
 
+    if ! grep -q "${PHP_PREFIX}/bin" $PROFILE_FILE; then
+        info "添加PHP到环境变量"
+        cat >> $PROFILE_FILE << EOF
+# PHP环境变量
+export PATH="${PHP_PREFIX}/bin:\$PATH"
+EOF
+
+        # 更新环境变量，先检查文件是否存在
+        if [ -f "$PROFILE_FILE" ]; then
+            set +u  # 临时关闭nounset
+            source $PROFILE_FILE
+            set -u  # 恢复nounset（如果需要）
+        fi
+    fi
+
     # 添加回滚操作
     add_rollback "rm -rf $PHP_PREFIX; rm -f /etc/systemd/system/php-fpm.service; systemctl daemon-reload"
 
@@ -586,10 +609,15 @@ install_mysql() {
     fi
 
     # 修改root密码
-    execute_command "mysqladmin -u root -p$temp_password password $MYSQL_ROOT_PASSWORD" "修改MySQL root密码"
+    mysqladmin -u root -p"$temp_password" password "$MYSQL_ROOT_PASSWORD" >> "$LOG_FILE" 2>&1 &
+    spinner $! "修改MySQL root密码"
 
     # 创建远程管理用户
-    execute_command "mysql -u root -p$MYSQL_ROOT_PASSWORD -e \"CREATE USER '$MYSQL_REMOTE_ADMIN_USER'@'%' IDENTIFIED BY '$MYSQL_REMOTE_ADMIN_PASSWORD'; GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_REMOTE_ADMIN_USER'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\"" "创建MySQL远程用户"
+    mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e \
+        "CREATE USER '$MYSQL_REMOTE_ADMIN_USER'@'%' IDENTIFIED BY '$MYSQL_REMOTE_ADMIN_PASSWORD'; \
+         GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_REMOTE_ADMIN_USER'@'%' WITH GRANT OPTION; \
+         FLUSH PRIVILEGES;" >> "$LOG_FILE" 2>&1 &
+    spinner $! "创建MySQL远程用户"
 
     # 添加回滚操作
     add_rollback "systemctl stop mysqld; yum remove -y mysql-community-server; rm -f /etc/yum.repos.d/mysql-community*"
@@ -606,13 +634,18 @@ install_redis() {
     cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
 
     # 下载Redis源码
-    execute_command "wget -c $redis_url -O redis.tar.gz" "下载Redis源码"
-    execute_command "tar -xzf redis.tar.gz" "解压Redis源码"
+    wget -c "$redis_url" -O redis.tar.gz >> "$LOG_FILE" 2>&1 &
+    spinner $! "下载Redis源码"
+
+    tar -xzf redis.tar.gz >> "$LOG_FILE" 2>&1
     cd "redis-$REDIS_VERSION" || { error "无法进入Redis源码目录"; return 1; }
 
     # 编译安装
-    run_background_task "make -j\$(nproc)" "编译Redis"
-    execute_command "make PREFIX=$REDIS_PREFIX install" "安装Redis"
+    make -j$(nproc) >> "$LOG_FILE" 2>&1 &
+    spinner $! "编译Redis"
+
+    make PREFIX="$REDIS_PREFIX" install >> "$LOG_FILE" 2>&1 &
+    spinner $! "安装Redis"
 
     # 创建配置目录
     execute_command "mkdir -p $REDIS_PREFIX/etc" "创建Redis配置目录"
@@ -753,7 +786,7 @@ install_swoole_extension() {
     info "安装PHP Swoole扩展..."
 
     local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/v$SWOOLE_PHP_EXT_VERSION.tar.gz"
-    local ext_dir="swoole-$SWOOLE_PHP_EXT_VERSION"
+    local ext_dir="swoole-src-$SWOOLE_PHP_EXT_VERSION"
 
     cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
 
@@ -764,6 +797,7 @@ install_swoole_extension() {
     execute_command "$PHP_PREFIX/bin/phpize" "准备Swoole扩展编译环境"
 
     local configure_opts=(
+        "--with-php-config=$PHP_PREFIX/bin/php-config"
         "--enable-openssl"
         "--enable-sockets"
         "--enable-mysqlnd"
@@ -875,10 +909,14 @@ main() {
     # 创建安装目录
     execute_command "mkdir -p $INSTALL_DIR" "创建安装目录"
 
-    # 执行安装步骤
+    # 安装提示
     show_system_info
     show_install_config
+
+    # 检查并配置SWAP
     configure_swap
+
+    # 执行安装步骤
     install_dependencies
     create_www_user
     install_php
