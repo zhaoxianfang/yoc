@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # =================================================================
-# 企业级 PHP8.4 + MySQL8.4 + Nginx + Redis + Composer 自动化安装脚本
+# 企业级 PHP + MySQL + Nginx + Redis + Composer 自动化安装脚本
 # 兼容原生Linux系统和国产/云厂商魔改系统
-# 安装 lnmp php8.4 环境
+# 安装 LNMP 环境
 # /bin/bash -c "$(curl -fsSL http://yoc.cn/install/linux/lnmp.sh)"
+# 兼容：
+#    1、Alibaba Cloud Linux 3
 # =================================================================
 
 set -euo pipefail
@@ -16,10 +18,15 @@ COMMAND_FILE="${SCRIPT_DIR}/command.log" # 所有执行的命令日志
 CONFIG_FILE="${SCRIPT_DIR}/install.conf"
 
 # 控制安装开关
-#INSTALL_PHP="${INSTALL_PHP:-yes}"
-#if [ "${INSTALL_PHP,,}" = "yes" ]; then
-#    install_php
-#fi
+CREATE_MANAGER_USER="${CREATE_MANAGER_USER:-yes}" # 是否创建管理员用户
+INSTALL_PHP="${INSTALL_PHP:-yes}" # 是否安装 php
+INSTALL_MYSQL="${INSTALL_MYSQL:-yes}" # 是否安装 mysql
+INSTALL_NGINX="${INSTALL_NGINX:-yes}" # 是否安装 nginx
+INSTALL_REDIS="${INSTALL_REDIS:-yes}" # 是否安装 redis
+INSTALL_REDIS_EXT="${INSTALL_REDIS_EXT:-yes}" # 是否安装 redis 扩展
+INSTALL_IMAGICK_EXT="${INSTALL_IMAGICK_EXT:-yes}" # 是否安装 imagick 扩展
+INSTALL_SWOOLE_EXT="${INSTALL_SWOOLE_EXT:-yes}" # 是否安装 swoole 扩展
+INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}" # 是否安装 composer
 
 # 默认配置
 PHP_VERSION="${PHP_VERSION:-8.4.12}"
@@ -75,6 +82,17 @@ SPINNER_FRAMES_AFTER=("▰▱▱▱▱▱▱" "▰▰▱▱▱▱▱" "▰▰▰
 # 回滚操作栈
 ROLLBACK_ACTIONS=()
 
+# 判断是否需要安装
+# 参数: $1 - 要检查的变量值
+# 返回: 0-需要安装, 1-不需要安装
+need_install() {
+    # 检查参数是否匹配需要安装的条件（不区分大小写）
+    case "${1,,}" in
+        yes|y|true|1|on) return 0 ;;  # 需要安装
+        *) return 1 ;;                # 不需要安装
+    esac
+}
+
 # 改进的命令执行函数 - 同时记录到命令日志和详细日志
 execute_command() {
     local command="$1"
@@ -83,49 +101,13 @@ execute_command() {
     # 记录到命令日志（简洁格式）
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $command" >> "$COMMAND_FILE"
 
-    # 记录到详细日志（带描述）
-    echo "=== $description ===" >> "$LOG_FILE"
-    echo "命令: $command" >> "$LOG_FILE"
-    echo "开始时间: $(date)" >> "$LOG_FILE"
     echo "----------------------------------------" >> "$LOG_FILE"
 
     # 执行命令并同时输出到日志文件
-    if eval "$command" >> "$LOG_FILE" 2>&1; then
-        echo "结束时间: $(date)" >> "$LOG_FILE"
-        echo "状态: 成功" >> "$LOG_FILE"
-        echo "----------------------------------------" >> "$LOG_FILE"
-        return 0
-    else
-        local exit_code=$?
-        echo "结束时间: $(date)" >> "$LOG_FILE"
-        echo "状态: 失败 (退出码: $exit_code)" >> "$LOG_FILE"
-        echo "----------------------------------------" >> "$LOG_FILE"
-        return $exit_code
-    fi
-}
+    eval "$command >> \"$LOG_FILE\" 2>&1 &"
 
-# 安全执行函数 - 替代危险的eval用法
-safe_execute() {
-    local command_array=("$@")
-
-    # 记录命令
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${command_array[*]}" >> "$COMMAND_FILE"
-    echo "=== 执行命令: ${command_array[*]} ===" >> "$LOG_FILE"
-    echo "开始时间: $(date)" >> "$LOG_FILE"
-
-    # 直接执行命令数组，避免eval
-    if "${command_array[@]}" >> "$LOG_FILE" 2>&1; then
-        echo "结束时间: $(date)" >> "$LOG_FILE"
-        echo "状态: 成功" >> "$LOG_FILE"
-        echo "----------------------------------------" >> "$LOG_FILE"
-        return 0
-    else
-        local exit_code=$?
-        echo "结束时间: $(date)" >> "$LOG_FILE"
-        echo "状态: 失败 (退出码: $exit_code)" >> "$LOG_FILE"
-        echo "----------------------------------------" >> "$LOG_FILE"
-        return $exit_code
-    fi
+    # 使用spinner显示进度
+    spinner "$!" "$description"
 }
 
 # 输出函数
@@ -146,7 +128,7 @@ success() {
     echo "[成功] $*" >> "$COMMAND_FILE"
 }
 step() {
-    echo -e "${PURPLE}步骤：$*${NC}" | tee -a "$LOG_FILE"
+    echo -e "${PURPLE} ➤ 步骤：$*${NC}" | tee -a "$LOG_FILE"
     echo "[步骤] $*" >> "$COMMAND_FILE"
 }
 
@@ -174,13 +156,15 @@ spinner() {
     local pid=$1
     local message=$2
     local i=0
+    local j=0
 
     # 显示初始状态
     printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message} ${SPINNER_FRAMES_AFTER[i]}"
 
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % ${#SPINNER_FRAMES_BEFORE[@]} ))
-        printf "\r%s %s %s" ${SPINNER_FRAMES_BEFORE[i]} "$message" "${SPINNER_FRAMES_AFTER[i]}"
+        j=$(( (j+1) % ${#SPINNER_FRAMES_AFTER[@]} ))
+        printf "\r%s %s %s" ${SPINNER_FRAMES_BEFORE[i]} "$message" "${SPINNER_FRAMES_AFTER[j]}"
         sleep 0.1 # 100毫秒/帧
     done
 
@@ -239,27 +223,15 @@ handle_signal() {
 # 安全的回滚函数 - 不使用eval
 rollback_changes() {
     info "开始执行回滚操作..."
-    local rollback_success=true
 
     # 逆序执行回滚操作
     for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
         local action="${ROLLBACK_ACTIONS[i]}"
-        info "执行回滚: $action"
-
-        # 安全地执行回滚命令
-        if execute_command "$action" "回滚操作"; then
-            echo "回滚成功: $action" >> "$COMMAND_FILE"
-        else
-            warn "回滚操作执行失败: $action"
-            rollback_success=false
-        fi
+        execute_command "$action >> \"$LOG_FILE\" 2>&1 &"
     done
 
-    if $rollback_success; then
-        success "回滚操作完成"
-    else
-        warn "部分回滚操作失败，请检查日志"
-    fi
+    # 使用spinner显示进度
+    spinner "$!" "执行回滚"
 }
 
 # 添加回滚操作
@@ -268,18 +240,43 @@ add_rollback() {
     echo "添加回滚操作: $1" >> "$COMMAND_FILE"
 }
 
+# 对齐打印信息并输入到日志中
+print_aligned() {
+    # %26s 表示右对齐，总宽度24字符（不含冒号）
+    printf "%26s: %s\n" "$1" "$2" | tee -a "$LOG_FILE"
+}
+
 # 显示系统信息
 show_system_info() {
-    step "检测系统信息..."
+
+    # 显示脚本信息
+    cat << "EOF" | tee -a "$LOG_FILE"
+ __  __      ____    ____        ____    ____
+/\ \/\ \    / __ \  / ___\      / ___\  / __ \
+\ \ \_\ \  /\ \_\ \/\ \___  __ /\ \__/ /\ \/\ \
+ \ \____ \ \ \____/\ \____\/\_\\ \____\\ \_\ \_\
+  \/___/\ \ \/___/  \/____/\/_/ \/____/ \/_/\/_/
+     /\___/
+     \/__/
+
+   企业级LNMP环境自动化安装脚本:yoc.cn
+EOF
 
     echo "==========================================" | tee -a "$LOG_FILE"
-    echo "          系统信息检测结果" | tee -a "$LOG_FILE"
+    echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+    # 加载配置
+    load_config
+
+    # 创建安装目录
+    execute_command "mkdir -p $INSTALL_DIR" "创建安装目录"
+
+    step "检测系统信息" | tee -a "$LOG_FILE"
     echo "==========================================" | tee -a "$LOG_FILE"
     echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
     echo "内核版本: $(uname -r)" | tee -a "$LOG_FILE"
     echo "系统架构: $(uname -m)" | tee -a "$LOG_FILE"
     echo "主机名称: $(hostname)" | tee -a "$LOG_FILE"
-    echo "IP地址: $(hostname -I 2>/dev/null | awk '{print $1}' || ip addr show | grep inet | grep -v 127.0.0.1 | head -1 | awk '{print $2}')" | tee -a "$LOG_FILE"
+    echo "  IP地址: $(hostname -I 2>/dev/null | awk '{print $1}' || ip addr show | grep inet | grep -v 127.0.0.1 | head -1 | awk '{print $2}')" | tee -a "$LOG_FILE"
     echo "内存大小: $(free -h | grep Mem | awk '{print $2}')" | tee -a "$LOG_FILE"
     echo "磁盘空间: $(df -h / | tail -1 | awk '{print $4}') 可用" | tee -a "$LOG_FILE"
     echo "当前用户: $(whoami)" | tee -a "$LOG_FILE"
@@ -288,56 +285,67 @@ show_system_info() {
     echo "命令日志: $COMMAND_FILE" | tee -a "$LOG_FILE"
     echo "==========================================" | tee -a "$LOG_FILE"
 
-    # 显示脚本信息
-    cat << "EOF" | tee -a "$LOG_FILE"
-     __  __      ____    ____        ____    ____
-    /\ \/\ \    / __ \  / ___\      / ___\  / __ \
-    \ \ \_\ \  /\ \_\ \/\ \___  __ /\ \__/ /\ \/\ \
-     \ \____ \ \ \____/\ \____\/\_\\ \____\\ \_\ \_\
-      \/___/\ \ \/___/  \/____/\/_/ \/____/ \/_/\/_/
-         /\___/
-         \/__/
-
-           企业级LNMP环境自动化安装脚本:yoc.cn
-EOF
 }
 
 # 显示安装配置
 show_install_config() {
-    step "安装配置信息..."
+    step "安装配置信息" | tee -a "$LOG_FILE"
 
     echo "==========================================" | tee -a "$LOG_FILE"
-    echo "          软件安装配置" | tee -a "$LOG_FILE"
-    echo "==========================================" | tee -a "$LOG_FILE"
-    echo "PHP版本: $PHP_VERSION" | tee -a "$LOG_FILE"
-    echo "PHP安装路径: $PHP_PREFIX" | tee -a "$LOG_FILE"
-    echo "MySQL版本: $MYSQL_VERSION" | tee -a "$LOG_FILE"
-    echo "MySQL安装路径: $MYSQL_PREFIX" | tee -a "$LOG_FILE"
-    echo "Nginx版本: $NGINX_VERSION" | tee -a "$LOG_FILE"
-    echo "Nginx安装路径: $NGINX_PREFIX" | tee -a "$LOG_FILE"
-    echo "Redis版本: $REDIS_VERSION" | tee -a "$LOG_FILE"
-    echo "Redis安装路径: $REDIS_PREFIX" | tee -a "$LOG_FILE"
-    echo "PHP Redis扩展版本: $REDIS_PHP_EXT_VERSION" | tee -a "$LOG_FILE"
-    echo "PHP Imagick扩展版本: $IMAGICK_PHP_EXT_VERSION" | tee -a "$LOG_FILE"
-    echo "PHP Swoole扩展版本: $SWOOLE_PHP_EXT_VERSION" | tee -a "$LOG_FILE"
-    echo "Web用户: $WWW_USER:$WWW_GROUP" | tee -a "$LOG_FILE"
-    echo "MySQL Root密码: $MYSQL_ROOT_PASSWORD" | tee -a "$LOG_FILE"
-    echo "MySQL 远程用户: $MYSQL_REMOTE_ADMIN_USER" | tee -a "$LOG_FILE"
-    echo "MySQL 远程用户密码: $MYSQL_REMOTE_ADMIN_PASSWORD" | tee -a "$LOG_FILE"
-    echo "Redis密码: $REDIS_PASSWORD" | tee -a "$LOG_FILE"
-    echo "==========================================" | tee -a "$LOG_FILE"
-
-    read -p "是否继续安装？(y/n): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        info "安装已取消"
-        exit 0
+    if need_install "$INSTALL_PHP"; then
+        print_aligned "PHP 版本" "$PHP_VERSION"
+        print_aligned "PHP 安装路径" "$PHP_PREFIX"
     fi
+
+    if need_install "$INSTALL_REDIS_EXT"; then
+        print_aligned "PHP Redis扩展版本" "$REDIS_PHP_EXT_VERSION"
+    fi
+
+    if need_install "$INSTALL_IMAGICK_EXT"; then
+        print_aligned "PHP Imagick扩展版本" "$IMAGICK_PHP_EXT_VERSION"
+    fi
+
+    if need_install "$INSTALL_SWOOLE_EXT"; then
+        print_aligned "PHP Swoole扩展版本" "$SWOOLE_PHP_EXT_VERSION"
+    fi
+
+    if need_install "$INSTALL_MYSQL"; then
+        print_aligned "MySQL 版本" "$MYSQL_VERSION"
+        print_aligned "MySQL 安装路径" "$MYSQL_PREFIX"
+        print_aligned "MySQL Root密码" "$MYSQL_ROOT_PASSWORD"
+        print_aligned "MySQL 远程用户" "$MYSQL_REMOTE_ADMIN_USER"
+        print_aligned "MySQL 远程用户密码" "$MYSQL_REMOTE_ADMIN_PASSWORD"
+    fi
+
+    if need_install "$INSTALL_NGINX"; then
+        print_aligned "Nginx 版本" "$NGINX_VERSION"
+        print_aligned "Nginx 安装路径" "$NGINX_PREFIX"
+    fi
+
+    if need_install "$INSTALL_REDIS"; then
+        print_aligned "Redis 版本" "$NGINX_PREFIX"
+        print_aligned "Redis 安装路径" "$REDIS_PREFIX"
+        print_aligned "Redis 密码" "$REDIS_PASSWORD"
+    fi
+
+    if need_install "$CREATE_MANAGER_USER"; then
+        print_aligned "Web用户" "$WWW_USER:$WWW_GROUP"
+        print_aligned "Web用户密码" "$WWW_PASSWORD"
+    fi
+
+    echo "==========================================" | tee -a "$LOG_FILE"
+
 }
 
 # 检查并配置SWAP
 configure_swap() {
     step "检查SWAP空间..."
+
+    if command -v yum &> /dev/null; then
+        execute_command "yum install -y bc" "安装bc依赖"
+    elif command -v dnf &> /dev/null; then
+        execute_command "dnf install -y bc" "安装bc依赖"
+    fi
 
     local current_swap
     current_swap=$(free -g | grep Swap | awk '{print $2}')
@@ -398,6 +406,7 @@ install_dependencies() {
         perl perl-devel tcl tcl-devel tk tk-devel
         postgresql postgresql-devel
         c-ares-devel
+        libonig-dev
     )
 
     # 检测包管理器
@@ -422,6 +431,18 @@ install_dependencies() {
         execute_command "apt update -y" "更新包管理器"
     fi
 
+    if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
+        if execute_command "$pkg_manager install -y --allowerasing epel-release" "安装 EPEL"; then
+            echo "成功安装: epel-release" >> "$LOG_FILE"
+        else
+            warn "安装 EPEL 失败epel-release，尝试备用方式安装 EPEL..." >> "$LOG_FILE"
+            install_epel_fallback
+        fi
+    elif [[ $pkg_manager == "apt" ]]; then
+        execute_command "apt install -y upgrade" "升级系统"
+    fi
+
+
     # 安装开发工具组
     if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
         run_background_task "$pkg_manager groupinstall -y 'Development Tools'" "安装开发工具组"
@@ -436,20 +457,227 @@ install_dependencies() {
         else
             warn "安装$package失败，继续..."
             echo "安装失败: $package" >> "$COMMAND_FILE"
+
+            check_fail_package "$package" "$pkg_manager"
         fi
     done
 
     success "依赖包安装完成"
 }
 
+# 检查安装的失败依赖包
+check_fail_package(){
+    local command="${1,,}"
+    local pkg="${2:-dnf}"
+
+    if [[ $command == "oniguruma-devel" ]]; then
+        warn "尝试重新安装oniguruma-devel..."
+        # 清理缓存并重新搜索
+        execute_command "sudo $pkg clean all" "清理缓存"
+        execute_command "sudo $pkg makecache" "重新搜索"
+        execute_command "sudo $pkg config-manager --set-enabled crb" "启用 PowerTools/CRB 仓库"
+        execute_command "sudo $pkg install -y oniguruma-devel" "再次尝试安装 oniguruma"
+    fi
+}
+install_epel_fallback() {
+    local el_ver
+    el_ver=$(get_el_version)
+    if ! [[ "$el_ver" =~ ^(7|8|9)$ ]]; then
+        echo "错误：无法检测EL版本。$el_ver" >&2
+        exit 1
+    fi
+
+    # 镜像源按优先级排列
+    local mirrors=(
+        "https://mirrors.aliyun.com/epel/epel-release-latest-$el_ver.noarch.rpm"
+        "https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-$el_ver.noarch.rpm"
+        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$el_ver.noarch.rpm"
+    )
+
+    local pkg_url
+    for url in "${mirrors[@]}"; do
+        if curl -sf --connect-timeout 5 --max-time 10 "$url" >/dev/null 2>&1; then
+            pkg_url="$url"
+            break
+        fi
+    done
+
+    if [ -z "$pkg_url" ]; then
+        echo "错误：阿里云、清华Tuna镜像和Fedora 官方都无法访问。请检查网络。" >&2
+        exit 1
+    fi
+
+    # 安装
+    if command -v dnf >/dev/null 2>&1; then
+        dnf install -y "$pkg_url" >/dev/null
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y "$pkg_url" >/dev/null
+    else
+        echo "错误：找不到包管理器。" >&2
+        exit 1
+    fi
+
+    # 验证
+    if rpm -q epel-release >/dev/null 2>&1; then
+        echo "EPEL for EL $el_ver 已从镜像成功安装。"
+    else
+        echo "错误：EPEL安装失败。" >&2
+        exit 1
+    fi
+}
+
+get_el_version() {
+    local os_name os_version_id os_version content line key value
+
+    # 1. 优先解析 /etc/os-release
+    if [ -f /etc/os-release ]; then
+        while IFS= read -r line; do
+            [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "$line" ]] && continue
+            [[ "$line" != *=* ]] && continue
+
+            key="${line%%=*}"; key="${key#"${key%%[![:space:]]*}"}"; key="${key%"${key##*[![:space:]]}"}"
+            value="${line#*=}"; value="${value#"${value%%[![:space:]]*}"}"; value="${value%"${value##*[![:space:]]}"}"
+            [[ $value == \"*\" ]] && value="${value#\"}${value%\"}" || [[ $value == \'*\' ]] && value="${value#\'}${value%\'}"
+
+            case "$key" in
+                NAME) os_name="$value" ;;
+                VERSION_ID) os_version_id="$value" ;;
+                VERSION) os_version="$value" ;;
+                PLATFORM_ID)
+                    [[ "$value" == platform:el[0-9]* ]] && { echo "${value#platform:el}"; return 0; }
+                    ;;
+            esac
+        done < /etc/os-release
+    fi
+
+    # 2. 检查常见 *-release 文件
+    for f in redhat centos alinux anolis tencentos kylin uos; do
+        [ -f "/etc/${f}-release" ] || continue
+        content=$(cat "/etc/${f}-release")
+        [[ "$content" =~ [^0-9](7|8|9)([^0-9]|$) ]] && { echo "${BASH_REMATCH[1]}"; return 0; }
+    done
+
+    # 3. 构建 full_id 并匹配发行版规则
+    local full_id=""
+    [ -n "$os_name" ] && full_id="$os_name ${os_version_id:-${os_version:-}}"
+
+    local -A map=(
+        ["Alibaba Cloud Linux 3"]="8" ["Alibaba Cloud Linux 4"]="9" ["Alibaba Cloud Linux 5"]="9"
+        ["Anolis OS 8"]="8" ["Anolis OS 23"]="9" ["OpenAnolis 8"]="8" ["OpenAnolis 23"]="9"
+        ["TencentOS Server 3.1"]="8" ["TencentOS Server 3.2"]="9" ["TencentOS Server 4"]="9"
+        ["Kylin V10"]="9" ["Kylin Linux Advanced Server V10"]="9"
+        ["UnionTech OS Server 20"]="8" ["UOS Server 20"]="8"
+        ["CentOS Linux 7"]="7" ["CentOS Linux 8"]="8" ["CentOS Stream 8"]="8" ["CentOS Stream 9"]="9"
+        ["Rocky Linux 8"]="8" ["Rocky Linux 9"]="9"
+        ["AlmaLinux 8"]="8" ["AlmaLinux 9"]="9"
+        ["Red Hat Enterprise Linux 7"]="7" ["Red Hat Enterprise Linux 8"]="8" ["Red Hat Enterprise Linux 9"]="9"
+        ["Oracle Linux 7"]="7" ["Oracle Linux 8"]="8" ["Oracle Linux 9"]="9"
+        ["OpenCloudOS 8"]="8" ["OpenCloudOS 9"]="9"
+        ["CloudOS 8"]="8" ["CloudOS 9"]="9"
+    )
+
+    for distro in "${!map[@]}"; do
+        [[ "$full_id" == *"$distro"* ]] && { echo "${map[$distro]}"; return 0; }
+    done
+
+    # 4. 直接使用纯数字 VERSION_ID（7-10）
+    [[ "$os_version_id" =~ ^[7-9]$|^10$ ]] && { echo "$os_version_id"; return 0; }
+
+    # 5. glibc 版本判断
+    local glibc_ver major minor lib
+    if ! glibc_ver=$(ldd --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1); then
+        for lib in /lib64/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 /lib/libc.so.6; do
+            [ -f "$lib" ] && glibc_ver=$("$lib" --version 2>/dev/null | head -n1 | grep -o '[0-9]\+\.[0-9]\+' | head -n1) && break
+        done
+    fi
+
+    if [ -n "$glibc_ver" ]; then
+        major="${glibc_ver%%.*}"; minor="${glibc_ver#*.}"
+        [ "$major" = 2 ] && {
+            (( minor >= 34 )) && { echo "9"; return 0; }
+            (( minor >= 28 )) && { echo "8"; return 0; }
+            (( minor >= 17 )) && { echo "7"; return 0; }
+        }
+    fi
+
+    # 6. systemd 版本
+    if command -v systemctl >/dev/null; then
+        local ver=$(systemctl --version 2>/dev/null | head -n1 | grep -o '[0-9]\+' | head -n1)
+        [ -n "$ver" ] && {
+            (( ver >= 250 )) && { echo "9"; return 0; }
+            (( ver >= 230 )) && { echo "8"; return 0; }
+            (( ver >= 200 )) && { echo "7"; return 0; }
+        }
+    fi
+
+    # 7. 内核版本启发式
+    local k=$(uname -r 2>/dev/null)
+    [ -n "$k" ] && {
+        [[ "$k" =~ ^6\. ]] && { echo "9"; return 0; }
+        [[ "$k" =~ ^5\.([1-9][4-9]|[2-9][0-9])\. ]] && { echo "9"; return 0; }
+        [[ "$k" =~ ^4\.18\. ]] && { echo "8"; return 0; }
+        [[ "$k" =~ ^3\.10\. ]] && { echo "7"; return 0; }
+    }
+
+    # 8. RPM 包中的 .elX 标识
+    if command -v rpm >/dev/null; then
+        local pkgs=$(rpm -qa 2>/dev/null)
+        [[ "$pkgs" == *".el9."* ]] && { echo "9"; return 0; }
+        [[ "$pkgs" == *".el8."* ]] && { echo "8"; return 0; }
+        [[ "$pkgs" == *".el7."* ]] && { echo "7"; return 0; }
+    fi
+
+    # 9. YUM repo 中的 elX 字符串
+    [ -d /etc/yum.repos.d/ ] && {
+        grep -rq 'baseurl.*el9' /etc/yum.repos.d/ 2>/dev/null && { echo "9"; return 0; }
+        grep -rq 'baseurl.*el8' /etc/yum.repos.d/ 2>/dev/null && { echo "8"; return 0; }
+        grep -rq 'baseurl.*el7' /etc/yum.repos.d/ 2>/dev/null && { echo "7"; return 0; }
+    }
+
+    return 1
+}
+
 # 创建用户和组
 create_www_user() {
+    if ! need_install "$CREATE_MANAGER_USER"; then
+        echo "跳过 创建用户"
+    fi
+
     step "创建Web服务用户..."
 
     if ! id "$WWW_USER" &>/dev/null; then
         execute_command "groupadd $WWW_GROUP" "创建用户组$WWW_GROUP"
         execute_command "useradd -g $WWW_GROUP -s /sbin/nologin -M $WWW_USER" "创建用户$WWW_USER"
         execute_command "echo '$WWW_USER:$WWW_PASSWORD' | chpasswd" "设置用户密码"
+
+        if grep -q "^$WWW_USER.*NOPASSWD.*ALL" /etc/sudoers; then
+            info "www 用户 sudo 权限已存在"
+            return 0
+        fi
+
+        NOT_PASS_TIPS="# 允许 $WWW_USER 以无需密码执行所有命令"
+
+        # 使用 tee 追加到 sudoers 文件
+        {
+            echo ""
+            echo "$NOT_PASS_TIPS"
+            echo "$WWW_USER ALL=(ALL) NOPASSWD:ALL"
+        } | tee -a /etc/sudoers >/dev/null
+
+
+        # 验证配置
+        if visudo -c >/dev/null 2>&1; then
+            success "www 用户 sudo 权限配置成功"
+
+            # 添加回滚操作
+            add_rollback "sed -i '/$WWW_USER ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers"
+            add_rollback "sed -i '/$NOT_PASS_TIPS/d' /etc/sudoers"
+        else
+            error "sudoers 文件语法错误，回滚更改"
+            sed -i '/$WWW_USER ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers
+            sed -i '/$NOT_PASS_TIPS/d' /etc/sudoers
+            return 1
+        fi
 
         # 添加回滚操作
         add_rollback "userdel -r $WWW_USER 2>/dev/null; groupdel $WWW_GROUP 2>/dev/null"
@@ -462,6 +690,11 @@ create_www_user() {
 
 # 安装PHP
 install_php() {
+    if ! need_install "$INSTALL_PHP"; then
+        # 跳过安装
+        return 0
+    fi
+
     step "安装PHP $PHP_VERSION..."
 
     local php_dir="php-$PHP_VERSION"
@@ -590,6 +823,11 @@ EOF
 
 # 安装MySQL
 install_mysql() {
+    if ! need_install "$INSTALL_MYSQL"; then
+        # 跳过安装
+        return 0
+    fi
+
     step "安装MySQL $MYSQL_VERSION..."
 
     # 下载MySQL Yum源
@@ -633,6 +871,11 @@ install_mysql() {
 
 # 安装Redis
 install_redis() {
+    if ! need_install "$INSTALL_REDIS"; then
+        # 跳过安装
+        return 0
+    fi
+
     step "安装Redis $REDIS_VERSION..."
 
     local redis_url="https://github.com/redis/redis/archive/$REDIS_VERSION.tar.gz"
@@ -682,6 +925,8 @@ EOF
 
     execute_command "chmod 644 /etc/systemd/system/redis.service" "设置服务文件权限"
 
+    fix_redis
+
     # 设置权限
     execute_command "chown -R $WWW_USER:$WWW_GROUP $REDIS_PREFIX" "设置Redis目录权限"
 
@@ -696,8 +941,41 @@ EOF
     success "Redis安装完成"
 }
 
+fix_redis() {
+    # 检查是否为 Linux 系统（Redis 不支持 Windows/Linux 以外的 overcommit 设置）
+    if [[ "$(uname)" != "Linux" ]]; then
+        return 0
+    fi
+
+    # 启用内存overcommit
+    execute_command "sysctl -w vm.overcommit_memory=1" "启用内存overcommit"
+
+    # 持久化配置：避免重启后失效
+    CONF_FILE="/etc/sysctl.conf"
+
+    # 配置系统参数
+    cat >> "$CONF_FILE" << EOF
+# Redis内存优化配置
+vm.overcommit_memory = 1
+net.core.somaxconn = 1024
+vm.swappiness = 10
+EOF
+
+    # 重新加载 sysctl 配置（部分系统可能不需要，但无害）
+    sysctl -p "$CONF_FILE" >/dev/null 2>&1 || sysctl -p
+
+    # 添加回滚操作
+    add_rollback "sysctl -w vm.overcommit_memory=0; sed -i '/# Redis内存优化配置/,/vm.swappiness = 10/d' /etc/sysctl.conf"
+
+}
+
 # 安装Nginx
 install_nginx() {
+    if ! need_install "$INSTALL_NGINX"; then
+        # 跳过安装
+        return 0
+    fi
+
     step "安装Nginx $NGINX_VERSION..."
 
     local nginx_url="http://nginx.org/packages/centos/8/x86_64/RPMS/nginx-$NGINX_VERSION-1.el8.ngx.x86_64.rpm"
@@ -710,6 +988,29 @@ install_nginx() {
 
     # 修改Nginx配置
     execute_command "sed -i 's/user  nginx/user $WWW_USER/' /etc/nginx/nginx.conf" "配置Nginx运行用户"
+
+# 判断  /usr/share/nginx/html/index.html 文件是否存在
+if [ -f "/usr/share/nginx/html/index.html" ]; then
+    sudo tee /usr/share/nginx/html/index.html > /dev/null <<'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎</title>
+    <style>
+        body{margin:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:grid;place-items:center;min-height:100vh;color:#ff4757;font-size:25px;font-weight:600;text-align:center;}.small{font-size:16px;}
+    </style>
+</head>
+<body>
+    <div>
+        <div>欢迎来访!</div>
+        <div class="small"><script>document.write(location.hostname || "yoc.cn")</script></div>
+    </div>
+</body>
+</html>
+EOF
+fi
+
 
     # 启动服务
     execute_command "systemctl start nginx" "启动Nginx服务"
@@ -739,6 +1040,11 @@ install_php_extensions() {
 
 # 安装Redis扩展
 install_redis_extension() {
+    if ! need_install "$INSTALL_REDIS_EXT"; then
+        # 跳过安装
+        return 0
+    fi
+
     info "安装PHP Redis扩展..."
 
     local ext_url="https://github.com/phpredis/phpredis/archive/$REDIS_PHP_EXT_VERSION.tar.gz"
@@ -764,6 +1070,11 @@ install_redis_extension() {
 
 # 安装Imagick扩展
 install_imagick_extension() {
+    if ! need_install "$INSTALL_IMAGICK_EXT"; then
+        # 跳过安装
+        return 0
+    fi
+
     info "安装PHP Imagick扩展..."
 
     local ext_url="https://github.com/Imagick/imagick/archive/refs/tags/$IMAGICK_PHP_EXT_VERSION.tar.gz"
@@ -789,6 +1100,11 @@ install_imagick_extension() {
 
 # 安装Swoole扩展
 install_swoole_extension() {
+    if ! need_install "$INSTALL_SWOOLE_EXT"; then
+        # 跳过安装
+        return 0
+    fi
+
     info "安装PHP Swoole扩展..."
 
     local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/v$SWOOLE_PHP_EXT_VERSION.tar.gz"
@@ -824,6 +1140,11 @@ install_swoole_extension() {
 
 # 安装Composer
 install_composer() {
+    if ! need_install "$INSTALL_COMPOSER"; then
+        # 跳过安装
+        return 0
+    fi
+
     step "安装Composer..."
 
     cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
@@ -841,13 +1162,22 @@ install_composer() {
 configure_services() {
     step "配置系统服务..."
 
-    # 启动PHP-FPM
-    execute_command "systemctl daemon-reload" "重载系统服务"
-    execute_command "systemctl start php-fpm" "启动PHP-FPM服务"
-    execute_command "systemctl enable php-fpm" "设置PHP-FPM开机启动"
+    if need_install "$INSTALL_PHP"; then
+        # 启动PHP-FPM
+        execute_command "systemctl daemon-reload" "重载系统服务"
+        execute_command "systemctl start php-fpm" "启动PHP-FPM服务"
+        execute_command "systemctl enable php-fpm" "设置PHP-FPM开机启动"
+    fi
 
-    # 重启Nginx
-    execute_command "systemctl restart nginx" "重启Nginx服务"
+    if need_install "$INSTALL_PHP"; then
+        # 重启Nginx
+        execute_command "systemctl restart nginx" "重启Nginx服务"
+    fi
+
+    if need_install "$INSTALL_MYSQL"; then
+        # 重启Mysql
+        execute_command "systemctl restart mysqld" "重启Mysql服务"
+    fi
 
     success "服务配置完成"
 }
@@ -856,68 +1186,68 @@ configure_services() {
 show_installation_result() {
     step "安装完成！"
 
-    echo "==========================================" | tee -a "$LOG_FILE"
-    echo "          安装结果汇总" | tee -a "$LOG_FILE"
-    echo "==========================================" | tee -a "$LOG_FILE"
-    echo "PHP版本: $PHP_VERSION" | tee -a "$LOG_FILE"
-    echo "PHP安装路径: $PHP_PREFIX" | tee -a "$LOG_FILE"
-    echo "MySQL版本: $MYSQL_VERSION" | tee -a "$LOG_FILE"
-    echo "MySQL Root密码: $MYSQL_ROOT_PASSWORD" | tee -a "$LOG_FILE"
-    echo "MySQL远程用户: $MYSQL_REMOTE_ADMIN_USER" | tee -a "$LOG_FILE"
-    echo "MySQL远程密码: $MYSQL_REMOTE_ADMIN_PASSWORD" | tee -a "$LOG_FILE"
-    echo "Redis版本: $REDIS_VERSION" | tee -a "$LOG_FILE"
-    echo "Redis密码: $REDIS_PASSWORD" | tee -a "$LOG_FILE"
-    echo "Nginx版本: $NGINX_VERSION" | tee -a "$LOG_FILE"
-    echo "Web用户: $WWW_USER" | tee -a "$LOG_FILE"
-    echo "Web用户密码: $WWW_PASSWORD" | tee -a "$LOG_FILE"
-    echo "==========================================" | tee -a "$LOG_FILE"
+    # 安装配置信息
+    show_install_config
 
     # 显示服务状态
-    echo "服务状态:" | tee -a "$LOG_FILE"
-    execute_command "systemctl status php-fpm --no-pager" "PHP-FPM状态"
-    execute_command "systemctl status nginx --no-pager" "Nginx状态"
-    execute_command "systemctl status mysqld --no-pager" "MySQL状态"
-    execute_command "systemctl status redis --no-pager" "Redis状态"
+    # echo "服务状态:" | tee -a "$LOG_FILE"
+    # execute_command "systemctl status php-fpm --no-pager" "PHP-FPM状态"
+    # execute_command "systemctl status nginx --no-pager" "Nginx状态"
+    # execute_command "systemctl status mysqld --no-pager" "MySQL状态"
+    # execute_command "systemctl status redis --no-pager" "Redis状态" # 此行容易导致运行中止
 
     # 显示关键文件位置
     echo "关键文件位置:" | tee -a "$LOG_FILE"
-    echo "PHP配置文件: $PHP_PREFIX/etc/php.ini" | tee -a "$LOG_FILE"
-    echo "PHP-FPM配置: $PHP_PREFIX/etc/php-fpm.conf" | tee -a "$LOG_FILE"
-    echo "Nginx配置: /etc/nginx/nginx.conf" | tee -a "$LOG_FILE"
-    echo "MySQL配置: /etc/my.cnf" | tee -a "$LOG_FILE"
-    echo "Redis配置: $REDIS_PREFIX/etc/redis.conf" | tee -a "$LOG_FILE"
+    if need_install "$INSTALL_PHP"; then
+        echo "PHP配置文件: $PHP_PREFIX/etc/php.ini" | tee -a "$LOG_FILE"
+        echo "PHP-FPM配置: $PHP_PREFIX/etc/php-fpm.conf" | tee -a "$LOG_FILE"
+    fi
+    if need_install "$INSTALL_MYSQL"; then
+        echo "MySQL配置: /etc/my.cnf" | tee -a "$LOG_FILE"
+    fi
+    if need_install "$INSTALL_NGINX"; then
+        echo "Nginx配置: /etc/nginx/nginx.conf" | tee -a "$LOG_FILE"
+    fi
+    if need_install "$INSTALL_REDIS"; then
+        echo "Redis配置: $REDIS_PREFIX/etc/redis.conf" | tee -a "$LOG_FILE"
+    fi
+
     echo "安装日志: $LOG_FILE" | tee -a "$LOG_FILE"
     echo "命令日志: $COMMAND_FILE" | tee -a "$LOG_FILE"
 
-    success "LNMP环境安装完成！"
+    echo "==========================================" | tee -a "$LOG_FILE"
+    echo "查看状态：systemctl status php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
+    echo "启动服务：systemctl start php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
+    echo "关闭服务：systemctl stop php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
+    echo "开机启动：systemctl enable php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
+
+    success "LNMP环境安装完成(安装项 均已配置开机启动)！"
 }
 
 # 主安装函数
 main() {
+    clear # 清屏
+
     # 设置错误处理
     trap 'handle_error $LINENO "$BASH_COMMAND"' ERR
-    trap 'handle_signal' INT TERM
-
-    # 显示欢迎信息
-    echo "开始执行LNMP环境安装脚本..." | tee -a "$LOG_FILE"
-    echo "开始时间: $(date)" | tee -a "$LOG_FILE"
-    echo "命令日志文件: $COMMAND_FILE" | tee -a "$LOG_FILE"
-    echo "详细日志文件: $LOG_FILE" | tee -a "$LOG_FILE"
+    trap 'handle_signal' INT TERM EXIT
 
     # 检查root权限
     if [[ $EUID -ne 0 ]]; then
         error "请使用root权限运行此脚本"
         exit 1
     fi
-    # 加载配置
-    load_config
-
-    # 创建安装目录
-    execute_command "mkdir -p $INSTALL_DIR" "创建安装目录"
 
     # 安装提示
     show_system_info
     show_install_config
+
+    read -p "是否继续安装？(y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        info "安装已取消"
+        exit 0
+    fi
 
     # 检查并配置SWAP
     configure_swap
@@ -931,6 +1261,7 @@ main() {
     install_nginx
     install_php_extensions
     install_composer
+
     configure_services
     show_installation_result
 
