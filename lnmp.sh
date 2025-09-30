@@ -77,7 +77,7 @@ NC='\033[0m' # No Color
 # 进度动画帧(文字之前)
 SPINNER_FRAMES_BEFORE=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 # 进度动画帧(文字之后)
-SPINNER_FRAMES_AFTER=("▰▱▱▱▱▱▱" "▰▰▱▱▱▱▱" "▰▰▰▱▱▱▱" "▰▰▰▰▱▱▱" "▰▰▰▰▰▱▱" "▰▰▰▰▰▰▱" "▰▰▰▰▰▰▰" "▰▰▰▰▰▱▱" "▰▰▰▰▱▱▱" "▰▰▰▱▱▱▱" "▰▰▱▱▱▱▱" "▰▱▱▱▱▱▱")
+SPINNER_FRAMES_AFTER=("▰▱▱▱▱▱" "▰▰▱▱▱▱" "▰▰▰▱▱▱" "▰▰▰▰▱▱" "▰▰▰▰▰▱" "▰▰▰▰▰▰" "▰▰▰▰▰▱" "▰▰▰▰▱▱" "▰▰▰▱▱▱" "▰▰▱▱▱▱")
 
 # 回滚操作栈
 ROLLBACK_ACTIONS=()
@@ -220,6 +220,16 @@ handle_signal() {
     exit 1
 }
 
+handle_exit() {
+    if [ $? -ne 0 ]; then
+        echo "非正常退出，执行回滚..." | tee -a "$LOG_FILE"
+        rollback_changes
+    else
+        success "所有组件安装结束（需要进行一次重启）！"  | tee -a "$LOG_FILE"
+        echo "==========================================" | tee -a "$LOG_FILE"
+    fi
+}
+
 # 安全的回滚函数 - 不使用eval
 rollback_changes() {
     info "开始执行回滚操作..."
@@ -230,8 +240,7 @@ rollback_changes() {
         execute_command "$action >> \"$LOG_FILE\" 2>&1 &"
     done
 
-    # 使用spinner显示进度
-    spinner "$!" "执行回滚"
+    success "回滚操作完成"
 }
 
 # 添加回滚操作
@@ -776,10 +785,30 @@ install_php() {
     # 创建配置目录
     execute_command "mkdir -p $PHP_PREFIX/etc/php-fpm.d" "创建PHP配置目录"
 
-    # 复制配置文件
+    # 复制配置文件后，添加针对低配服务器的 PHP-FPM 优化
     execute_command "cp php.ini-production $PHP_PREFIX/etc/php.ini" "复制PHP配置文件"
     execute_command "cp sapi/fpm/php-fpm.conf $PHP_PREFIX/etc/" "复制PHP-FPM配置"
     execute_command "cp sapi/fpm/www.conf $PHP_PREFIX/etc/php-fpm.d/" "复制PHP-FPM进程池配置"
+
+    # 优化 PHP-FPM 配置 for 低配服务器
+    execute_command "sed -i 's/^pm.max_children = [0-9]*/pm.max_children = 10/' $PHP_PREFIX/etc/php-fpm.d/www.conf" "设置最大子进程数"
+    execute_command "sed -i 's/^pm.start_servers = [0-9]*/pm.start_servers = 2/' $PHP_PREFIX/etc/php-fpm.d/www.conf" "设置启动进程数"
+    execute_command "sed -i 's/^pm.min_spare_servers = [0-9]*/pm.min_spare_servers = 1/' $PHP_PREFIX/etc/php-fpm.d/www.conf" "设置最小空闲进程"
+    execute_command "sed -i 's/^pm.max_spare_servers = [0-9]*/pm.max_spare_servers = 5/' $PHP_PREFIX/etc/php-fpm.d/www.conf" "设置最大空闲进程"
+    execute_command "sed -i 's/^pm.max_requests = [0-9]*/pm.max_requests = 500/' $PHP_PREFIX/etc/php-fpm.d/www.conf" "设置进程最大请求数"
+
+    # PHP 内存限制优化
+    execute_command "sed -i 's/^memory_limit = .*/memory_limit = 256M/' $PHP_PREFIX/etc/php.ini" "设置PHP内存限制"
+    execute_command "sed -i 's/^max_execution_time = .*/max_execution_time = 300/' $PHP_PREFIX/etc/php.ini" "设置最大执行时间"
+    execute_command "sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 120M/' $PHP_PREFIX/etc/php.ini" "设置上传文件大小限制"
+    execute_command "sed -i 's/^post_max_size = .*/post_max_size = 120M/' $PHP_PREFIX/etc/php.ini" "设置POST数据大小限制"
+
+    # 优化 OPcache 配置
+    execute_command "echo 'opcache.memory_consumption=64' >> $PHP_PREFIX/etc/php.ini" "设置OPcache内存大小"
+    execute_command "echo 'opcache.interned_strings_buffer=8' >> $PHP_PREFIX/etc/php.ini" "设置字符串缓冲区"
+    execute_command "echo 'opcache.max_accelerated_files=4000' >> $PHP_PREFIX/etc/php.ini" "设置加速文件数量"
+    execute_command "echo 'opcache.revalidate_freq=60' >> $PHP_PREFIX/etc/php.ini" "设置验证频率"
+    execute_command "echo 'opcache.fast_shutdown=1' >> $PHP_PREFIX/etc/php.ini" "启用快速关闭"
 
     # 创建服务文件
     cat > /etc/systemd/system/php-fpm.service << EOF
@@ -863,16 +892,55 @@ install_mysql() {
          FLUSH PRIVILEGES;" >> "$LOG_FILE" 2>&1 &
     spinner $! "创建MySQL远程用户"
 
+    # 调用MySQL优化
+    optimize_mysql
+
     # 添加回滚操作
     add_rollback "systemctl stop mysqld; yum remove -y mysql-community-server; rm -f /etc/yum.repos.d/mysql-community*"
 
     success "MySQL安装完成"
 }
 
+optimize_mysql() {
+    if ! need_install "$INSTALL_MYSQL"; then
+        return 0
+    fi
+
+    step "优化MySQL配置..."
+
+    # 创建MySQL优化配置文件
+    cat > /etc/my.cnf.d/low_memory.cnf << 'EOF'
+[mysqld]
+# 低内存服务器优化配置
+innodb_buffer_pool_size = 64M
+innodb_log_buffer_size = 8M
+key_buffer_size = 16M
+max_connections = 50
+thread_cache_size = 8
+table_open_cache = 256
+query_cache_size = 16M
+query_cache_type = 1
+tmp_table_size = 16M
+max_heap_table_size = 16M
+# 性能优化
+innodb_flush_log_at_trx_commit = 2
+sync_binlog = 0
+# 连接优化
+wait_timeout = 60
+interactive_timeout = 60
+# 禁用性能模式以减少内存使用
+performance_schema = OFF
+EOF
+
+    # 重启MySQL使配置生效
+    execute_command "systemctl restart mysqld" "重启MySQL服务"
+
+    success "MySQL优化完成"
+}
+
 # 安装Redis
 install_redis() {
     if ! need_install "$INSTALL_REDIS"; then
-        # 跳过安装
         return 0
     fi
 
@@ -889,8 +957,11 @@ install_redis() {
     tar -xzf redis.tar.gz >> "$LOG_FILE" 2>&1
     cd "redis-$REDIS_VERSION" || { error "无法进入Redis源码目录"; return 1; }
 
-    # 编译安装
-    make -j$(nproc) >> "$LOG_FILE" 2>&1 &
+    # 编译优化：针对低配服务器减少编译线程，避免内存不足
+    local cpu_cores=$(nproc)
+    local compile_jobs=$(( cpu_cores > 2 ? 2 : 1 ))  # 低配服务器最多使用2个核心编译
+
+    make -j$compile_jobs >> "$LOG_FILE" 2>&1 &
     spinner $! "编译Redis"
 
     make PREFIX="$REDIS_PREFIX" install >> "$LOG_FILE" 2>&1 &
@@ -899,25 +970,58 @@ install_redis() {
     # 创建配置目录
     execute_command "mkdir -p $REDIS_PREFIX/etc" "创建Redis配置目录"
 
-    # 修改配置文件
+    # 修改配置文件 - 针对低配服务器优化
     execute_command "cp redis.conf $REDIS_PREFIX/etc/" "复制Redis配置文件"
+
+    # Redis 低配服务器优化配置
     execute_command "sed -i 's/^daemonize no/daemonize yes/' $REDIS_PREFIX/etc/redis.conf" "配置Redis守护进程"
     execute_command "sed -i 's/^# requirepass foobared/requirepass $REDIS_PASSWORD/' $REDIS_PREFIX/etc/redis.conf" "设置Redis密码"
     execute_command "sed -i 's/^bind 127.0.0.1/bind 0.0.0.0/' $REDIS_PREFIX/etc/redis.conf" "配置Redis监听地址"
 
-    # 创建服务文件
+    # 低内存优化配置
+    execute_command "sed -i 's/^# maxmemory .*/maxmemory 256mb/' $REDIS_PREFIX/etc/redis.conf" "设置Redis最大内存"
+    execute_command "sed -i 's/^# maxmemory-policy noeviction/maxmemory-policy allkeys-lru/' $REDIS_PREFIX/etc/redis.conf" "设置内存淘汰策略"
+    execute_command "sed -i 's/^# save 900 1/save 900 1/' $REDIS_PREFIX/etc/redis.conf" "启用RDB持久化"
+    execute_command "sed -i 's/^# save 300 10/save 300 10/' $REDIS_PREFIX/etc/redis.conf" "启用RDB持久化"
+    execute_command "sed -i 's/^# save 60 10000/save 60 10000/' $REDIS_PREFIX/etc/redis.conf" "启用RDB持久化"
+
+    # 性能优化配置
+    execute_command "sed -i 's/^timeout 0/timeout 300/' $REDIS_PREFIX/etc/redis.conf" "设置客户端超时时间"
+    execute_command "sed -i 's/^tcp-keepalive 300/tcp-keepalive 60/' $REDIS_PREFIX/etc/redis.conf" "减少TCP保活时间"
+    execute_command "sed -i 's/^# maxclients 10000/maxclients 1000/' $REDIS_PREFIX/etc/redis.conf" "限制最大客户端连接数"
+
+    # 低配服务器特定优化
+    execute_command "echo 'hash-max-ziplist-entries 512' >> $REDIS_PREFIX/etc/redis.conf" "优化小哈希表内存使用"
+    execute_command "echo 'hash-max-ziplist-value 64' >> $REDIS_PREFIX/etc/redis.conf" "优化小哈希表内存使用"
+    execute_command "echo 'list-max-ziplist-size -2' >> $REDIS_PREFIX/etc/redis.conf" "优化列表内存使用"
+    execute_command "echo 'activerehashing no' >> $REDIS_PREFIX/etc/redis.conf" "禁用主动rehashing减少CPU使用"
+
+    # 创建优化的服务文件
     cat > /etc/systemd/system/redis.service << EOF
 [Unit]
 Description=Redis persistent key-value database
 After=network.target
+# 增加依赖关系，确保系统就绪后再启动
+After=syslog.target
 
 [Service]
+Type=forking
 ExecStart=$REDIS_PREFIX/bin/redis-server $REDIS_PREFIX/etc/redis.conf
-ExecReload=/bin/kill -USR2 \$MAINPID
-TimeoutStopSec=0
-Restart=always
+ExecStop=$REDIS_PREFIX/bin/redis-cli -a $REDIS_PASSWORD shutdown
+# 增加重启策略 - 针对低配服务器优化
+Restart=on-failure
+RestartSec=10s
+# 资源限制 - 防止Redis占用过多资源
+LimitNOFILE=65536
+# OOM设置 - 避免因内存不足被系统杀死
+OOMScoreAdjust=-100
+# 超时设置
+TimeoutStartSec=30
+TimeoutStopSec=30
 User=$WWW_USER
 Group=$WWW_GROUP
+# 工作目录
+WorkingDirectory=$REDIS_PREFIX
 
 [Install]
 WantedBy=multi-user.target
@@ -925,6 +1029,7 @@ EOF
 
     execute_command "chmod 644 /etc/systemd/system/redis.service" "设置服务文件权限"
 
+    # 调用系统优化
     fix_redis
 
     # 设置权限
@@ -932,7 +1037,24 @@ EOF
 
     # 启动服务
     execute_command "systemctl daemon-reload" "重载系统服务"
-    execute_command "systemctl start redis" "启动Redis服务"
+
+    # 增加启动等待和重试机制
+    local retry_count=0
+    local max_retries=3
+
+    while [ $retry_count -lt $max_retries ]; do
+        if execute_command "systemctl start redis" "启动Redis服务(尝试 $((retry_count+1))/$max_retries)"; then
+            break
+        fi
+        retry_count=$((retry_count+1))
+        if [ $retry_count -eq $max_retries ]; then
+            error "Redis服务启动失败，已达到最大重试次数"
+            return 1
+        fi
+        warn "Redis服务启动失败，10秒后重试..."
+        sleep 10
+    done
+
     execute_command "systemctl enable redis" "设置Redis开机启动"
 
     # 添加回滚操作
@@ -947,26 +1069,29 @@ fix_redis() {
         return 0
     fi
 
-    # 启用内存overcommit
+    # 启用内存overcommit - 避免Redis因内存不足而崩溃
     execute_command "sysctl -w vm.overcommit_memory=1" "启用内存overcommit"
 
     # 持久化配置：避免重启后失效
     CONF_FILE="/etc/sysctl.conf"
 
-    # 配置系统参数
+    # 配置系统参数 - 针对低配服务器优化
     cat >> "$CONF_FILE" << EOF
 # Redis内存优化配置
 vm.overcommit_memory = 1
 net.core.somaxconn = 1024
 vm.swappiness = 10
+# 针对低内存环境的额外优化
+vm.dirty_ratio = 5
+vm.dirty_background_ratio = 3
+vm.vfs_cache_pressure = 1000
 EOF
 
-    # 重新加载 sysctl 配置（部分系统可能不需要，但无害）
+    # 重新加载 sysctl 配置
     sysctl -p "$CONF_FILE" >/dev/null 2>&1 || sysctl -p
 
     # 添加回滚操作
-    add_rollback "sysctl -w vm.overcommit_memory=0; sed -i '/# Redis内存优化配置/,/vm.swappiness = 10/d' /etc/sysctl.conf"
-
+    add_rollback "sysctl -w vm.overcommit_memory=0; sed -i '/# Redis内存优化配置/,/vm.vfs_cache_pressure = 1000/d' /etc/sysctl.conf"
 }
 
 # 安装Nginx
@@ -1101,7 +1226,6 @@ install_imagick_extension() {
 # 安装Swoole扩展
 install_swoole_extension() {
     if ! need_install "$INSTALL_SWOOLE_EXT"; then
-        # 跳过安装
         return 0
     fi
 
@@ -1118,6 +1242,7 @@ install_swoole_extension() {
 
     execute_command "$PHP_PREFIX/bin/phpize" "准备Swoole扩展编译环境"
 
+    # 针对低配服务器的编译优化配置
     local configure_opts=(
         "--with-php-config=$PHP_PREFIX/bin/php-config"
         "--enable-openssl"
@@ -1127,13 +1252,23 @@ install_swoole_extension() {
         "--enable-cares"
         "--enable-swoole-pgsql"
     )
+
     execute_command "./configure ${configure_opts[*]}" "配置Swoole扩展"
 
-    run_background_task "make -j\$(nproc)" "编译Swoole扩展"
+    # 低配服务器编译优化：减少并行编译任务，避免内存不足
+    local cpu_cores=$(nproc)
+    local compile_jobs=$(( cpu_cores > 3 ? 3 : 1 ))
+
+    run_background_task "make -j$compile_jobs" "编译Swoole扩展"
     execute_command "make install" "安装Swoole扩展"
 
-    # 添加到php.ini
+    # 添加到php.ini并配置优化参数
     execute_command "echo 'extension=swoole.so' >> $PHP_PREFIX/etc/php.ini" "启用Swoole扩展"
+
+    # Swoole 低配服务器优化配置
+    execute_command "echo 'swoole.use_shortname = Off' >> $PHP_PREFIX/etc/php.ini" "禁用Swoole短名称"
+    execute_command "echo 'swoole.enable_coroutine = On' >> $PHP_PREFIX/etc/php.ini" "启用协程支持"
+    execute_command "echo 'swoole.display_errors = On' >> $PHP_PREFIX/etc/php.ini" "显示错误信息"
 
     success "Swoole扩展安装完成"
 }
@@ -1158,9 +1293,40 @@ install_composer() {
     success "Composer安装完成"
 }
 
+# 添加系统资源检查函数
+check_system_resources() {
+    step "检查系统资源..."
+
+    local total_memory
+    total_memory=$(free -m | awk '/^Mem:/{print $2}')
+    local total_cores
+    total_cores=$(nproc)
+
+    info "系统内存: ${total_memory}MB"
+    info "CPU核心: ${total_cores}"
+
+    # 低内存警告
+    if [ "$total_memory" -lt 1024 ]; then
+        warn "系统内存较低(小于1GB)，将启用极限优化模式"
+        # 设置低内存标志
+        export LOW_MEMORY_MODE=1
+    fi
+
+    # 单核CPU警告
+    if [ "$total_cores" -eq 1 ]; then
+        warn "单核CPU系统，编译过程可能较慢"
+        export SINGLE_CORE_MODE=1
+    fi
+}
+
 # 配置服务
 configure_services() {
     step "配置系统服务..."
+
+    if need_install "$INSTALL_MYSQL"; then
+        # 重启Mysql
+        execute_command "systemctl restart mysqld" "重启Mysql服务"
+    fi
 
     if need_install "$INSTALL_PHP"; then
         # 启动PHP-FPM
@@ -1169,15 +1335,11 @@ configure_services() {
         execute_command "systemctl enable php-fpm" "设置PHP-FPM开机启动"
     fi
 
-    if need_install "$INSTALL_PHP"; then
+    if need_install "$INSTALL_NGINX"; then
         # 重启Nginx
         execute_command "systemctl restart nginx" "重启Nginx服务"
     fi
 
-    if need_install "$INSTALL_MYSQL"; then
-        # 重启Mysql
-        execute_command "systemctl restart mysqld" "重启Mysql服务"
-    fi
 
     success "服务配置完成"
 }
@@ -1215,13 +1377,13 @@ show_installation_result() {
     echo "安装日志: $LOG_FILE" | tee -a "$LOG_FILE"
     echo "命令日志: $COMMAND_FILE" | tee -a "$LOG_FILE"
 
-    echo "==========================================" | tee -a "$LOG_FILE"
-    echo "查看状态：systemctl status php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
-    echo "启动服务：systemctl start php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
-    echo "关闭服务：systemctl stop php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
-    echo "开机启动：systemctl enable php-fpm|redis|nginx|mysqld " | tee -a "$LOG_FILE"
+    echo "==========================================" | tee -a "$COMMAND_FILE"
+    echo "查看状态：systemctl status php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
+    echo "启动服务：systemctl start php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
+    echo "关闭服务：systemctl stop php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
+    echo "开机启动：systemctl enable php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
 
-    success "LNMP环境安装完成(安装项 均已配置开机启动)！"
+    success "LNMP环境安装完成(安装项 均已配置开机启动)！" | tee -a "$LOG_FILE"
 }
 
 # 主安装函数
@@ -1230,7 +1392,8 @@ main() {
 
     # 设置错误处理
     trap 'handle_error $LINENO "$BASH_COMMAND"' ERR
-    trap 'handle_signal' INT TERM EXIT
+    trap 'handle_signal' INT TERM
+    trap 'handle_exit' EXIT
 
     # 检查root权限
     if [[ $EUID -ne 0 ]]; then
@@ -1238,8 +1401,12 @@ main() {
         exit 1
     fi
 
+    echo "==========================================" | tee -a "$LOG_FILE"
+
     # 安装提示
     show_system_info
+    # 系统资源检查
+    check_system_resources
     show_install_config
 
     read -p "是否继续安装？(y/n): " -n 1 -r
@@ -1266,7 +1433,6 @@ main() {
     show_installation_result
 
     echo "安装完成时间: $(date)" | tee -a "$LOG_FILE"
-    success "所有组件安装完成！"
 }
 
 # 执行主函数
