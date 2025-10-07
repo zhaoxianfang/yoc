@@ -151,33 +151,231 @@ load_config() {
     fi
 }
 
-# 改进的spinner函数
+# 改进的spinner函数 - 加强使用和展示
 spinner() {
     local pid=$1
     local message=$2
     local i=0
     local j=0
+    local start_time
+    start_time=$(date +%s)
 
     # 显示初始状态
-    printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message} ${SPINNER_FRAMES_AFTER[i]}"
+    printf "\r${SPINNER_FRAMES_BEFORE[i]} ${message} ${SPINNER_FRAMES_AFTER[i]} (0s)" >&2
 
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % ${#SPINNER_FRAMES_BEFORE[@]} ))
         j=$(( (j+1) % ${#SPINNER_FRAMES_AFTER[@]} ))
-        printf "\r%s %s %s" ${SPINNER_FRAMES_BEFORE[i]} "$message" "${SPINNER_FRAMES_AFTER[j]}"
+        local current_time
+        current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        printf "\r%s %s %s (%ds)" "${SPINNER_FRAMES_BEFORE[i]}" "$message" "${SPINNER_FRAMES_AFTER[j]}" "$elapsed" >&2
         sleep 0.1 # 100毫秒/帧
     done
 
     # 检查进程退出状态
     wait "$pid"
     local exit_code=$?
+    local end_time
+    end_time=$(date +%s)
+    local total_time=$((end_time - start_time))
 
     if [ $exit_code -eq 0 ]; then
-        printf "\r✓ ${message}完成！\n"
+        printf "\r✓ ${message}完成！(%ds)\n" "$total_time" >&2
+        echo "命令执行成功: $message (耗时: ${total_time}s)" >> "$LOG_FILE"
+        return 0
     else
-        printf "\r✗ ${message}失败！\n"
+        printf "\r✗ ${message}失败！(%ds)\n" "$total_time" >&2
+        echo "命令执行失败: $message (退出码: $exit_code, 耗时: ${total_time}s)" >> "$LOG_FILE"
         return $exit_code
     fi
+}
+
+# 修改文件
+# modify_file <文件名> "查找|替换|模式" "查找2|替换2|模式2" ...
+# 模式(不区分大小写):
+#   - 空或replace: 替换整行
+#   - insert: 在匹配行后插入
+#   - prepend: 在匹配行开头插入
+#   - comment: 进行注释
+#   - uncomment: 取消注释
+# eg: "target|inserted_line|INSERT" 单行插入
+# 查找和替换中的 \n 表示换行
+# listen.* 表示查找listen 开头的字符串
+# 查找 为空表示文件结尾插入；eg "|string"
+# 替换 为空表示删除；eg "string|"
+
+modify_file() {
+    local file="$1"
+    shift
+
+    # 检查文件权限，无写权限时静默退出
+    [[ -f "$file" ]] || touch "$file"
+    [[ -w "$file" ]] || return 1
+
+    # 创建临时文件，失败时退出
+    local temp_file=$(mktemp) && cp "$file" "$temp_file" || return 1
+
+    # 处理每个操作参数
+    for operation in "$@"; do
+        IFS='|' read -r target handle mode <<< "$operation"
+
+        # 清理参数：去除首尾空格并处理多行内容
+        target=$(printf "%b" "${target#"${target%%[![:space:]]*}"}")  # 去除头部空格
+        target=$(printf "%b" "${target%"${target##*[![:space:]]}"}")  # 去除尾部空格
+        handle=$(printf "%b" "${handle#"${handle%%[![:space:]]*}"}")
+        handle=$(printf "%b" "${handle%"${handle##*[![:space:]]}"}")
+        mode=$(echo "${mode^^}")  # 转换为大写统一处理
+
+        # 转义函数：处理正则表达式特殊字符
+        escape_regex() { echo "$1" | sed 's/[][\/\.*^$+?{}|()]/\\&/g'; }
+
+        local escaped_target=$(escape_regex "$target")
+        local is_target_multiline=$(echo "$target" | grep -q $'\n' && echo true || echo false)
+        local is_handle_multiline=$(echo "$handle" | grep -q $'\n' && echo true || echo false)
+
+        # 情况1: 文件结尾插入（target为空）
+        if [[ -z "$target" && -n "$handle" ]]; then
+            [[ -s "$temp_file" ]] && [[ -n "$(tail -c 1 "$temp_file")" ]] && echo "" >> "$temp_file"
+            echo "$handle" >> "$temp_file"
+            continue
+        fi
+
+        # 情况2: 删除操作（handle为空）
+        if [[ -n "$target" && -z "$handle" ]]; then
+            if [[ "$target" == *".*" ]]; then
+                # 行首匹配删除：匹配以指定内容开头的行
+                sed -i "/^$(escape_regex "${target%.*}")/d" "$temp_file"
+            elif [[ "$is_target_multiline" == "true" ]]; then
+                # 多行内容删除：使用Perl处理多行匹配
+                perl -i -pe 'BEGIN{undef $/} s/\Q'"$target"'\E//g' "$temp_file"
+            else
+                # 单行内容删除
+                sed -i "/$escaped_target/d" "$temp_file"
+            fi
+            continue
+        fi
+
+        # 情况3: 替换/插入操作（target和handle都不为空）
+        if [[ -n "$target" && -n "$handle" ]]; then
+            # 检查是否为行首匹配模式
+            local is_line_match=false
+            local line_pattern=""
+            if [[ "$target" == *".*" ]]; then
+                is_line_match=true
+                line_pattern=$(escape_regex "${target%.*}")
+            fi
+
+            case "$mode" in
+                "INSERT")
+                    if [[ "$is_line_match" == true ]]; then
+                        # 行首匹配后插入
+                        if [[ "$is_handle_multiline" == "true" ]]; then
+                            # 多行插入：逐行处理
+                            echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^$line_pattern/a{}" "$temp_file"
+                        else
+                            sed -i "/^$line_pattern/a$handle" "$temp_file"
+                        fi
+                    else
+                        # 普通内容后插入
+                        if [[ "$is_target_multiline" == "true" ]]; then
+                            # 多行匹配后插入
+                            perl -i -pe 's/\Q'"$target"'\E/'"$target\\n$handle"'/g' "$temp_file"
+                        else
+                            # 单行匹配后插入
+                            if [[ "$is_handle_multiline" == "true" ]]; then
+                                echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/$escaped_target/a{}" "$temp_file"
+                            else
+                                sed -i "/$escaped_target/a$handle" "$temp_file"
+                            fi
+                        fi
+                    fi
+                    ;;
+
+                "PREPEND")
+                    if [[ "$is_line_match" == true ]]; then
+                        # 行首匹配前插入
+                        if [[ "$is_handle_multiline" == "true" ]]; then
+                            # 多行前置：逆序插入
+                            tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^$line_pattern/i{}" "$temp_file"
+                        else
+                            sed -i "/^$line_pattern/i$handle" "$temp_file"
+                        fi
+                    else
+                        # 普通内容前插入
+                        if [[ "$is_target_multiline" == "true" ]]; then
+                            # 多行匹配前插入
+                            perl -i -pe 's/\Q'"$target"'\E/'"$handle\\n$target"'/g' "$temp_file"
+                        else
+                            # 单行匹配前插入
+                            if [[ "$is_handle_multiline" == "true" ]]; then
+                                tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/$escaped_target/i{}" "$temp_file"
+                            else
+                                sed -i "/$escaped_target/i$handle" "$temp_file"
+                            fi
+                        fi
+                    fi
+                    ;;
+
+                "COMMENT")
+                    if [[ "$is_line_match" == true ]]; then
+                        # 注释行首匹配的行
+                        sed -i "/^$line_pattern/s/^/# /" "$temp_file"
+                    else
+                        # 注释包含目标内容的行
+                        if [[ "$is_target_multiline" == "true" ]]; then
+                            # 多行内容注释：每行前加注释符号
+                            perl -i -pe 's/\Q'"$target"'\E/'$(echo "$target" | sed 's/^/# /; s/\n/\\n# /g')'/g' "$temp_file"
+                        else
+                            sed -i "/$escaped_target/s/^/# /" "$temp_file"
+                        fi
+                    fi
+                    ;;
+
+                "UNCOMMENT")
+                    if [[ "$is_line_match" == true ]]; then
+                        # 取消注释行首匹配的行
+                        sed -i "/^#\s*$line_pattern/s/^#\s*//" "$temp_file"
+                    else
+                        # 取消注释包含目标内容的行
+                        sed -i "/#\s*$escaped_target/s/^#\s*//" "$temp_file"
+                    fi
+                    ;;
+
+                *)  # 默认模式：REPLACE 或未指定模式
+                    if [[ "$is_line_match" == true ]]; then
+                        # 替换整行内容
+                        if [[ "$is_handle_multiline" == "true" ]]; then
+                            sed -i "/^$line_pattern/c\\$handle" "$temp_file"
+                        else
+                            sed -i "s/^$line_pattern.*/$handle/g" "$temp_file"
+                        fi
+                    elif [[ "$is_target_multiline" == "true" || "$is_handle_multiline" == "true" ]]; then
+                        # 多行内容替换：使用Perl处理
+                        perl -i -pe 'BEGIN{undef $/} s/\Q'"$target"'\E/'"$handle"'/g' "$temp_file"
+                    else
+                        # 单行内容替换
+                        sed -i "s/$escaped_target/$handle/g" "$temp_file"
+                    fi
+                    ;;
+            esac
+        fi
+    done
+
+    local backup="$file.bak.$(date '+%Y%m%d%H')"
+    # 1. 无变化：清理并退出
+    diff -q "$file" "$temp_file" >/dev/null && { echo "[INFO] 无变化: $file"; rm -f "$temp_file"; return 1; }
+    # 2. 有变化：备份原文件（如果存在）
+    [[ -f "$file" ]] && cp "$file" "$backup"
+    # 3. 尝试更新
+    if mv "$temp_file" "$file" 2>/dev/null; then
+        echo "[SUCCESS] 更新成功: $file"
+    else
+        echo "[ERROR] 更新失败: $file"
+        [[ -f "$backup" ]] && mv "$backup" "$file" && echo "[INFO] 已恢复: $file"
+    fi
+    # 4. 统一清理（关键：确保中间文件被删除）
+    rm -f "$backup" "$temp_file"
 }
 
 # 安全的后台任务执行函数
@@ -381,7 +579,7 @@ configure_swap() {
         run_background_task "swapon /swapfile" "启用SWAP"
 
         # 添加到fstab
-        execute_command "echo '/swapfile swap swap defaults 0 0' >> /etc/fstab" "配置SWAP开机启动"
+        modify_file "/etc/fstab" "|/swapfile swap swap defaults 0 0"
 
         # 添加回滚操作
         add_rollback "swapoff /swapfile 2>/dev/null; rm -f /swapfile; sed -i '/\\/swapfile/d' /etc/fstab"
@@ -667,12 +865,8 @@ create_www_user() {
         NOT_PASS_TIPS="# 允许 $WWW_USER 以无需密码执行所有命令"
 
         # 使用 tee 追加到 sudoers 文件
-        {
-            echo ""
-            echo "$NOT_PASS_TIPS"
-            echo "$WWW_USER ALL=(ALL) NOPASSWD:ALL"
-        } | tee -a /etc/sudoers >/dev/null
-
+        modify_file "/etc/sudoers" "|\n$NOT_PASS_TIPS\n$WWW_USER ALL=(ALL) NOPASSWD:ALL"
+        execute_command "sudo chmod 0440 /etc/sudoers" # 要求文件权限必须是440
 
         # 验证配置
         if visudo -c >/dev/null 2>&1; then
@@ -1173,7 +1367,7 @@ install_redis_extension() {
     execute_command "make install" "安装Redis扩展"
 
     # 添加到php.ini
-    execute_command "echo 'extension=redis.so' >> $PHP_PREFIX/etc/php.ini" "启用Redis扩展"
+    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=redis.so'
 
     success "Redis扩展安装完成"
 }
@@ -1203,7 +1397,7 @@ install_imagick_extension() {
     execute_command "make install" "安装Imagick扩展"
 
     # 添加到php.ini
-    execute_command "echo 'extension=imagick.so' >> $PHP_PREFIX/etc/php.ini" "启用Imagick扩展"
+    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=imagick.so'
 
     success "Imagick扩展安装完成"
 }
@@ -1248,12 +1442,9 @@ install_swoole_extension() {
     execute_command "make install" "安装Swoole扩展"
 
     # 添加到php.ini并配置优化参数
-    execute_command "echo 'extension=swoole.so' >> $PHP_PREFIX/etc/php.ini" "启用Swoole扩展"
-
+    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=swoole.so'
     # Swoole 低配服务器优化配置
-    execute_command "echo 'swoole.use_shortname = Off' >> $PHP_PREFIX/etc/php.ini" "禁用Swoole短名称"
-    execute_command "echo 'swoole.enable_coroutine = On' >> $PHP_PREFIX/etc/php.ini" "启用协程支持"
-    execute_command "echo 'swoole.display_errors = On' >> $PHP_PREFIX/etc/php.ini" "显示错误信息"
+    modify_file "$PHP_PREFIX/etc/php.ini" '|\n\nswoole.use_shortname = Off\nswoole.enable_coroutine = On\nswoole.display_errors = On'
 
     success "Swoole扩展安装完成"
 }
