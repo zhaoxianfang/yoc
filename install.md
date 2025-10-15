@@ -274,6 +274,17 @@ __('hello');
 
 ## 13. 设置文件夹权限
 
+把 `/www`目录的所有者和权限设置为 www 用户和 775 权限
+
+```
+递归设置权限（如果目录下有内容）
+sudo chown -R www:www /www
+
+设置适当的目录权限
+sudo chmod 775 /www
+```
+
+
 ```
 sudo chmod -R 775 /www/yoc_cn/
 sudo chown -R nobody.nobody /www/yoc_cn/
@@ -327,7 +338,7 @@ which php 或者 command -v php
 ```
 # * * * * * /usr/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 # 或者跟换你的php 路径
-* * * * * /usr/local/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/local/php/bin/php /www/yoc_cn/artisan schedule:run >> /dev/null 2>&1
 
 # 每天凌晨3点执行重启任务队列
 0 3 * * * systemctl restart yoc_cn-queue.service >> /dev/null 2>&1

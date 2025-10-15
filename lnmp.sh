@@ -854,7 +854,7 @@ create_www_user() {
 
     if ! id "$WWW_USER" &>/dev/null; then
         execute_command "groupadd $WWW_GROUP" "创建用户组$WWW_GROUP"
-        execute_command "useradd -g $WWW_GROUP -s /sbin/nologin -M $WWW_USER" "创建用户$WWW_USER"
+        execute_command "useradd -g $WWW_GROUP $WWW_USER" "创建用户$WWW_USER"
         execute_command "echo '$WWW_USER:$WWW_PASSWORD' | chpasswd" "设置用户密码"
 
         if grep -q "^$WWW_USER.*NOPASSWD.*ALL" /etc/sudoers; then
