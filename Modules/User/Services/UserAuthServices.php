@@ -83,7 +83,7 @@ class UserAuthServices extends UserAuthAbstract
                     'mobile' => $data['mobile'],
                     'gender' => $data['gender'], // 1 男 2 女
                     'email' => $data['email'],
-                    'password' => bcrypt($data['password']),
+                    'password' => bcrypt($data['password']), // 设置密码
                 ]);
 
                 if ($user->save()) {
