@@ -1,24 +1,14 @@
 <?php
 
-namespace Modules\Link\Http\Controllers\Web;
+namespace Modules\ShortLink\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Modules\Link\Models\Constants\LinkType;
+use Modules\ShortLink\Models\Constants\LinkType;
 
 class LinkController extends Controller
 {
-    /**
-     * 加载指定路由的资源
-     */
-    protected function toLinkRoute(string $route, string $Method = 'GET')
-    {
-        $request = \Illuminate\Http\Request::create($route, $Method);
-
-        return app()->handle($request);
-    }
-
     /**
      * @param  string  $type  短链接类型：a-文章
      * @param  string  $short_code  短链接码
@@ -38,7 +28,7 @@ class LinkController extends Controller
         }
 
         return match ($type) {
-            'a' => $this->toLinkRoute(route('article.detail', ['article' => $short_code]), 'GET'), // 文章短链接
+            'a' => get_resp_by_route(route('article.detail', ['article' => $short_code]), 'GET'), // 文章短链接
             default => abort(404, '不支持的请求'),
         };
     }

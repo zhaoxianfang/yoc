@@ -447,6 +447,23 @@ if (! function_exists('show_news_module')) {
     }
 }
 
+if (! function_exists('get_resp_by_route')) {
+    /**
+     * 加载指定路由的资源返回信息而不需要跳转URL
+     *
+     * @param  string  $route  路由：eg: admin.index 、 route('article.detail', ['article' => 1])
+     * @param  string  $Method  请求方式：GET POST PUT DELETE PATCH
+     *
+     * @throws Exception
+     */
+    function get_resp_by_route(string $route, string $Method = 'GET'): \Symfony\Component\HttpFoundation\Response
+    {
+        $request = \Illuminate\Http\Request::create($route, $Method);
+
+        return app()->handle($request);
+    }
+}
+
 if (! function_exists('debug_test')) {
     /**
      * 写入测试数据

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Link\Http\Controllers\Web;
+use Modules\ShortLink\Http\Controllers\Web;
 
 /*
  |--------------------------------------------------------------------------
@@ -16,7 +16,7 @@ use Modules\Link\Http\Controllers\Web;
 
 // Route::pattern('short_type', '^[a-zA-Z]{1,2}$');
 
-// Route::prefix('link')->name('link.')->group(function() {
+// Route::prefix('short_link')->name('short_link.')->group(function() {
 //    Route::get('', [Web\LinkController::class, 'index'])->name('list');
 // });
 

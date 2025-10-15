@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Link\Models\Constants;
+namespace Modules\ShortLink\Models\Constants;
 
 /**
  * 短链接的 类型

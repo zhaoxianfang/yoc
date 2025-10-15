@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Link\Models;
+namespace Modules\ShortLink\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Link\Models\Constants\LinkType;
+use Modules\ShortLink\Models\Constants\LinkType;
 
 /**
  * 短链接

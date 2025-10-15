@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('links', function (Blueprint $table) {
+        Schema::create('short_links', function (Blueprint $table) {
             $table->id(); // $table->bigIncrements('id');
             $table->string('short_code', 30)->unique()->index()->comment('短码:短链接编码,eg:abcde,全局唯一');
             $table->text('url')->comment('原始长链接');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('links');
+        Schema::dropIfExists('short_links');
     }
 };

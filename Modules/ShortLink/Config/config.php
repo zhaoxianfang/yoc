@@ -1,0 +1,8 @@
+<?php
+/**
+ * ShortLink 模块配置文件
+ *      调用方式：config('short_link.name')
+ */
+return [
+    'name' => 'ShortLink：短链接',
+];

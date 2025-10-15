@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Link\Providers;
+namespace Modules\ShortLink\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 

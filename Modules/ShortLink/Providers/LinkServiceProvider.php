@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Link\Providers;
+namespace Modules\ShortLink\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
