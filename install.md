@@ -369,7 +369,7 @@ After=network.target
 User=www
 Group=www
 Restart=always
-ExecStart=/usr/local/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
+ExecStart=/usr/local/php/bin/php /www/yoc_cn/artisan queue:work --sleep=3 --tries=3 --timeout=180
 
 [Install]
 WantedBy=multi-user.target
@@ -385,12 +385,12 @@ systemctl start yoc_cn-queue.service
 其他命令
 
 ```
-启动服务：systemctl start laravel-queue.service
-停止服务：systemctl stop laravel-queue.service
-重启服务：systemctl restart laravel-queue.service
-查看服务状态：systemctl status laravel-queue.service
-启用服务开机启动：systemctl enable laravel-queue.service
-取消服务开机启动：systemctl disable laravel-queue.service
+启动服务：systemctl start yoc_cn-queue.service
+停止服务：systemctl stop yoc_cn-queue.service
+重启服务：systemctl restart yoc_cn-queue.service
+查看服务状态：systemctl status yoc_cn-queue.service
+启用服务开机启动：systemctl enable yoc_cn-queue.service
+取消服务开机启动：systemctl disable yoc_cn-queue.service
 ```
 
 ### 运行队列
@@ -489,8 +489,8 @@ chmod +x /usr/local/bin/composer
 which php
 
 // 将 composer 文件移动到全局目录
-mv /root/.config/herd-lite/bin/php /usr/local/bin/php
+mv /root/.config/herd-lite/bin/php /usr/local/php/bin/php
 
 // 确保移动后的文件仍有可执行权限
-chmod +x /usr/local/bin/php
+chmod +x /usr/local/php/bin/php
 ```
