@@ -655,7 +655,7 @@ install_dependencies() {
             install_epel_fallback
         fi
     elif [[ $pkg_manager == "apt" ]]; then
-        execute_command "apt install -y upgrade" "升级系统"
+        execute_command "apt -y upgrade" "升级系统"
     fi
 
 
@@ -723,7 +723,8 @@ install_epel_fallback() {
     el_ver=$(get_el_version)
     if ! [[ "$el_ver" =~ ^(7|8|9)$ ]]; then
         echo "错误：无法检测EL版本。$el_ver" >&2
-        exit 1
+        # exit 1
+        el_ver=8
     fi
     echo "进行EPEL $el_ver 安装..." >&2
 
