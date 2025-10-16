@@ -423,8 +423,15 @@ handle_exit() {
         echo "非正常退出，执行回滚..." | tee -a "$LOG_FILE"
         rollback_changes
     else
-        success "所有组件安装结束（需要进行一次重启）！"  | tee -a "$LOG_FILE"
+        success "所有组件安装结束（建议进行一次重启）！"  | tee -a "$LOG_FILE"
         echo "==========================================" | tee -a "$LOG_FILE"
+        read -p "是否进行重启（reboot）？(y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            info "已取消重启，请稍后自行执行重启操作！"
+            exit 0
+        fi
+        reboot
     fi
 }
 
@@ -1367,7 +1374,7 @@ install_redis_extension() {
     execute_command "make install" "安装Redis扩展"
 
     # 添加到php.ini
-    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=redis.so'
+    modify_file "$PHP_PREFIX/etc/php.ini" ';zend_extension.*|extension=redis.so\n|prepend'
 
     success "Redis扩展安装完成"
 }
@@ -1397,7 +1404,7 @@ install_imagick_extension() {
     execute_command "make install" "安装Imagick扩展"
 
     # 添加到php.ini
-    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=imagick.so'
+    modify_file "$PHP_PREFIX/etc/php.ini" ';zend_extension.*|extension=imagick.so\n|prepend'
 
     success "Imagick扩展安装完成"
 }
@@ -1442,7 +1449,7 @@ install_swoole_extension() {
     execute_command "make install" "安装Swoole扩展"
 
     # 添加到php.ini并配置优化参数
-    modify_file "$PHP_PREFIX/etc/php.ini" '|extension=swoole.so'
+    modify_file "$PHP_PREFIX/etc/php.ini" ';zend_extension.*|extension=swoole.so\n|prepend'
     # Swoole 低配服务器优化配置
     modify_file "$PHP_PREFIX/etc/php.ini" '|\n\nswoole.use_shortname = Off\nswoole.enable_coroutine = On\nswoole.display_errors = On'
 
@@ -1559,7 +1566,7 @@ show_installation_result() {
     echo "关闭服务：systemctl stop php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
     echo "开机启动：systemctl enable php-fpm|redis|nginx|mysqld " | tee -a "$COMMAND_FILE"
 
-    success "LNMP环境安装完成(安装项 均已配置开机启动)！" | tee -a "$LOG_FILE"
+    success "LNMP环境安装完成 (安装项 均已配置开机启动)！" | tee -a "$LOG_FILE"
 }
 
 # 主安装函数
