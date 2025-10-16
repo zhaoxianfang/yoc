@@ -7,6 +7,7 @@
 # /bin/bash -c "$(curl -fsSL http://yoc.cn/install/linux/lnmp.sh)"
 # 兼容：
 #    1、Alibaba Cloud Linux 3
+#    2、Alibaba Cloud Linux 4
 # =================================================================
 
 set -euo pipefail
@@ -180,12 +181,13 @@ spinner() {
     end_time=$(date +%s)
     local total_time=$((end_time - start_time))
 
+    # 清除当前行并重新输出结果
     if [ $exit_code -eq 0 ]; then
-        printf "\r✓ ${message}完成！(%ds)\n" "$total_time" >&2
+        printf "\r\033[K✓ ${message}完成！(%ds)\n" "$total_time" >&2
         echo "命令执行成功: $message (耗时: ${total_time}s)" >> "$LOG_FILE"
         return 0
     else
-        printf "\r✗ ${message}失败！(%ds)\n" "$total_time" >&2
+        printf "\r\033[K✗ ${message}失败！(%ds)\n" "$total_time" >&2
         echo "命令执行失败: $message (退出码: $exit_code, 耗时: ${total_time}s)" >> "$LOG_FILE"
         return $exit_code
     fi
@@ -676,6 +678,8 @@ install_dependencies() {
         fi
     done
 
+    execute_command "systemctl daemon-reload" ">>> 重新加载系统服务 <<<"
+
     success "依赖包安装完成"
 }
 
@@ -683,6 +687,9 @@ install_dependencies() {
 check_fail_package(){
     local command="${1,,}"
     local pkg="${2:-dnf}"
+
+    # 将当前路径赋值给变量
+    local current_dir=$(pwd)
 
     if [[ $command == "oniguruma-devel" ]]; then
         warn "尝试重新安装oniguruma-devel..."
@@ -692,6 +699,24 @@ check_fail_package(){
         execute_command "sudo $pkg config-manager --set-enabled crb" "启用 PowerTools/CRB 仓库"
         execute_command "sudo $pkg install -y oniguruma-devel" "再次尝试安装 oniguruma"
     fi
+
+    if [[ $command == "libzip-devel" ]]; then
+        local libzip_version="libzip-1.11.4"
+        local build_dir="$libzip_version/build"
+
+        warn "尝试重新安装 $libzip_version"
+
+        # 下载、编译和安装 libzip
+        execute_command "wget -q https://libzip.org/download/$libzip_version.tar.gz" "下载 $libzip_version 源码"
+        execute_command "tar -xzf $libzip_version.tar.gz" "解压 libzip 源码"
+
+        # 创建构建目录并编译安装
+        mkdir -p "$build_dir"
+        execute_command "cd '$build_dir' && cmake .. && make -j\$(nproc) && make install" "构建编译安装 libzip"
+
+        # 清理临时文件
+        execute_command "rm -rf '$libzip_version.tar.*' '$libzip_version'" "清理 libzip 下载文件"
+    fi
 }
 install_epel_fallback() {
     local el_ver
@@ -700,6 +725,7 @@ install_epel_fallback() {
         echo "错误：无法检测EL版本。$el_ver" >&2
         exit 1
     fi
+    echo "进行EPEL $el_ver 安装..." >&2
 
     # 镜像源按优先级排列
     local mirrors=(
@@ -733,13 +759,14 @@ install_epel_fallback() {
 
     # 验证
     if rpm -q epel-release >/dev/null 2>&1; then
-        echo "EPEL for EL $el_ver 已从镜像成功安装。"
+        echo "EPEL for EPEL $el_ver 已从镜像成功安装。"
     else
         echo "错误：EPEL安装失败。" >&2
         exit 1
     fi
 }
 
+# 获取 服务器实际的 EPEL 版本
 get_el_version() {
     local os_name os_version_id os_version content line key value
 
@@ -1011,6 +1038,9 @@ install_php() {
     execute_command "echo 'opcache.revalidate_freq=60' >> $PHP_PREFIX/etc/php.ini" "设置验证频率"
     execute_command "echo 'opcache.fast_shutdown=1' >> $PHP_PREFIX/etc/php.ini" "启用快速关闭"
 
+    # 环境变量配置部分
+    configure_php_environment
+
     # 创建服务文件
     cat > /etc/systemd/system/php-fpm.service << EOF
 [Unit]
@@ -1030,25 +1060,78 @@ EOF
 
     execute_command "chmod 644 /etc/systemd/system/php-fpm.service" "设置服务文件权限"
 
-    if ! grep -q "${PHP_PREFIX}/bin" $PROFILE_FILE; then
-        info "添加PHP到环境变量"
-        cat >> $PROFILE_FILE << EOF
-# PHP环境变量
-export PATH="${PHP_PREFIX}/bin:\$PATH"
-EOF
-
-        # 更新环境变量，先检查文件是否存在
-        if [ -f "$PROFILE_FILE" ]; then
-            set +u  # 临时关闭nounset
-            source $PROFILE_FILE
-            set -u  # 恢复nounset（如果需要）
-        fi
-    fi
+    # 回滚操作 - 更精确的回滚
+    add_php_rollback_actions
 
     # 添加回滚操作
     add_rollback "rm -rf $PHP_PREFIX; rm -f /etc/systemd/system/php-fpm.service; systemctl daemon-reload"
 
     success "PHP安装完成"
+}
+
+# 专门处理PHP环境变量配置
+configure_php_environment() {
+    info "配置PHP环境变量..."
+
+    local php_bin_path="${PHP_PREFIX}/bin"
+    local path_entry="export PATH=\"${php_bin_path}:\$PATH\""
+
+    # 更精确的检查方式
+    if ! grep -q "export PATH=.*${PHP_PREFIX}/bin" "$PROFILE_FILE" 2>/dev/null; then
+        if [ -f "$PROFILE_FILE" ] && [ -w "$PROFILE_FILE" ]; then
+            # 添加分隔符和注释
+            echo "" >> "$PROFILE_FILE"
+            echo "# PHP Environment Variables" >> "$PROFILE_FILE"
+            echo "$path_entry" >> "$PROFILE_FILE"
+
+            info "已添加PHP到环境变量文件"
+
+            # 立即在当前会话中生效
+            export PATH="${php_bin_path}:$PATH"
+
+            # 验证是否生效
+            if command -v php >/dev/null 2>&1; then
+                local installed_version
+                installed_version=$(${PHP_PREFIX}/bin/php -v | head -n1)
+                info "PHP环境变量配置成功: $installed_version"
+            else
+                warn "PHP环境变量配置后验证失败，可能需要重新登录"
+            fi
+        else
+            error "无法写入环境变量文件: $PROFILE_FILE"
+            warn "请手动添加: $path_entry"
+        fi
+    else
+        info "PHP环境变量已配置"
+    fi
+}
+
+# 新增：专门的PHP回滚操作
+add_php_rollback_actions() {
+    info "添加PHP回滚操作..."
+
+    # 1. 停止并禁用服务
+    add_rollback "systemctl stop php-fpm 2>/dev/null || true"
+    add_rollback "systemctl disable php-fpm 2>/dev/null || true"
+    add_rollback "rm -f /etc/systemd/system/php-fpm.service"
+
+    # 2. 从环境变量中移除PHP路径
+    local php_bin_path="${PHP_PREFIX}/bin"
+    add_rollback "sed -i '/# PHP Environment Variables/,/export PATH=.*${php_bin_path}/d' '$PROFILE_FILE' 2>/dev/null || true"
+    add_rollback "sed -i '/${php_bin_path}/d' '$PROFILE_FILE' 2>/dev/null || true"
+
+    # 3. 删除安装目录（更安全的删除）
+    add_rollback "if [ -d '$PHP_PREFIX' ]; then rm -rf '$PHP_PREFIX'; fi"
+
+    # 4. 删除源码目录
+    add_rollback "if [ -d '$INSTALL_DIR/php-$PHP_VERSION' ]; then rm -rf '$INSTALL_DIR/php-$PHP_VERSION'; fi"
+    add_rollback "if [ -f '$INSTALL_DIR/php.tar.gz' ]; then rm -f '$INSTALL_DIR/php.tar.gz'; fi"
+
+    # 5. 重新加载系统服务
+    add_rollback "systemctl daemon-reload"
+
+    # 6. 从当前环境移除（如果可能）
+    add_rollback "export PATH=\$(echo \$PATH | sed 's|${php_bin_path}:||g')"
 }
 
 # 安装MySQL
