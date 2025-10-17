@@ -2,7 +2,7 @@
 
 # =================================================================
 # 企业级 PHP + MySQL + Nginx + Redis + Composer 自动化安装脚本
-# 兼容原生Linux系统和国产/云厂商魔改系统
+# 兼容原生Linux系统和国产/云厂商魔改系统(主要兼容 centos 系列)
 # 安装 LNMP 环境
 # /bin/bash -c "$(curl -fsSL http://yoc.cn/install/linux/lnmp.sh)"
 # 兼容：
@@ -71,6 +71,7 @@ SERVER_IP="${SERVER_IP:-}" # 服务器IP地址
 DOMAIN="${DOMAIN:-}" # 服务器部署域名
 IS_FINISH="${DOMAIN:-no}" # 是否完成安装
 PKG_NAME="yum" # 包管理器名称
+EPEL_VERSION="1" # EPEL版本
 
 # 初始化日志
 > "$LOG_FILE"
@@ -520,6 +521,7 @@ init_pkg_name(){
       PKG_NAME="yum"
   elif command -v apt &> /dev/null; then
       PKG_NAME="apt"
+      warn "警告:本安装脚本主要针对 CentOS 系列"
   else
       error "不支持的包管理器"
       return 1
@@ -549,6 +551,7 @@ EOF
     # 加载配置
     load_config
 
+    EPEL_VERSION=$(get_el_version)
     IP=$(get_ip_with_curl)
     if domain=$(check_param "$DEPLOY_NGINX_DOMAIN"); then
         if [ -n "$domain" ]; then
@@ -571,6 +574,7 @@ EOF
     echo "磁盘空间: $(df -h / | tail -1 | awk '{print $4}') 可用" | tee -a "$LOG_FILE"
     echo "当前用户: $(whoami)" | tee -a "$LOG_FILE"
     echo "包管理器: $PKG_NAME" | tee -a "$LOG_FILE"
+    echo "EPEL版本: $EPEL_VERSION" | tee -a "$LOG_FILE"
     echo "安装目录: $INSTALL_DIR" | tee -a "$LOG_FILE"
     echo "日志文件: $LOG_FILE" | tee -a "$LOG_FILE"
     echo "命令日志: $COMMAND_FILE" | tee -a "$LOG_FILE"
@@ -788,20 +792,18 @@ check_fail_package(){
     fi
 }
 install_epel_fallback() {
-    local el_ver
-    el_ver=$(get_el_version)
-    if ! [[ "$el_ver" =~ ^(7|8|9)$ ]]; then
-        echo "错误：无法检测EL版本。$el_ver" >&2
+    if ! [[ "$EPEL_VERSION" =~ ^(7|8|9)$ ]]; then
+        echo "错误：无法检测EL版本。$EPEL_VERSION" >&2
         # exit 1
-        el_ver=8
+        EPEL_VERSION=8
     fi
-    echo "进行EPEL $el_ver 安装..." >&2
+    echo "进行EPEL $EPEL_VERSION 安装..." >&2
 
     # 镜像源按优先级排列
     local mirrors=(
-        "https://mirrors.aliyun.com/epel/epel-release-latest-$el_ver.noarch.rpm"
-        "https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-$el_ver.noarch.rpm"
-        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$el_ver.noarch.rpm"
+        "https://mirrors.aliyun.com/epel/epel-release-latest-$EPEL_VERSION.noarch.rpm"
+        "https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-$EPEL_VERSION.noarch.rpm"
+        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$EPEL_VERSION.noarch.rpm"
     )
 
     local pkg_url
@@ -818,11 +820,11 @@ install_epel_fallback() {
     fi
 
     # 安装
-    execute_command "sudo $PKG_NAME install -y "$pkg_url"" "安装 EPEL $el_ver"
+    execute_command "sudo $PKG_NAME install -y "$pkg_url"" "安装 EPEL $EPEL_VERSION"
 
     # 验证
     if rpm -q epel-release >/dev/null 2>&1; then
-        echo "EPEL for $el_ver 已从镜像成功安装。"
+        echo "EPEL for $EPEL_VERSION 已从镜像成功安装。"
     else
         echo "错误：EPEL安装失败。" >&2
         exit 1
@@ -1216,24 +1218,13 @@ install_mysql() {
     step "安装MySQL $MYSQL_VERSION..."
 
     # 下载MySQL Yum源
-    execute_command "wget -c https://dev.mysql.com/get/mysql84-community-release-el8-1.noarch.rpm -O mysql.rpm" "下载MySQL源"
+    execute_command "wget -c https://dev.mysql.com/get/mysql84-community-release-el$EPEL_VERSION-1.noarch.rpm -O mysql.rpm" "下载MySQL源"
 
     # 安装MySQL源
     execute_command "sudo $PKG_NAME install -y mysql.rpm" "安装MySQL源"
 
-    # 安装MySQL服务器
-    if execute_command "sudo $PKG_NAME install -y mysql-community-server" "安装MySQL服务器"; then
-        echo "成功安装MySQL" >> "$LOG_FILE"
-    else
-        warn "安装Mysql失败，尝试其他方式安装..."
-        execute_command "sudo $PKG_NAME remove -y mysql-community-release" "清理之前的安装"
-        execute_command "rm -f mysql.rpm" "清理之前的安装文件"
-
-        execute_command "wget -c https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm -O mysql.rpm" "下载 el9 版本的仓库"
-        execute_command "sudo $PKG_NAME install -y mysql.rpm" "安装MySQL源"
-        # 安装MySQL
-        run_background_task "sudo $PKG_NAME install -y mysql-community-server" "安装MySQL服务器"
-    fi
+    # 安装MySQL
+    run_background_task "sudo $PKG_NAME install -y mysql-community-server" "安装MySQL服务"
 
     # 启动MySQL服务
     execute_command "systemctl start mysqld" "启动MySQL服务"
@@ -1472,7 +1463,7 @@ install_nginx() {
 
     cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
 
-    local nginx_url="http://nginx.org/packages/centos/8/x86_64/RPMS/nginx-$NGINX_VERSION-1.el8.ngx.x86_64.rpm"
+    local nginx_url="http://nginx.org/packages/centos/$EPEL_VERSION/x86_64/RPMS/nginx-$NGINX_VERSION-1.el$EPEL_VERSION.ngx.x86_64.rpm"
 
     # 下载Nginx RPM包
     execute_command "wget -c $nginx_url -O nginx.rpm" "下载Nginx安装包"
