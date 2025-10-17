@@ -20,6 +20,7 @@ CONFIG_FILE="${SCRIPT_DIR}/install.conf"
 
 # 控制安装开关
 CREATE_MANAGER_USER="${CREATE_MANAGER_USER:-yes}" # 是否创建管理员用户
+WWW_DIR="${WWW_DIR:-/www}" # 是否创建/www网站运行目录
 INSTALL_PHP="${INSTALL_PHP:-yes}" # 是否安装 php
 INSTALL_MYSQL="${INSTALL_MYSQL:-yes}" # 是否安装 mysql
 INSTALL_NGINX="${INSTALL_NGINX:-yes}" # 是否安装 nginx
@@ -28,6 +29,7 @@ INSTALL_REDIS_EXT="${INSTALL_REDIS_EXT:-yes}" # 是否安装 redis 扩展
 INSTALL_IMAGICK_EXT="${INSTALL_IMAGICK_EXT:-yes}" # 是否安装 imagick 扩展
 INSTALL_SWOOLE_EXT="${INSTALL_SWOOLE_EXT:-yes}" # 是否安装 swoole 扩展
 INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}" # 是否安装 composer
+DEPLOY_NGINX_DOMAIN="${DEPLOY_NGINX_DOMAIN:-yoc.cn}" # 是否部署 网站 域名解析文件,不带 www
 
 # 默认配置
 PHP_VERSION="${PHP_VERSION:-8.4.12}"
@@ -62,6 +64,11 @@ SWAP_SIZE="${SWAP_SIZE:-2G}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/src}"
 PROFILE_FILE="${PROFILE_FILE:-/etc/profile}" # 环境变量配置
 
+# 脚本内部调度变量
+SERVER_IP="${SERVER_IP:-}" # 服务器IP地址
+DOMAIN="${DOMAIN:-}" # 服务器部署域名
+IS_FINISH="${DOMAIN:-no}" # 是否完成安装
+
 # 初始化日志
 > "$LOG_FILE"
 > "$COMMAND_FILE"
@@ -92,6 +99,21 @@ need_install() {
         yes|y|true|1|on) return 0 ;;  # 需要安装
         *) return 1 ;;                # 不需要安装
     esac
+}
+# 检查参数
+# 使用示例
+# HOST="${HOST:-}"
+# if host=$(check_param "$HOST"); then
+#     echo "配置主机地址: $host"
+# fi
+check_param() {
+    local value="$1"
+    if [ -n "$value" ]; then
+        echo "$value"
+        return 0
+    else
+        return 1
+    fi
 }
 
 # 改进的命令执行函数 - 同时记录到命令日志和详细日志
@@ -225,12 +247,14 @@ modify_file() {
         # 清理参数：去除首尾空格并处理多行内容
         target=$(printf "%b" "${target#"${target%%[![:space:]]*}"}")  # 去除头部空格
         target=$(printf "%b" "${target%"${target##*[![:space:]]}"}")  # 去除尾部空格
-        handle=$(printf "%b" "${handle#"${handle%%[![:space:]]*}"}")
-        handle=$(printf "%b" "${handle%"${handle##*[![:space:]]}"}")
+        # handle=$(printf "%b" "${handle#"${handle%%[![:space:]]*}"}")  # 去除头部空格
+        handle=$(printf "%b" "${handle%"${handle##*[![:space:]]}"}")  # 去除尾部空格
         mode=$(echo "${mode^^}")  # 转换为大写统一处理
 
-        # 转义函数：处理正则表达式特殊字符
-        escape_regex() { echo "$1" | sed 's/[][\/\.*^$+?{}|()]/\\&/g'; }
+        # 转义函数：处理正则表达式特殊字符，同时保留\$的字面意义
+        escape_regex() {
+            echo "$1" | sed -e 's/[][\/\.*^+?{}|()]/\\&/g' -e 's/\\\\\$/\$/g'
+        }
 
         local escaped_target=$(escape_regex "$target")
         local is_target_multiline=$(echo "$target" | grep -q $'\n' && echo true || echo false)
@@ -247,13 +271,15 @@ modify_file() {
         if [[ -n "$target" && -z "$handle" ]]; then
             if [[ "$target" == *".*" ]]; then
                 # 行首匹配删除：匹配以指定内容开头的行
-                sed -i "/^$(escape_regex "${target%.*}")/d" "$temp_file"
+                local line_pattern=$(escape_regex "${target%.*}")
+                # 支持匹配带空格开头的内容
+                sed -i "/^[[:space:]]*$line_pattern/d" "$temp_file"
             elif [[ "$is_target_multiline" == "true" ]]; then
                 # 多行内容删除：使用Perl处理多行匹配
                 perl -i -pe 'BEGIN{undef $/} s/\Q'"$target"'\E//g' "$temp_file"
             else
-                # 单行内容删除
-                sed -i "/$escaped_target/d" "$temp_file"
+                # 单行内容删除，支持匹配带空格开头的内容
+                sed -i "/[[:space:]]*$escaped_target/d" "$temp_file"
             fi
             continue
         fi
@@ -271,24 +297,24 @@ modify_file() {
             case "$mode" in
                 "INSERT")
                     if [[ "$is_line_match" == true ]]; then
-                        # 行首匹配后插入
+                        # 行首匹配后插入，支持匹配带空格开头的内容
                         if [[ "$is_handle_multiline" == "true" ]]; then
                             # 多行插入：逐行处理
-                            echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^$line_pattern/a{}" "$temp_file"
+                            echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^[[:space:]]*$line_pattern/a{}" "$temp_file"
                         else
-                            sed -i "/^$line_pattern/a$handle" "$temp_file"
+                            sed -i "/^[[:space:]]*$line_pattern/a$handle" "$temp_file"
                         fi
                     else
-                        # 普通内容后插入
+                        # 普通内容后插入，支持匹配带空格开头的内容
                         if [[ "$is_target_multiline" == "true" ]]; then
                             # 多行匹配后插入
                             perl -i -pe 's/\Q'"$target"'\E/'"$target\\n$handle"'/g' "$temp_file"
                         else
                             # 单行匹配后插入
                             if [[ "$is_handle_multiline" == "true" ]]; then
-                                echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/$escaped_target/a{}" "$temp_file"
+                                echo "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/[[:space:]]*$escaped_target/a{}" "$temp_file"
                             else
-                                sed -i "/$escaped_target/a$handle" "$temp_file"
+                                sed -i "/[[:space:]]*$escaped_target/a$handle" "$temp_file"
                             fi
                         fi
                     fi
@@ -296,24 +322,24 @@ modify_file() {
 
                 "PREPEND")
                     if [[ "$is_line_match" == true ]]; then
-                        # 行首匹配前插入
+                        # 行首匹配前插入，支持匹配带空格开头的内容
                         if [[ "$is_handle_multiline" == "true" ]]; then
                             # 多行前置：逆序插入
-                            tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^$line_pattern/i{}" "$temp_file"
+                            tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/^[[:space:]]*$line_pattern/i{}" "$temp_file"
                         else
-                            sed -i "/^$line_pattern/i$handle" "$temp_file"
+                            sed -i "/^[[:space:]]*$line_pattern/i$handle" "$temp_file"
                         fi
                     else
-                        # 普通内容前插入
+                        # 普通内容前插入，支持匹配带空格开头的内容
                         if [[ "$is_target_multiline" == "true" ]]; then
                             # 多行匹配前插入
                             perl -i -pe 's/\Q'"$target"'\E/'"$handle\\n$target"'/g' "$temp_file"
                         else
                             # 单行匹配前插入
                             if [[ "$is_handle_multiline" == "true" ]]; then
-                                tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/$escaped_target/i{}" "$temp_file"
+                                tac <<< "$handle" | sed '1!s/^/\\&/' | xargs -I {} sed -i "/[[:space:]]*$escaped_target/i{}" "$temp_file"
                             else
-                                sed -i "/$escaped_target/i$handle" "$temp_file"
+                                sed -i "/[[:space:]]*$escaped_target/i$handle" "$temp_file"
                             fi
                         fi
                     fi
@@ -321,43 +347,43 @@ modify_file() {
 
                 "COMMENT")
                     if [[ "$is_line_match" == true ]]; then
-                        # 注释行首匹配的行
-                        sed -i "/^$line_pattern/s/^/# /" "$temp_file"
+                        # 注释行首匹配的行，支持匹配带空格开头的内容
+                        sed -i "/^[[:space:]]*$line_pattern/s/^/# /" "$temp_file"
                     else
-                        # 注释包含目标内容的行
+                        # 注释包含目标内容的行，支持匹配带空格开头的内容
                         if [[ "$is_target_multiline" == "true" ]]; then
                             # 多行内容注释：每行前加注释符号
                             perl -i -pe 's/\Q'"$target"'\E/'$(echo "$target" | sed 's/^/# /; s/\n/\\n# /g')'/g' "$temp_file"
                         else
-                            sed -i "/$escaped_target/s/^/# /" "$temp_file"
+                            sed -i "/[[:space:]]*$escaped_target/s/^/# /" "$temp_file"
                         fi
                     fi
                     ;;
 
                 "UNCOMMENT")
                     if [[ "$is_line_match" == true ]]; then
-                        # 取消注释行首匹配的行
-                        sed -i "/^#\s*$line_pattern/s/^#\s*//" "$temp_file"
+                        # 取消注释行首匹配的行，支持匹配带空格开头的内容
+                        sed -i "/^[[:space:]]*#\s*$line_pattern/s/^[[:space:]]*#\s*//" "$temp_file"
                     else
-                        # 取消注释包含目标内容的行
-                        sed -i "/#\s*$escaped_target/s/^#\s*//" "$temp_file"
+                        # 取消注释包含目标内容的行，支持匹配带空格开头的内容
+                        sed -i "/[[:space:]]*#\s*$escaped_target/s/^[[:space:]]*#\s*//" "$temp_file"
                     fi
                     ;;
 
                 *)  # 默认模式：REPLACE 或未指定模式
                     if [[ "$is_line_match" == true ]]; then
-                        # 替换整行内容
+                        # 替换整行内容，支持匹配带空格开头的内容
                         if [[ "$is_handle_multiline" == "true" ]]; then
-                            sed -i "/^$line_pattern/c\\$handle" "$temp_file"
+                            sed -i "/^[[:space:]]*$line_pattern/c\\$handle" "$temp_file"
                         else
-                            sed -i "s/^$line_pattern.*/$handle/g" "$temp_file"
+                            sed -i "s/^[[:space:]]*$line_pattern.*/$handle/g" "$temp_file"
                         fi
                     elif [[ "$is_target_multiline" == "true" || "$is_handle_multiline" == "true" ]]; then
                         # 多行内容替换：使用Perl处理
                         perl -i -pe 'BEGIN{undef $/} s/\Q'"$target"'\E/'"$handle"'/g' "$temp_file"
                     else
-                        # 单行内容替换
-                        sed -i "s/$escaped_target/$handle/g" "$temp_file"
+                        # 单行内容替换，支持匹配带空格开头的内容
+                        sed -i "s/[[:space:]]*$escaped_target/$handle/g" "$temp_file"
                     fi
                     ;;
             esac
@@ -415,39 +441,54 @@ handle_error() {
 
 # 信号处理函数
 handle_signal() {
-    error "脚本被中断！开始回滚..."
+    error "脚本被中断！"
     rollback_changes
     exit 1
 }
 
 handle_exit() {
     if [ $? -ne 0 ]; then
-        echo "非正常退出，执行回滚..." | tee -a "$LOG_FILE"
+        echo "非正常退出..." | tee -a "$LOG_FILE"
         rollback_changes
     else
-        success "所有组件安装结束（建议进行一次重启）！"  | tee -a "$LOG_FILE"
-        echo "==========================================" | tee -a "$LOG_FILE"
-        read -p "是否进行重启（reboot）？(y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            info "已取消重启，请稍后自行执行重启操作！"
-            exit 0
+        if need_install "$IS_FINISH"; then
+            success "所有组件安装结束（建议进行一次重启）！"  | tee -a "$LOG_FILE"
+            echo "==========================================" | tee -a "$LOG_FILE"
+            read -p "是否进行重启（reboot）？(y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                info "已取消重启，请稍后自行执行重启操作！"
+                exit 0
+            fi
+            reboot
+        else
+            success "安装结束"  | tee -a "$LOG_FILE"
         fi
-        reboot
     fi
 }
 
 # 安全的回滚函数 - 不使用eval
 rollback_changes() {
-    info "开始执行回滚操作..."
 
-    # 逆序执行回滚操作
-    for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
-        local action="${ROLLBACK_ACTIONS[i]}"
-        execute_command "$action >> \"$LOG_FILE\" 2>&1 &"
-    done
+  if ! need_install "$IS_FINISH"; then
+      read -p "是否回滚安装程序？(y/n): " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+          info "回滚已取消"
+          # 标记安装结束
+          IS_FINISH='yes'
+          exit 0
+      fi
+      info "开始执行回滚操作..."
 
-    success "回滚操作完成"
+      # 逆序执行回滚操作
+      for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
+          local action="${ROLLBACK_ACTIONS[i]}"
+          execute_command "$action >> \"$LOG_FILE\" 2>&1 &"
+      done
+
+      success "回滚操作完成"
+  fi
 }
 
 # 添加回滚操作
@@ -483,6 +524,13 @@ EOF
     # 加载配置
     load_config
 
+    IP=$(get_ip_with_curl)
+    if domain=$(check_param "$DEPLOY_NGINX_DOMAIN"); then
+        if [ -n "$domain" ]; then
+            DOMAIN=$domain
+        fi
+    fi
+
     # 创建安装目录
     execute_command "mkdir -p $INSTALL_DIR" "创建安装目录"
 
@@ -492,7 +540,8 @@ EOF
     echo "内核版本: $(uname -r)" | tee -a "$LOG_FILE"
     echo "系统架构: $(uname -m)" | tee -a "$LOG_FILE"
     echo "主机名称: $(hostname)" | tee -a "$LOG_FILE"
-    echo "  IP地址: $(hostname -I 2>/dev/null | awk '{print $1}' || ip addr show | grep inet | grep -v 127.0.0.1 | head -1 | awk '{print $2}')" | tee -a "$LOG_FILE"
+    echo "  内网IP: $(hostname -I 2>/dev/null | awk '{print $1}' || ip addr show | grep inet | grep -v 127.0.0.1 | head -1 | awk '{print $2}')" | tee -a "$LOG_FILE"
+    echo "  公网IP: $IP" | tee -a "$LOG_FILE"
     echo "内存大小: $(free -h | grep Mem | awk '{print $2}')" | tee -a "$LOG_FILE"
     echo "磁盘空间: $(df -h / | tail -1 | awk '{print $4}') 可用" | tee -a "$LOG_FILE"
     echo "当前用户: $(whoami)" | tee -a "$LOG_FILE"
@@ -536,6 +585,9 @@ show_install_config() {
     if need_install "$INSTALL_NGINX"; then
         print_aligned "Nginx 版本" "$NGINX_VERSION"
         print_aligned "Nginx 安装路径" "$NGINX_PREFIX"
+        if [ -n "$DOMAIN" ]; then
+            print_aligned "Nginx 部署域名" "$DOMAIN"
+        fi
     fi
 
     if need_install "$INSTALL_REDIS"; then
@@ -545,9 +597,13 @@ show_install_config() {
     fi
 
     if need_install "$CREATE_MANAGER_USER"; then
-        print_aligned "Web用户" "$WWW_USER:$WWW_GROUP"
-        print_aligned "Web用户密码" "$WWW_PASSWORD"
+        print_aligned "远程登录用户" "$WWW_USER:$WWW_GROUP"
+        print_aligned "远程登录密码" "$WWW_PASSWORD"
     fi
+    if need_install "$WWW_DIR"; then
+        print_aligned "网站运行目录" "$WWW_DIR"
+    fi
+
 
     echo "==========================================" | tee -a "$LOG_FILE"
 
@@ -715,7 +771,7 @@ check_fail_package(){
         execute_command "cd '$build_dir' && cmake .. && make -j\$(nproc) && make install" "构建编译安装 libzip"
 
         # 清理临时文件
-        execute_command "rm -rf '$libzip_version.tar.*' '$libzip_version'" "清理 libzip 下载文件"
+        execute_command "rm -rf $libzip_version.tar.* $libzip_version" "清理 libzip 下载文件"
     fi
 }
 install_epel_fallback() {
@@ -924,6 +980,15 @@ create_www_user() {
     else
         info "用户 $WWW_USER 已存在"
     fi
+}
+
+create_www_dir(){
+    if [ ! -d "$WWW_DIR" ]; then
+        step "创建Web服务目录..."
+        execute_command "mkdir -p $WWW_DIR" "创建Web服务目录"
+    fi
+    execute_command "chown -R $WWW_USER:$WWW_GROUP $WWW_DIR" "设置Web服务目录权限"
+    execute_command "chmod -R 755 $WWW_DIR" "设置Web服务目录权限"
 }
 
 # 安装PHP
@@ -1406,6 +1471,13 @@ if [ -f "/usr/share/nginx/html/index.html" ]; then
 EOF
 fi
 
+# 判断  /usr/share/nginx/html/50x.html 文件是否存在
+if [ -f "/usr/share/nginx/html/50x.html" ]; then
+    sudo tee /usr/share/nginx/html/50x.html > /dev/null <<'EOF'
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport"content="width=device-width, initial-scale=1.0"><title>出错啦！</title><style>body,html{margin:0;padding:0;height:100%;width:100%;display:flex;justify-content:center;align-items:center;font-family:Arial,sans-serif;background-color:#f0f0f0;overflow:hidden}.message-box{padding:20px;position:relative;text-align:center;font-size:24px;color:#196aa8}@keyframes flash{0%{opacity:1}50%{opacity:0}100%{opacity:1}}.rect{background:linear-gradient(to left,#196aa8,#196aa8)left top no-repeat,linear-gradient(to bottom,#196aa8,#196aa8)left top no-repeat,linear-gradient(to left,#196aa8,#196aa8)right top no-repeat,linear-gradient(to bottom,#196aa8,#196aa8)right top no-repeat,linear-gradient(to left,#196aa8,#196aa8)left bottom no-repeat,linear-gradient(to bottom,#196aa8,#196aa8)left bottom no-repeat,linear-gradient(to left,#196aa8,#196AA8)right bottom no-repeat,linear-gradient(to left,#196aa8,#196aa8)right bottom no-repeat;background-size:2px 15px,20px 2px,2px 15px,20px 2px}</style></head><body><div class="message-box rect"><!--<div style="text-align: center;"><img src="{{$img}}"alt="Img"style="width: 50px;height: 50px;"></div>-->抱歉，您访问的页面暂时无法访问</div></body></html>
+EOF
+fi
+
 
     # 启动服务
     execute_command "systemctl start nginx" "启动Nginx服务"
@@ -1415,6 +1487,428 @@ fi
     add_rollback "systemctl stop nginx; yum remove -y nginx"
 
     success "Nginx安装完成"
+
+    # 配置Nginx
+    configure_ngixn
+}
+
+# 配置Nginx
+configure_ngixn(){
+    step "配置Nginx..."
+    execute_command "cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak" "备份nginx.conf"
+    execute_command "cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak" "备份default.conf"
+
+    sudo tee /etc/nginx/nginx.conf > /dev/null <<'EOF'
+user  nginx;
+# user www;
+# 自动根据CPU核心数调整Worker进程数量
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+
+    # 开启高效传输模式
+    sendfile        on;
+    # 保持连接的时间，也叫超时时间，单位秒
+    keepalive_timeout  65;
+
+    # 新增配置
+    tcp_nopush          on;   # 减少网络报文段的数量
+    tcp_nodelay         on;
+    types_hash_max_size 2048;
+
+    ######################## 大文件上传处理 ########################
+    # 上传文件的大小限制  默认1m
+    client_max_body_size 500m;
+    # 读取客户端请求头数据的超时时间 默认秒 默认60秒
+    client_header_timeout 120;
+
+    ######################## 压缩 ########################
+    # 默认off，是否开启gzip
+    gzip on;
+    # 要采用 gzip 压缩的 MIME 文件类型，其中 text/html 被系统强制启用；
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+
+    # ---- 以上两个参数开启就可以支持Gzip压缩了 ---- #
+
+    # 默认 off，该模块启用后，Nginx 首先检查是否存在请求静态文件的 gz 结尾的文件，如果有则直接返回该 .gz 文件内容；
+    gzip_static on;
+
+    # 默认 off，nginx做为反向代理时启用，用于设置启用或禁用从代理服务器上收到相应内容 gzip 压缩；
+    # off：关闭Nginx对后台服务器的响应结果进行压缩。
+    # expired：如果响应头中包含Expires信息，则开启压缩。
+    # no-cache：如果响应头中包含Cache-Control:no-cache信息，则开启压缩。
+    # no-store：如果响应头中包含Cache-Control:no-store信息，则开启压缩。
+    # private：如果响应头中包含Cache-Control:private信息，则开启压缩。
+    # no_last_modified：如果响应头中不包含Last-Modified信息，则开启压缩。
+    # no_etag：如果响应头中不包含ETag信息，则开启压缩。
+    # auth：如果响应头中包含Authorization信息，则开启压缩。
+    # any：无条件对后端的响应结果开启压缩机制。
+    gzip_proxied off;
+
+    # 用于在响应消息头中添加 Vary：Accept-Encoding，使代理服务器根据请求头中的 Accept-Encoding 识别是否启用 gzip 压缩；
+    gzip_vary on;
+
+    # gzip 压缩比，压缩级别是 1-9，1 压缩级别最低，9 最高，级别越高压缩率越大，压缩时间越长，建议 4-6；
+    gzip_comp_level 5;
+
+    # 获取多少内存用于缓存压缩结果，16 8k 表示以 8k*16 为单位获得；
+    gzip_buffers 16 8k;
+
+    # 允许压缩的页面最小字节数，页面字节数从header头中的 Content-Length 中进行获取。默认值是 0，不管页面多大都压缩。建议设置成大于 1k 的字节数，小于 1k 可能会越压越大；
+    # gzip_min_length 2k;
+
+    # 默认 1.1，启用 gzip 所需的 HTTP 最低版本；
+    gzip_http_version 1.1;
+
+    # 禁用IE 6 gzip
+    gzip_disable "MSIE [1-6]\.";
+
+
+    ######################## Nginx缓冲区 ########################
+
+    # 设置与后端服务器建立连接时的超时时间。默认为60s
+    proxy_connect_timeout 600s;
+    # 设置从后端服务器读取响应数据的超时时间 默认为60s
+    proxy_read_timeout 600s;
+    # 设置向后端服务器传输请求数据的超时时间 默认为60s
+    proxy_send_timeout 600s;
+    # 是否启用缓冲机制，默认为on关闭状态。
+    proxy_buffering on;
+    # 设置缓冲客户端请求数据的内存大小。
+    client_body_buffer_size 512k;
+    # 为每个请求/连接设置缓冲区的数量和大小，默认4 4k/8k。
+    proxy_buffers 4 512k;
+    # 设置用于存储响应头的缓冲区大小。
+    proxy_buffer_size 512k;
+    # 在后端数据没有完全接收完成时，Nginx可以将busy状态的缓冲返回给客户端，该参数用来设置busy状态的buffer具体有多大，默认为proxy_buffer_size*2
+    proxy_busy_buffers_size 512k;
+    # 设置每次写数据到临时文件的大小限制。
+    proxy_temp_file_write_size 2m;
+    # path是临时目录的路径
+    proxy_temp_path /var/temp_buffer;
+
+
+    ######################## Nginx缓存 ########################
+    # 设置缓存路径并且使用一块最大100M的共享内存，用于硬盘上的文件索引，包括文件名和请求次数，每个文件在1天内若不活跃（无请求）则从硬盘上淘汰，硬盘缓存最大5G，满了则根据LRU算法自动清除缓存。
+    proxy_cache_path /var/cache/nginx/cache levels=1:2 use_temp_path=on keys_zone=imgcache:100m inactive=1d max_size=5g;
+    # 对于相同的请求，是否开启锁机制，只允许一个请求发往后端。on | off;
+    # proxy_cache_lock on;
+    # 配置锁超时机制，超出规定时间后会释放请求。默认为5s。
+    # proxy_cache_lock_timeout 5;
+
+    # 当上游响应的响应码'大于等于'300[常见"404"、"500"等]时; 按error_page指令处理
+    proxy_intercept_errors on;
+    # 创建自己的404.html页面 需要放在 nginx 的html路径下
+    fastcgi_intercept_errors on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+
+EOF
+
+    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
+        sudo tee /etc/nginx/conf.d/default.conf > /dev/null <<'EOF'
+# 监听 443 端口（HTTPS），并强制跳转到 HTTP
+#server {
+#    listen 443 ssl; # 监听 443 端口
+#
+#    # ssl_certificate /etc/nginx/conf.d/ssl/domain.crt; #(证书公钥)
+#    # ssl_certificate_key /etc/nginx/conf.d/ssl/domain.key; #(证书私钥)
+#    charset utf-8;
+#
+#    server_name $IP;
+#
+#    # 强制跳转到 HTTP
+#    return 301 http://$host$request_uri;
+#}
+
+
+server {
+    listen       80;
+    server_name  $IP localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+
+EOF
+
+       modify_file '/etc/nginx/conf.d/default.conf' \
+        "    server_name  \$IP local.*|    server_name  $IP localhost;" \
+        "#    server_name \$IP;|#    server_name $IP;"
+
+    fi
+
+    step "配置域名解析: $DOMAIN"
+    if [ -n "$DOMAIN" ]; then
+      # 将 . 替换为 _
+      domain_dir="${DOMAIN//./_}"
+
+      execute_command "mkdir -p $WWW_DIR/$domain_dir/public" "创建网站目录"
+
+      create_www_dir
+
+      sudo tee "$WWW_DIR/$domain_dir/public/index.php" > /dev/null <<EOF
+<?php
+echo "HELLO $DOMAIN";
+
+EOF
+
+      sudo tee "/etc/nginx/conf.d/$DOMAIN.conf" > /dev/null <<'EOF'
+server {
+    listen 80;
+    access_log  /var/log/nginx/host.access.log  main;
+    charset utf-8;
+
+    # 域名名称
+    server_name YOUR_DOMAIN www.YOUR_DOMAIN; #localhost;
+
+    root   /www/YOUR_DOMAIN_DIR/public/;
+    index  index.php index.html index.htm;
+
+    # 不带www 的全部跳转到www 域名
+    # if ($host != 'www.YOUR_DOMAIN') {
+    #     return 301 https://www.$host$request_uri;
+    # }
+
+    # 方法一：自动跳转到HTTPS(可选，如果需要强制https可以添加该配置)
+    #if ($server_port = 80){
+    #    return 301 https://$host$request_uri;
+    #}
+
+    # 方法二：自动跳转到HTTPS(可选，如果需要强制https可以添加该配置)
+    # if ($scheme = http ) {
+    #     return 301 https://$host$request_uri;
+    # }
+
+    # 默认 路径
+    location / {
+        # # alias   /www/YOUR_DOMAIN_DIR/public/;
+        # root   /www/YOUR_DOMAIN_DIR/public/;
+        # index  index.php index.html index.htm;
+
+
+        ################ 跨域处理 ################
+        # 允许跨域的请求，可以自定义变量$http_origin，*表示所有
+        add_header 'Access-Control-Allow-Origin' *;
+        # 允许携带cookie请求
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        # 允许跨域请求的方法：GET,POST,OPTIONS,PUT
+        add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT';
+        # 允许请求时携带的头部信息，*表示所有
+        add_header 'Access-Control-Allow-Headers' *;
+        # 允许发送按段获取资源的请求
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+        # 一定要有！！！否则Post请求无法进行跨域！
+        # 在发送Post跨域请求前，会以Options方式发送预检请求，服务器接受时才会正式请求
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            # 对于Options方式的请求返回204，表示接受跨域请求
+            return 204;
+        }
+
+        # 当上游响应的响应码'大于等于'300[常见"404"、"500"等]时; 按error_page指令处理
+        proxy_intercept_errors on;
+        # 创建自己的404.html页面 需要放在 nginx 的html路径下
+        fastcgi_intercept_errors on;
+
+
+        try_files $uri $uri/ /index.php?$query_string;
+
+        # 文件和目录不存在的时重定向
+        if (!-e $request_filename) {
+          # rewrite ^(.*)$ /index.php?s=$1 last;
+          rewrite ^(.*)$ /index.php last;
+          break;
+        }
+    }
+
+    # 资源缓存
+    # location ~ .*\.(html|htm|gif|jpg|jpeg|bmp|png|ico|txt|js|css)
+    # ~代表匹配时区分大小写
+    # .*代表任意字符都可以出现零次或多次，即资源名不限制
+    # \.代表匹配后缀分隔符.
+    # (html|...|css)代表匹配括号里所有静态资源类型
+    # 该配置表示匹配以.css~.webm为后缀的所有资源请求。
+    location ~* ^.+\.(css|js|ico|gif|jpg|jpeg|png|gz|svg|svgz|mp4|ogg|ogv|webm)$ {
+        log_not_found off;
+        # 关闭日志
+        access_log off;
+        # 缓存时间7天
+        expires 7d;
+        # 源服务器
+        # proxy_pass http://localhost:8888;
+        # 指定上面设置的缓存区域
+        proxy_cache imgcache;
+        # 缓存过期管理
+        proxy_cache_valid 200 302 1d;
+        proxy_cache_valid 404 10m;
+        proxy_cache_valid any 1h;
+        proxy_cache_use_stale error timeout invalid_header updating http_500 http_502 http_503 http_504;
+    }
+
+    # 定义错误页面
+    # error_page 400 401 402 403 404 405 408 410 412 413 414 415 500 501 502 503 504 505 506 @jump_to_error;
+    location @jump_to_error {
+    #    # return text - ok
+    #    # default_type text/plain; # 文本格式
+    #    # return 404 'Not Found Page...';
+
+         # return json - ok
+         default_type application/json;   # json格式
+         return 200 '{"code": "500","msg": "系统出错啦!"}';
+    }
+
+    # 定义错误页面
+    # error_page 400 401 402 403 404 405 408 410 412 413 414 415 500 501 502 503 504 505 506 /error.html;
+    # location = /error.html {
+    #    # 注意：设置了error.html 就必须在 下面的root 路径中定义一个同名的 error.html 文件
+    #    # root /etc/nginx/conf.d/error/;
+    #     root   /usr/share/nginx/html;
+    # }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # location ~ [^/]\.php(/|$) {
+    # location ~ \.php($|/) {
+    # location ~* ^.+\.php($|/) {
+    #     # 响应json
+    #     # default_type    application/json;
+    #     # return 200 '{"status":502,"msg":"服务正在升级，请稍后再试…���"}';
+    #
+    #     root   /data/www/YOUR_DOMAIN_DIR/default/dist/;
+
+    #     fastcgi_pass            127.0.0.1:9000;
+    #     # fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;                   #跟php-fpm的监听端口一样
+    #     fastcgi_split_path_info ^(.+?\.php)(/.+)$;
+    #     fastcgi_param           SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    #     fastcgi_param           PATH_INFO       $fastcgi_path_info;
+    #     fastcgi_param           PATH_TRANSLATED $document_root$fastcgi_script_name;
+    #     include                 fastcgi_params;
+    # }
+    location ~ \.php$ {
+        fastcgi_pass            127.0.0.1:9000;
+        fastcgi_split_path_info ^(.+?\.php)(/.+)$;
+        fastcgi_param           SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param           PATH_INFO       $fastcgi_path_info;
+        fastcgi_param           PATH_TRANSLATED $document_root$fastcgi_script_name;
+        include                 fastcgi_params;
+    }
+
+    # 文件和目录不存在的时重定向
+    if (!-e $request_filename) {
+       # rewrite ^(.*)$ /index.php?s=$1 last;
+       rewrite ^(.*)$ /index.php last;
+       break;
+    }
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+
+EOF
+
+      modify_file "/etc/nginx/conf.d/$DOMAIN.conf" \
+       "    server_name YOUR_DOMAIN.*|    server_name $DOMAIN www.$DOMAIN; #localhost;" \
+       "    root   /www/YOUR_DOMAIN_DIR.*|    root   /www/$domain_dir/public/;"
+
+    fi
+
+    execute_command "sudo nginx -t && sudo nginx -s reload" "重载Nginx..."
+}
+
+# 尝试使用curl获取IP
+get_ip_with_curl() {
+    local services=(
+        "ifconfig.co"
+        "ipinfo.io/ip"
+        "icanhazip.com"
+        "api.ipify.org"
+        "checkip.amazonaws.com"
+    )
+
+    for service in "${services[@]}"; do
+        ip=$(curl -s --connect-timeout 10 "$service")
+        if [ -n "$ip" ] && [ "$ip" != "Could not get your IP" ]; then
+            echo "$ip"
+            return 0
+        fi
+    done
+    return 1
 }
 
 # 安装PHP扩展
@@ -1656,6 +2150,8 @@ show_installation_result() {
 # 主安装函数
 main() {
     clear # 清屏
+    # 标记安装未完成
+    IS_FINISH='no'
 
     # 设置错误处理
     trap 'handle_error $LINENO "$BASH_COMMAND"' ERR
@@ -1680,6 +2176,8 @@ main() {
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         info "安装已取消"
+        # 标记安装结束
+        IS_FINISH='yes'
         exit 0
     fi
 
@@ -1689,6 +2187,7 @@ main() {
     # 执行安装步骤
     install_dependencies
     create_www_user
+    create_www_dir
     install_php
     install_mysql
     install_redis
@@ -1700,6 +2199,9 @@ main() {
     show_installation_result
 
     echo "安装完成时间: $(date)" | tee -a "$LOG_FILE"
+
+    # 标记安装结束
+    IS_FINISH='yes'
 }
 
 # 执行主函数
