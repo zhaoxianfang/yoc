@@ -546,12 +546,17 @@ EOF
     echo "==========================================" | tee -a "$LOG_FILE"
     echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
 
-    # 初始化包管理器
-    init_pkg_name
     # 加载配置
     load_config
+    # 初始化包管理器
+    init_pkg_name
 
     EPEL_VERSION=$(get_el_version)
+    if ! [[ "$EPEL_VERSION" =~ ^(7|8|9|10)$ ]]; then
+        # 找不到的默认使用9
+        EPEL_VERSION=9
+    fi
+
     IP=$(get_ip_with_curl)
     if domain=$(check_param "$DEPLOY_NGINX_DOMAIN"); then
         if [ -n "$domain" ]; then
@@ -715,13 +720,15 @@ install_dependencies() {
 
     # 更新包管理器
     if [[ $PKG_NAME == "yum" || $PKG_NAME == "dnf" ]]; then
-        run_background_task "$PKG_NAME update -y --allowerasing" "更新包管理器"
+        run_background_task "sudo $PKG_NAME update -y --allowerasing" "更新包管理器"
+        # run_background_task "sudo $PKG_NAME update -y" "更新包管理器"
     elif [[ $PKG_NAME == "apt" ]]; then
         execute_command "apt update -y" "更新包管理器"
     fi
 
     if [[ $PKG_NAME == "yum" || $PKG_NAME == "dnf" ]]; then
         if execute_command "sudo $PKG_NAME install -y --allowerasing epel-release" "安装 EPEL"; then
+        # if execute_command "sudo $PKG_NAME install -y epel-release" "安装 EPEL"; then
             echo "成功安装: epel-release" >> "$LOG_FILE"
         else
             warn "安装 EPEL 失败epel-release，尝试备用方式安装 EPEL..." >> "$LOG_FILE"
@@ -742,6 +749,7 @@ install_dependencies() {
     # 安装依赖包
     for package in "${common_packages[@]}"; do
         if execute_command "sudo $PKG_NAME install -y --allowerasing $package" "安装$package"; then
+        # if execute_command "sudo $PKG_NAME install -y $package" "安装$package"; then
             echo "成功安装: $package" >> "$COMMAND_FILE"
         else
             warn "安装$package失败，继续..."
@@ -792,11 +800,6 @@ check_fail_package(){
     fi
 }
 install_epel_fallback() {
-    if ! [[ "$EPEL_VERSION" =~ ^(7|8|9)$ ]]; then
-        echo "错误：无法检测EL版本。$EPEL_VERSION" >&2
-        # exit 1
-        EPEL_VERSION=8
-    fi
     echo "进行EPEL $EPEL_VERSION 安装..." >&2
 
     # 镜像源按优先级排列
@@ -1520,11 +1523,11 @@ fi
     success "Nginx安装完成"
 
     # 配置Nginx
-    configure_ngixn
+    configure_nginx
 }
 
 # 配置Nginx
-configure_ngixn(){
+configure_nginx(){
     step "配置Nginx..."
     execute_command "cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak" "备份nginx.conf"
     if [ -f "/etc/nginx/conf.d/default.conf" ]; then
@@ -1661,7 +1664,8 @@ http {
 
 EOF
 
-    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
+    # 有些版本没有default.conf文件，而是直接写在nginx.conf文件中了，所以去掉if 判断
+    # if [ -f "/etc/nginx/conf.d/default.conf" ]; then
         sudo tee /etc/nginx/conf.d/default.conf > /dev/null <<'EOF' || true
 # 监听 443 端口（HTTPS），并强制跳转到 HTTP
 #server {
@@ -1728,7 +1732,7 @@ EOF
         "    server_name  \$IP local.*|    server_name  $IP localhost;" \
         "#    server_name \$IP;|#    server_name $IP;"
 
-    fi
+    # fi
 
     step "配置域名解析: $DOMAIN"
     if [ -n "$DOMAIN" ]; then
@@ -1739,11 +1743,15 @@ EOF
 
       create_www_dir
 
-      sudo tee "$WWW_DIR/$domain_dir/public/index.php" > /dev/null <<EOF
-<?php
-echo "HELLO $DOMAIN";
+      if [ -f "/usr/share/nginx/html/index.html" ]; then
+        cp /usr/share/nginx/html/index.html "$WWW_DIR/$domain_dir/public/index.html"
+      else
+        sudo tee "$WWW_DIR/$domain_dir/public/index.php" > /dev/null <<EOF
+  <?php
+  echo "HELLO $DOMAIN";
 
 EOF
+      fi
 
       sudo tee "/etc/nginx/conf.d/$DOMAIN.conf" > /dev/null <<'EOF'
 server {
