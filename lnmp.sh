@@ -8,6 +8,8 @@
 # 兼容：
 #    1、Alibaba Cloud Linux 3
 #    2、Alibaba Cloud Linux 4
+#    3、CentOS Stream 9
+#    4、CentOS Stream 10
 # =================================================================
 
 set -euo pipefail
@@ -26,7 +28,7 @@ INSTALL_MYSQL="${INSTALL_MYSQL:-yes}" # 是否安装 mysql
 INSTALL_NGINX="${INSTALL_NGINX:-yes}" # 是否安装 nginx
 INSTALL_REDIS="${INSTALL_REDIS:-yes}" # 是否安装 redis
 INSTALL_REDIS_EXT="${INSTALL_REDIS_EXT:-yes}" # 是否安装 redis 扩展
-INSTALL_IMAGICK_EXT="${INSTALL_IMAGICK_EXT:-yes}" # 是否安装 imagick 扩展
+INSTALL_IMAGICK_EXT="${INSTALL_IMAGICK_EXT:-yes}" # 是否安装 imagick 扩展 : 注意：CentOS Stream 10 建议配置为no,安装会异常
 INSTALL_SWOOLE_EXT="${INSTALL_SWOOLE_EXT:-yes}" # 是否安装 swoole 扩展
 INSTALL_COMPOSER="${INSTALL_COMPOSER:-yes}" # 是否安装 composer
 DEPLOY_NGINX_DOMAIN="${DEPLOY_NGINX_DOMAIN:-yoc.cn}" # 是否部署 网站 域名解析文件,不带 www
@@ -68,6 +70,7 @@ PROFILE_FILE="${PROFILE_FILE:-/etc/profile}" # 环境变量配置
 SERVER_IP="${SERVER_IP:-}" # 服务器IP地址
 DOMAIN="${DOMAIN:-}" # 服务器部署域名
 IS_FINISH="${DOMAIN:-no}" # 是否完成安装
+PKG_NAME="yum" # 包管理器名称
 
 # 初始化日志
 > "$LOG_FILE"
@@ -499,10 +502,29 @@ add_rollback() {
 
 # 对齐打印信息并输入到日志中
 print_aligned() {
-    # %26s 表示右对齐，总宽度24字符（不含冒号）
-    printf "%26s: %s\n" "$1" "$2" | tee -a "$LOG_FILE"
+    local label="$1" value="$2" width=24 len=0 char
+    # 计算显示宽度
+    while IFS= read -r -n1 char; do
+        [ -n "$char" ] && len=$((len + ($(printf "%d" "'$char") > 127 ? 2 : 1)))
+    done <<< "$label"
+    # 输出右对齐结果
+    printf "%$((width - len))s%s: %s\n" "" "$label" "$value" | tee -a "$LOG_FILE"
 }
 
+# 初始化包管理器名称
+init_pkg_name(){
+  # 检测包管理器
+  if command -v dnf &> /dev/null; then
+      PKG_NAME="dnf"
+  elif command -v yum &> /dev/null; then
+      PKG_NAME="yum"
+  elif command -v apt &> /dev/null; then
+      PKG_NAME="apt"
+  else
+      error "不支持的包管理器"
+      return 1
+  fi
+}
 # 显示系统信息
 show_system_info() {
 
@@ -521,6 +543,9 @@ EOF
 
     echo "==========================================" | tee -a "$LOG_FILE"
     echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+
+    # 初始化包管理器
+    init_pkg_name
     # 加载配置
     load_config
 
@@ -545,6 +570,7 @@ EOF
     echo "内存大小: $(free -h | grep Mem | awk '{print $2}')" | tee -a "$LOG_FILE"
     echo "磁盘空间: $(df -h / | tail -1 | awk '{print $4}') 可用" | tee -a "$LOG_FILE"
     echo "当前用户: $(whoami)" | tee -a "$LOG_FILE"
+    echo "包管理器: $PKG_NAME" | tee -a "$LOG_FILE"
     echo "安装目录: $INSTALL_DIR" | tee -a "$LOG_FILE"
     echo "日志文件: $LOG_FILE" | tee -a "$LOG_FILE"
     echo "命令日志: $COMMAND_FILE" | tee -a "$LOG_FILE"
@@ -613,11 +639,7 @@ show_install_config() {
 configure_swap() {
     step "检查SWAP空间..."
 
-    if command -v yum &> /dev/null; then
-        execute_command "yum install -y bc" "安装bc依赖"
-    elif command -v dnf &> /dev/null; then
-        execute_command "dnf install -y bc" "安装bc依赖"
-    fi
+    execute_command "sudo $PKG_NAME install -y bc" "安装bc依赖"
 
     local current_swap
     current_swap=$(free -g | grep Swap | awk '{print $2}')
@@ -658,7 +680,7 @@ configure_swap() {
 # 安装依赖包
 install_dependencies() {
     step "安装系统依赖包..."
-
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
     # 扩展的依赖包列表
     local common_packages=(
         yum-utils gcc gcc-c++ autoconf libtool make wget curl cmake
@@ -682,55 +704,46 @@ install_dependencies() {
     )
 
     # 检测包管理器
-    local pkg_manager
-    if command -v yum &> /dev/null; then
-        pkg_manager="yum"
-    elif command -v dnf &> /dev/null; then
-        pkg_manager="dnf"
-    elif command -v apt &> /dev/null; then
-        pkg_manager="apt"
+    if command -v apt &> /dev/null; then
         # 转换包名为apt格式
         common_packages=($(echo "${common_packages[@]}" | sed 's/-devel/-dev/g'))
-    else
-        error "不支持的包管理器"
-        return 1
     fi
 
     # 更新包管理器
-    if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
-        run_background_task "$pkg_manager update -y --allowerasing" "更新包管理器"
-    elif [[ $pkg_manager == "apt" ]]; then
+    if [[ $PKG_NAME == "yum" || $PKG_NAME == "dnf" ]]; then
+        run_background_task "$PKG_NAME update -y --allowerasing" "更新包管理器"
+    elif [[ $PKG_NAME == "apt" ]]; then
         execute_command "apt update -y" "更新包管理器"
     fi
 
-    if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
-        if execute_command "$pkg_manager install -y --allowerasing epel-release" "安装 EPEL"; then
+    if [[ $PKG_NAME == "yum" || $PKG_NAME == "dnf" ]]; then
+        if execute_command "sudo $PKG_NAME install -y --allowerasing epel-release" "安装 EPEL"; then
             echo "成功安装: epel-release" >> "$LOG_FILE"
         else
             warn "安装 EPEL 失败epel-release，尝试备用方式安装 EPEL..." >> "$LOG_FILE"
             install_epel_fallback
         fi
-    elif [[ $pkg_manager == "apt" ]]; then
+    elif [[ $PKG_NAME == "apt" ]]; then
         execute_command "apt -y upgrade" "升级系统"
     fi
 
 
     # 安装开发工具组
-    if [[ $pkg_manager == "yum" || $pkg_manager == "dnf" ]]; then
-        run_background_task "$pkg_manager groupinstall -y 'Development Tools'" "安装开发工具组"
-    elif [[ $pkg_manager == "apt" ]]; then
+    if [[ $PKG_NAME == "yum" || $PKG_NAME == "dnf" ]]; then
+        run_background_task "sudo $PKG_NAME groupinstall -y 'Development Tools'" "安装开发工具组"
+    elif [[ $PKG_NAME == "apt" ]]; then
         execute_command "apt install -y build-essential" "安装开发工具"
     fi
 
     # 安装依赖包
     for package in "${common_packages[@]}"; do
-        if execute_command "$pkg_manager install -y --allowerasing $package" "安装$package"; then
+        if execute_command "sudo $PKG_NAME install -y --allowerasing $package" "安装$package"; then
             echo "成功安装: $package" >> "$COMMAND_FILE"
         else
             warn "安装$package失败，继续..."
             echo "安装失败: $package" >> "$COMMAND_FILE"
 
-            check_fail_package "$package" "$pkg_manager"
+            check_fail_package "$package" "$PKG_NAME"
         fi
     done
 
@@ -805,18 +818,11 @@ install_epel_fallback() {
     fi
 
     # 安装
-    if command -v dnf >/dev/null 2>&1; then
-        dnf install -y "$pkg_url" >/dev/null
-    elif command -v yum >/dev/null 2>&1; then
-        yum install -y "$pkg_url" >/dev/null
-    else
-        echo "错误：找不到包管理器。" >&2
-        exit 1
-    fi
+    execute_command "sudo $PKG_NAME install -y "$pkg_url"" "安装 EPEL $el_ver"
 
     # 验证
     if rpm -q epel-release >/dev/null 2>&1; then
-        echo "EPEL for EPEL $el_ver 已从镜像成功安装。"
+        echo "EPEL for $el_ver 已从镜像成功安装。"
     else
         echo "错误：EPEL安装失败。" >&2
         exit 1
@@ -1206,17 +1212,28 @@ install_mysql() {
         # 跳过安装
         return 0
     fi
-
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
     step "安装MySQL $MYSQL_VERSION..."
 
     # 下载MySQL Yum源
     execute_command "wget -c https://dev.mysql.com/get/mysql84-community-release-el8-1.noarch.rpm -O mysql.rpm" "下载MySQL源"
 
     # 安装MySQL源
-    execute_command "yum localinstall -y mysql.rpm" "安装MySQL源"
+    execute_command "sudo $PKG_NAME install -y mysql.rpm" "安装MySQL源"
 
     # 安装MySQL服务器
-    run_background_task "yum install -y mysql-community-server" "安装MySQL服务器"
+    if execute_command "sudo $PKG_NAME install -y mysql-community-server" "安装MySQL服务器"; then
+        echo "成功安装MySQL" >> "$LOG_FILE"
+    else
+        warn "安装Mysql失败，尝试其他方式安装..."
+        execute_command "sudo $PKG_NAME remove -y mysql-community-release" "清理之前的安装"
+        execute_command "rm -f mysql.rpm" "清理之前的安装文件"
+
+        execute_command "wget -c https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm -O mysql.rpm" "下载 el9 版本的仓库"
+        execute_command "sudo $PKG_NAME install -y mysql.rpm" "安装MySQL源"
+        # 安装MySQL
+        run_background_task "sudo $PKG_NAME install -y mysql-community-server" "安装MySQL服务器"
+    fi
 
     # 启动MySQL服务
     execute_command "systemctl start mysqld" "启动MySQL服务"
@@ -1246,7 +1263,7 @@ install_mysql() {
     optimize_mysql
 
     # 添加回滚操作
-    add_rollback "systemctl stop mysqld; yum remove -y mysql-community-server; rm -f /etc/yum.repos.d/mysql-community*"
+    add_rollback "systemctl stop mysqld; $PKG_NAME remove -y mysql-community-server; rm -f /etc/yum.repos.d/mysql-community*"
 
     success "MySQL安装完成"
 }
@@ -1453,13 +1470,36 @@ install_nginx() {
 
     step "安装Nginx $NGINX_VERSION..."
 
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
+
     local nginx_url="http://nginx.org/packages/centos/8/x86_64/RPMS/nginx-$NGINX_VERSION-1.el8.ngx.x86_64.rpm"
 
     # 下载Nginx RPM包
     execute_command "wget -c $nginx_url -O nginx.rpm" "下载Nginx安装包"
 
     # 安装Nginx
-    execute_command "yum localinstall -y nginx.rpm" "安装Nginx"
+    if execute_command "sudo $PKG_NAME install -y nginx.rpm" "安装Nginx"; then
+        echo "成功安装Nginx" >> "$LOG_FILE"
+    else
+        warn "安装Nginx失败，尝试其他方式安装..."
+        execute_command "rm -f nginx.rpm" "清理之前的安装文件"
+
+        echo "添加Nginx官方仓库..." >> "$LOG_FILE"
+
+        sudo tee /etc/yum.repos.d/nginx.repo > /dev/null << 'EOF'
+        [nginx-mainline]
+        name=nginx mainline repo
+        baseurl=https://nginx.org/packages/mainline/centos/\$releasever/\$basearch/
+        gpgcheck=1
+        enabled=1
+        gpgkey=https://nginx.org/keys/nginx_signing.key
+        module_hotfixes=true
+EOF
+
+        # 安装Nginx
+        execute_command "sudo $PKG_NAME install -y nginx" "安装Nginx"
+
+    fi
 
     # 修改Nginx配置
     execute_command "sed -i 's/user  nginx/user $WWW_USER/' /etc/nginx/nginx.conf" "配置Nginx运行用户"
@@ -1484,7 +1524,7 @@ fi
     execute_command "systemctl enable nginx" "设置Nginx开机启动"
 
     # 添加回滚操作
-    add_rollback "systemctl stop nginx; yum remove -y nginx"
+    add_rollback "systemctl stop nginx; $PKG_NAME remove -y nginx"
 
     success "Nginx安装完成"
 
@@ -1496,9 +1536,15 @@ fi
 configure_ngixn(){
     step "配置Nginx..."
     execute_command "cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak" "备份nginx.conf"
-    execute_command "cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak" "备份default.conf"
+    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
+        execute_command "cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak" "备份default.conf"
+    fi
 
-    sudo tee /etc/nginx/nginx.conf > /dev/null <<'EOF'
+    # 创建所有必要的Nginx目录
+    sudo mkdir -p /var/cache/nginx/cache
+
+    #  || true 忽略错误
+    sudo tee /etc/nginx/nginx.conf > /dev/null <<'EOF' || true
 user  nginx;
 # user www;
 # 自动根据CPU核心数调整Worker进程数量
@@ -1625,7 +1671,7 @@ http {
 EOF
 
     if [ -f "/etc/nginx/conf.d/default.conf" ]; then
-        sudo tee /etc/nginx/conf.d/default.conf > /dev/null <<'EOF'
+        sudo tee /etc/nginx/conf.d/default.conf > /dev/null <<'EOF' || true
 # 监听 443 端口（HTTPS），并强制跳转到 HTTP
 #server {
 #    listen 443 ssl; # 监听 443 端口
@@ -1934,6 +1980,8 @@ install_redis_extension() {
         return 0
     fi
 
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
+
     info "安装PHP Redis扩展..."
 
     local ext_url="https://github.com/phpredis/phpredis/archive/$REDIS_PHP_EXT_VERSION.tar.gz"
@@ -1963,7 +2011,7 @@ install_imagick_extension() {
         # 跳过安装
         return 0
     fi
-
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
     info "安装PHP Imagick扩展..."
 
     local ext_url="https://github.com/Imagick/imagick/archive/refs/tags/$IMAGICK_PHP_EXT_VERSION.tar.gz"
@@ -1992,7 +2040,7 @@ install_swoole_extension() {
     if ! need_install "$INSTALL_SWOOLE_EXT"; then
         return 0
     fi
-
+    cd "$INSTALL_DIR" || { error "无法进入安装目录"; return 1; }
     info "安装PHP Swoole扩展..."
 
     local ext_url="https://github.com/swoole/swoole-src/archive/refs/tags/v$SWOOLE_PHP_EXT_VERSION.tar.gz"
